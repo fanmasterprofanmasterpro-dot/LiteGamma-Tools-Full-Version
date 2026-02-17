@@ -34,7 +34,7 @@ GITHUB_RAW_BASE = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO
 GITHUB_API_BASE = f"https://api.github.com/repos/{GITHUB_USER}/{GITHUB_REPO}"
 
 # =============== ВЕРСИЯ ПРОГРАММЫ ===============
-CURRENT_VERSION = "1.2.1"  
+CURRENT_VERSION = "1.2.3"  
 UPDATE_CHECK_INTERVAL = 3600
 LAST_UPDATE_CHECK_FILE = "last_update_check.json"
 AUTO_UPDATE = True
@@ -144,7 +144,7 @@ class UpdateManager:
             return version1 > version2
 
     def should_check_update(self):
-        """Проверяет, нужно ли проверять обновления"""
+        
         try:
             if os.path.exists(LAST_UPDATE_CHECK_FILE):
                 with open(LAST_UPDATE_CHECK_FILE, 'r') as f:
@@ -156,7 +156,7 @@ class UpdateManager:
             return True
 
     def save_last_check(self):
-        """Сохраняет время последней проверки"""
+       
         try:
             with open(LAST_UPDATE_CHECK_FILE, 'w') as f:
                 json.dump({'last_check': time.time()}, f)
@@ -164,7 +164,7 @@ class UpdateManager:
             pass
 
     async def perform_update(self, remote_data):
-        """Выполняет обновление скрипта"""
+        
         global CURRENT_VERSION
 
         try:
@@ -244,7 +244,7 @@ class UpdateManager:
             return False
 
     def save_config_without_version(self):
-        """Сохраняет конфигурацию без версии"""
+        
         config = {
             "api_id": current_api_id,
             "api_hash": current_api_hash,
@@ -277,7 +277,7 @@ class UpdateManager:
             print(f"{Fore.RED}✘ Ошибка сохранения: {e}{Style.RESET_ALL}")
 
     def update_version_in_file(self, content, new_version):
-        """Обновляет версию в файле"""
+       
         import re
 
         
@@ -302,7 +302,7 @@ class UpdateManager:
         return updated_content
 
     def verify_version_in_file(self):
-        """Проверяет, какая версия реально записана в файле"""
+       
         try:
             with open(__file__, 'r', encoding='utf-8') as f:
                 content = f.read()
@@ -318,13 +318,13 @@ class UpdateManager:
         return None
 
     def restart_program(self):
-        """Перезапускает программу"""
+    
         print(f"{Fore.CYAN}🔄 Перезапуск...{Style.RESET_ALL}")
         python = sys.executable
         os.execl(python, python, *sys.argv)
 
     async def show_update_menu(self):
-        """Показывает меню обновлений"""
+        
         while True:
             os.system('cls' if os.name == 'nt' else 'clear')
             print_header("🔄 СИСТЕМА ОБНОВЛЕНИЙ")
@@ -376,7 +376,7 @@ class UpdateManager:
                 break
 
     async def diagnose_version(self):
-        """Диагностика проблемы с версией"""
+        
         print(f"\n{Fore.CYAN}🔍 ДИАГНОСТИКА ВЕРСИИ:{Style.RESET_ALL}")
         print(f"  Глобальная CURRENT_VERSION: {CURRENT_VERSION}")
         print(f"  GitHub пользователь: {GITHUB_USER}")
@@ -402,7 +402,7 @@ class UpdateManager:
         except Exception as e:
             print(f"  {Fore.RED}Ошибка: {e}{Style.RESET_ALL}")
         
-        # Проверяем сам файл скрипта
+      
         filename = os.path.basename(__file__)
         encoded_filename = filename.replace(' ', '%20')
         script_url = f"{GITHUB_RAW_BASE}/{encoded_filename}"
@@ -437,7 +437,7 @@ class UpdateManager:
             print(f"     Версия: {version}, Размер: {size:.1f}KB, Дата: {modified.strftime('%Y-%m-%d %H:%M')}")
 
     def restore_from_backup(self):
-        """Восстанавливает из бэкапа"""
+       
         backups = sorted(Path(self.backup_folder).glob("backup_*.py"), reverse=True)
 
         if not backups:
@@ -466,7 +466,7 @@ class UpdateManager:
             print(f"{Fore.RED}❌ Неверный выбор{Style.RESET_ALL}")
 
     def show_update_settings(self):
-        """Настройки обновлений"""
+       
         global AUTO_UPDATE, NOTIFY_ON_UPDATE, UPDATE_CHECK_INTERVAL
 
         while True:
@@ -497,7 +497,7 @@ class UpdateManager:
                 break
 
 
-# Создаем глобальный менеджер обновлений
+
 update_manager = UpdateManager()
 
 
@@ -513,7 +513,7 @@ def print_stata(text):
     print(f"{CLR_ACCENT}╚" + "═" * (len(text) + 4) + "╝\n")
 
 
-# =============== CONFIGURATION ===============
+
 DEFAULT_API_ID = 0
 DEFAULT_API_HASH = "ЗАМЕНИТЕ НА ВАШ API HASH, ТАКЖЕ НАСТРОЙТЕ API ID "
 DEFAULT_SESSION_FOLDER = "session"
@@ -2409,3 +2409,4 @@ if __name__ == '__main__':
     except Exception as e:
         print(f"\n{Fore.RED}✘ Ошибка: {e}{Style.RESET_ALL}")
         traceback.print_exc()
+
