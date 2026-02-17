@@ -543,7 +543,7 @@ class UpdateManager:
 
             
 
-            version_line = f'\nCURRENT_VERSION = "1.2.2"\n'
+            version_line = f'\nCURRENT_VERSION = "{new_version}"\n'
 
            
 
@@ -4774,6 +4774,7 @@ if __name__ == '__main__':
         print(f"\n{Fore.RED}✘ Ошибка: {e}{Style.RESET_ALL}")
 
         traceback.print_exc()
+
 
 
 
