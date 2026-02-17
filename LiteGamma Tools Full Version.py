@@ -111,13 +111,13 @@ class UpdateManager:
         """Сравнивает две версии"""
         v1_parts = [int(x) for x in version1.split('.')]
         v2_parts = [int(x) for x in version2.split('.')]
-        
+
         # Дополняем нулями до одинаковой длины
         while len(v1_parts) < len(v2_parts):
             v1_parts.append(0)
         while len(v2_parts) < len(v1_parts):
             v2_parts.append(0)
-        
+
         for i in range(len(v1_parts)):
             if v1_parts[i] > v2_parts[i]:
                 return 1
@@ -147,6 +147,8 @@ class UpdateManager:
 
     async def perform_update(self, remote_data):
         """Выполняет обновление скрипта"""
+        global CURRENT_VERSION
+
         try:
             print(f"\n{Fore.YELLOW}⚙️ Начинаю обновление до версии {self.new_version}...{Style.RESET_ALL}")
 
@@ -187,7 +189,6 @@ class UpdateManager:
                     f.write(new_content)
 
                 # Обновляем глобальную переменную
-                global CURRENT_VERSION
                 CURRENT_VERSION = self.new_version
 
                 print(f"{Fore.GREEN}✅ Скрипт успешно обновлен до версии {self.new_version}!{Style.RESET_ALL}")
@@ -221,7 +222,7 @@ class UpdateManager:
     def update_version_in_file(self, content, new_version):
         """Обновляет версию в файле"""
         import re
-        
+
         # Ищем разные варианты объявления версии
         patterns = [
             (r'CURRENT_VERSION\s*=\s*["\']([^"\']+)["\']', f'CURRENT_VERSION = "{new_version}"'),
@@ -229,11 +230,11 @@ class UpdateManager:
             (r'__version__\s*=\s*["\']([^"\']+)["\']', f'__version__ = "{new_version}"'),
             (r'VERSION\s*=\s*["\']([^"\']+)["\']', f'VERSION = "{new_version}"')
         ]
-        
+
         updated_content = content
         for pattern, replacement in patterns:
             updated_content = re.sub(pattern, replacement, updated_content)
-        
+
         # Проверяем, что замена произошла
         if updated_content == content:
             # Если не нашли, добавляем объявление версии после импортов
@@ -242,7 +243,7 @@ class UpdateManager:
             import_end = updated_content.find('\n\n')
             if import_end != -1:
                 updated_content = updated_content[:import_end] + version_line + updated_content[import_end:]
-        
+
         return updated_content
 
     def verify_version_in_file(self):
@@ -250,7 +251,7 @@ class UpdateManager:
         try:
             with open(__file__, 'r', encoding='utf-8') as f:
                 content = f.read()
-            
+
             # Ищем версию в файле
             import re
             version_match = re.search(r'CURRENT_VERSION\s*=\s*["\']?([0-9.]+)["\']?', content)
@@ -318,11 +319,11 @@ class UpdateManager:
         """Диагностика проблемы с версией"""
         print(f"{Fore.CYAN}🔍 Диагностика версии:{Style.RESET_ALL}")
         print(f"  Глобальная CURRENT_VERSION: {CURRENT_VERSION}")
-        
+
         # Проверяем в файле
         file_version = self.verify_version_in_file()
         print(f"  Версия в файле: {file_version}")
-        
+
         # Проверяем в конфиге
         try:
             if os.path.exists(config_file):
@@ -332,7 +333,7 @@ class UpdateManager:
                     print(f"  Версия в config.json: {config_version}")
         except:
             print(f"  Версия в config.json: ошибка чтения")
-        
+
         # Проверяем в version.json на GitHub
         try:
             response = requests.get(f"{GITHUB_RAW_BASE}/version.json", timeout=5)
@@ -2041,13 +2042,14 @@ async def add_session_by_number():
 
 async def main_menu():
     """Главное меню программы."""
+    global CURRENT_VERSION  # Добавляем global здесь
+
     load_config()
     os.makedirs(session_folder, exist_ok=True)
 
     # Проверяем реальную версию в файле
     file_version = update_manager.verify_version_in_file()
     if file_version and file_version != CURRENT_VERSION:
-        global CURRENT_VERSION
         print(f"{Fore.YELLOW}⚠️ Обновляю версию в памяти: {CURRENT_VERSION} -> {file_version}{Style.RESET_ALL}")
         CURRENT_VERSION = file_version
         save_config()
