@@ -521,22 +521,11 @@ class UpdateManager:
 
 
     def update_version_in_file(self, content, new_version):
-
-       
-
-        import re
-
-
-
-        
-
-        patterns = [
-
-            (r'CURRENT_VERSION\s*=\s*["\']([^"\']+)["\']', f'CURRENT_VERSION = "1.2.2"'),
-
-            (r'CURRENT_VERSION\s*=\s*([0-9.]+)', f'CURRENT_VERSION = "1.2.2"')
-
-        ]
+    import re
+    patterns = [
+        (r'CURRENT_VERSION\s*=\s*["\']([^"\']+)["\']', f'CURRENT_VERSION = "{new_version}"'),
+        (r'CURRENT_VERSION\s*=\s*([0-9.]+)', f'CURRENT_VERSION = "{new_version}"')
+    ]
 
 
 
@@ -4785,6 +4774,7 @@ if __name__ == '__main__':
         print(f"\n{Fore.RED}✘ Ошибка: {e}{Style.RESET_ALL}")
 
         traceback.print_exc()
+
 
 
 
