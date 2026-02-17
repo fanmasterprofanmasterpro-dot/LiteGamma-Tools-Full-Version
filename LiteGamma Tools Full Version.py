@@ -34,7 +34,7 @@ GITHUB_RAW_BASE = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO
 GITHUB_API_BASE = f"https://api.github.com/repos/{GITHUB_USER}/{GITHUB_REPO}"
 
 # =============== ВЕРСИЯ ПРОГРАММЫ ===============
-CURRENT_VERSION = "1.2.1" 
+CURRENT_VERSION = "1.2.2"  
 UPDATE_CHECK_INTERVAL = 3600
 LAST_UPDATE_CHECK_FILE = "last_update_check.json"
 AUTO_UPDATE = True
@@ -69,7 +69,7 @@ class UpdateManager:
             print(f"{Fore.CYAN}🔍 Проверка обновлений...{Style.RESET_ALL}")
             await add_to_log_buffer("🔍 Проверка обновлений...")
 
-            # Формируем URL для version.json
+          
             version_url = f"{GITHUB_RAW_BASE}/version.json"
             print(f"{Fore.CYAN}URL для проверки: {version_url}{Style.RESET_ALL}")
             
@@ -86,7 +86,7 @@ class UpdateManager:
             print(f"{Fore.CYAN}Версия на GitHub: {remote_version}{Style.RESET_ALL}")
             print(f"{Fore.CYAN}Текущая версия: {CURRENT_VERSION}{Style.RESET_ALL}")
 
-            # Сравниваем версии
+            
             if self.is_newer_version(remote_version, CURRENT_VERSION):
                 self.update_available = True
                 self.new_version = remote_version
@@ -128,7 +128,6 @@ class UpdateManager:
             v1_parts = [int(x) for x in version1.split('.')]
             v2_parts = [int(x) for x in version2.split('.')]
 
-            # Дополняем нулями до одинаковой длины
             while len(v1_parts) < 3:
                 v1_parts.append(0)
             while len(v2_parts) < 3:
@@ -141,7 +140,7 @@ class UpdateManager:
                     return False
             return False
         except:
-            # Если не удалось сравнить, сравниваем как строки
+           
             return version1 > version2
 
     def should_check_update(self):
@@ -187,12 +186,12 @@ class UpdateManager:
 
             print(f"{Fore.GREEN}✅ Бэкап создан: {backup_path}{Style.RESET_ALL}")
 
-            # Формируем правильный URL для скачивания
+          
             filename = os.path.basename(__file__)
-            # Заменяем пробелы на %20 в имени файла
+          
             encoded_filename = filename.replace(' ', '%20')
             
-            # Используем URL из remote_data или формируем сами
+          
             script_url = remote_data.get('download_url', f"{GITHUB_RAW_BASE}/{encoded_filename}")
             
             print(f"{Fore.CYAN}Скачиваю с URL: {script_url}{Style.RESET_ALL}")
@@ -201,7 +200,7 @@ class UpdateManager:
             if response.status_code == 200:
                 new_content = response.text
                 
-                # Проверяем, что скачали не пустой файл
+               
                 if len(new_content) < 100:
                     print(f"{Fore.RED}❌ Скачанный файл слишком мал. Возможно, неверный URL.{Style.RESET_ALL}")
                     return False
@@ -217,8 +216,8 @@ class UpdateManager:
 
                 print(f"{Fore.GREEN}✅ Скрипт успешно обновлен до версии {self.new_version}!{Style.RESET_ALL}")
 
-                # Сохраняем в конфиг
-                save_config()
+              
+                self.save_config_without_version()
 
                 if NOTIFY_ON_UPDATE and notification_enabled:
                     await send_notification(
@@ -244,11 +243,44 @@ class UpdateManager:
             traceback.print_exc()
             return False
 
+    def save_config_without_version(self):
+        """Сохраняет конфигурацию без версии"""
+        config = {
+            "api_id": current_api_id,
+            "api_hash": current_api_hash,
+            "session_folder": session_folder,
+            "message": message_to_send,
+            "delay_messages": delay_between_messages,
+            "delay_accounts": delay_between_accounts,
+            "max_messages_per_account": max_messages_per_account,
+            "repeat_broadcast": repeat_broadcast,
+            "repeat_interval": repeat_interval,
+            "delete_after_send": delete_after_send,
+            "recipient_type": recipient_type,
+            "use_media": use_media,
+            "media_path": media_path,
+            "fast_mode": fast_mode,
+            "fast_delay": fast_delay,
+            "notification_enabled": notification_enabled,
+            "notification_bot_token": notification_bot_token,
+            "notification_chat_id": notification_chat_id,
+            "notify_invalid_session": notify_invalid_session,
+            "notify_cycle_results": notify_cycle_results,
+            "notify_full_logs": notify_full_logs
+        
+        }
+        try:
+            with open(config_file, 'w', encoding='utf-8') as f:
+                json.dump(config, f, ensure_ascii=False, indent=2)
+            print(f"{Fore.GREEN}✔ Конфигурация сохранена.{Style.RESET_ALL}")
+        except Exception as e:
+            print(f"{Fore.RED}✘ Ошибка сохранения: {e}{Style.RESET_ALL}")
+
     def update_version_in_file(self, content, new_version):
         """Обновляет версию в файле"""
         import re
 
-        # Ищем разные варианты объявления версии
+   
         patterns = [
             (r'CURRENT_VERSION\s*=\s*["\']([^"\']+)["\']', f'CURRENT_VERSION = "{new_version}"'),
             (r'CURRENT_VERSION\s*=\s*([0-9.]+)', f'CURRENT_VERSION = "{new_version}"')
@@ -258,11 +290,11 @@ class UpdateManager:
         for pattern, replacement in patterns:
             updated_content = re.sub(pattern, replacement, updated_content)
 
-        # Проверяем, что замена произошла
+       
         if updated_content == content:
-            # Если не нашли, добавляем объявление версии после импортов
+          
             version_line = f'\nCURRENT_VERSION = "{new_version}"\n'
-            # Вставляем после импортов
+           
             import_end = updated_content.find('\n\n')
             if import_end != -1:
                 updated_content = updated_content[:import_end] + version_line + updated_content[import_end:]
@@ -275,7 +307,7 @@ class UpdateManager:
             with open(__file__, 'r', encoding='utf-8') as f:
                 content = f.read()
 
-            # Ищем версию в файле
+      
             import re
             version_match = re.search(r'CURRENT_VERSION\s*=\s*["\']?([0-9.]+)["\']?', content)
             if version_match:
@@ -321,7 +353,7 @@ class UpdateManager:
                 await self.check_for_updates(force=True)
                 input("\nНажмите Enter...")
             elif choice == '2' and self.update_available:
-                # Создаем словарь с данными для обновления
+               
                 update_data = {
                     'version': self.new_version,
                     'changelog': self.changelog,
@@ -351,7 +383,7 @@ class UpdateManager:
         print(f"  GitHub репозиторий: {GITHUB_REPO}")
         print(f"  GitHub ветка: {GITHUB_BRANCH}")
         
-        # Проверяем файл version.json на GitHub
+    
         version_url = f"{GITHUB_RAW_BASE}/version.json"
         print(f"\n{Fore.CYAN}Проверка version.json:{Style.RESET_ALL}")
         print(f"  URL: {version_url}")
@@ -370,7 +402,7 @@ class UpdateManager:
         except Exception as e:
             print(f"  {Fore.RED}Ошибка: {e}{Style.RESET_ALL}")
         
-        # Проверяем сам файл скрипта
+     
         filename = os.path.basename(__file__)
         encoded_filename = filename.replace(' ', '%20')
         script_url = f"{GITHUB_RAW_BASE}/{encoded_filename}"
@@ -655,6 +687,7 @@ async def send_notification(message, notification_type="info"):
 
 
 def save_config():
+    """Сохраняет конфигурацию без версии"""
     config = {
         "api_id": current_api_id,
         "api_hash": current_api_hash,
@@ -676,8 +709,8 @@ def save_config():
         "notification_chat_id": notification_chat_id,
         "notify_invalid_session": notify_invalid_session,
         "notify_cycle_results": notify_cycle_results,
-        "notify_full_logs": notify_full_logs,
-        "current_version": CURRENT_VERSION
+        "notify_full_logs": notify_full_logs
+        # Версию НЕ сохраняем!
     }
     try:
         with open(config_file, 'w', encoding='utf-8') as f:
@@ -688,7 +721,8 @@ def save_config():
 
 
 def load_config():
-    global current_api_id, current_api_hash, session_folder, message_to_send, delay_between_messages, delay_between_accounts, max_messages_per_account, repeat_broadcast, repeat_interval, delete_after_send, recipient_type, use_media, media_path, fast_mode, fast_delay, notification_enabled, notification_bot_token, notification_chat_id, notify_invalid_session, notify_cycle_results, notify_full_logs, CURRENT_VERSION
+    """Загружает конфигурацию без версии"""
+    global current_api_id, current_api_hash, session_folder, message_to_send, delay_between_messages, delay_between_accounts, max_messages_per_account, repeat_broadcast, repeat_interval, delete_after_send, recipient_type, use_media, media_path, fast_mode, fast_delay, notification_enabled, notification_bot_token, notification_chat_id, notify_invalid_session, notify_cycle_results, notify_full_logs
     try:
         if os.path.exists(config_file):
             with open(config_file, 'r', encoding='utf-8') as f:
@@ -714,7 +748,7 @@ def load_config():
                 notify_invalid_session = config.get("notify_invalid_session", DEFAULT_NOTIFY_INVALID_SESSION)
                 notify_cycle_results = config.get("notify_cycle_results", DEFAULT_NOTIFY_CYCLE_RESULTS)
                 notify_full_logs = config.get("notify_full_logs", DEFAULT_NOTIFY_FULL_LOGS)
-                CURRENT_VERSION = config.get("current_version", CURRENT_VERSION)
+                # Версию НЕ загружаем!
             print(f"{Fore.GREEN}✔ Конфигурация загружена.{Style.RESET_ALL}")
     except Exception as e:
         print(f"{Fore.YELLOW}⚠️ Ошибка загрузки конфигурации: {e}{Style.RESET_ALL}")
@@ -2089,13 +2123,6 @@ async def main_menu():
 
     load_config()
     os.makedirs(session_folder, exist_ok=True)
-
-    # Проверяем реальную версию в файле
-    file_version = update_manager.verify_version_in_file()
-    if file_version and file_version != CURRENT_VERSION:
-        print(f"{Fore.YELLOW}⚠️ Обновляю версию в памяти: {CURRENT_VERSION} -> {file_version}{Style.RESET_ALL}")
-        CURRENT_VERSION = file_version
-        save_config()
 
     # Проверка обновлений при запуске
     if AUTO_UPDATE:
