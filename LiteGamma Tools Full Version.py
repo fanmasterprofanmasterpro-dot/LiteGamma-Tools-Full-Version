@@ -26,7 +26,7 @@ from telethon.errors import (
 )
 from colorama import init, Fore, Style
 
-# =============== UPDATE CONFIGURATION ===============
+# =============== UPDATE CONFIGURATION ============
 GITHUB_USER = "fanmasterprofanmasterpro-dot"
 GITHUB_REPO = "LiteGamma-Tools-Full-Version"
 GITHUB_BRANCH = "main"
@@ -2381,3 +2381,4 @@ if __name__ == '__main__':
     except Exception as e:
         print(f"\n{Fore.RED}✘ Ошибка: {e}{Style.RESET_ALL}")
         traceback.print_exc()
+
