@@ -68,18 +68,25 @@ class UpdateManager:
             print(f"{Fore.CYAN}🔍 Проверка обновлений...{Style.RESET_ALL}")
             await add_to_log_buffer("🔍 Проверка обновлений...")
 
+            # Формируем URL для version.json
             version_url = f"{GITHUB_RAW_BASE}/version.json"
+            print(f"{Fore.CYAN}URL для проверки: {version_url}{Style.RESET_ALL}")
+            
             response = requests.get(version_url, timeout=10)
 
             if response.status_code != 200:
-                print(f"{Fore.YELLOW}⚠️ Не удалось проверить обновления{Style.RESET_ALL}")
+                print(f"{Fore.YELLOW}⚠️ Не удалось проверить обновления. Код ответа: {response.status_code}{Style.RESET_ALL}")
+                print(f"{Fore.YELLOW}URL: {version_url}{Style.RESET_ALL}")
                 return False
 
             remote_data = response.json()
             remote_version = remote_data.get("version", "0.0.0")
+            
+            print(f"{Fore.CYAN}Версия на GitHub: {remote_version}{Style.RESET_ALL}")
+            print(f"{Fore.CYAN}Текущая версия: {CURRENT_VERSION}{Style.RESET_ALL}")
 
             # Сравниваем версии
-            if self.compare_versions(remote_version, CURRENT_VERSION) > 0:
+            if self.is_newer_version(remote_version, CURRENT_VERSION):
                 self.update_available = True
                 self.new_version = remote_version
                 self.changelog = remote_data.get("changelog", [])
@@ -103,27 +110,38 @@ class UpdateManager:
                 self.save_last_check()
                 return False
 
+        except requests.exceptions.ConnectionError:
+            print(f"{Fore.RED}❌ Ошибка подключения к GitHub. Проверьте интернет.{Style.RESET_ALL}")
+            return False
+        except json.JSONDecodeError:
+            print(f"{Fore.RED}❌ Ошибка чтения version.json. Проверьте файл на GitHub.{Style.RESET_ALL}")
+            return False
         except Exception as e:
-            print(f"{Fore.YELLOW}⚠️ Ошибка при проверке обновлений: {e}{Style.RESET_ALL}")
+            print(f"{Fore.RED}❌ Ошибка при проверке обновлений: {e}{Style.RESET_ALL}")
+            traceback.print_exc()
             return False
 
-    def compare_versions(self, version1, version2):
-        """Сравнивает две версии"""
-        v1_parts = [int(x) for x in version1.split('.')]
-        v2_parts = [int(x) for x in version2.split('.')]
+    def is_newer_version(self, version1, version2):
+        """Проверяет, является ли version1 новее version2"""
+        try:
+            v1_parts = [int(x) for x in version1.split('.')]
+            v2_parts = [int(x) for x in version2.split('.')]
 
-        # Дополняем нулями до одинаковой длины
-        while len(v1_parts) < len(v2_parts):
-            v1_parts.append(0)
-        while len(v2_parts) < len(v1_parts):
-            v2_parts.append(0)
+            # Дополняем нулями до одинаковой длины
+            while len(v1_parts) < 3:
+                v1_parts.append(0)
+            while len(v2_parts) < 3:
+                v2_parts.append(0)
 
-        for i in range(len(v1_parts)):
-            if v1_parts[i] > v2_parts[i]:
-                return 1
-            elif v1_parts[i] < v2_parts[i]:
-                return -1
-        return 0
+            for i in range(3):
+                if v1_parts[i] > v2_parts[i]:
+                    return True
+                elif v1_parts[i] < v2_parts[i]:
+                    return False
+            return False
+        except:
+            # Если не удалось сравнить, сравниваем как строки
+            return version1 > version2
 
     def should_check_update(self):
         """Проверяет, нужно ли проверять обновления"""
@@ -152,8 +170,10 @@ class UpdateManager:
         try:
             print(f"\n{Fore.YELLOW}⚙️ Начинаю обновление до версии {self.new_version}...{Style.RESET_ALL}")
 
+            # Создаем папку для бэкапов
             os.makedirs(self.backup_folder, exist_ok=True)
 
+            # Создаем бэкап текущей версии
             backup_name = f"backup_v{CURRENT_VERSION}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.py"
             backup_path = os.path.join(self.backup_folder, backup_name)
 
@@ -166,21 +186,24 @@ class UpdateManager:
 
             print(f"{Fore.GREEN}✅ Бэкап создан: {backup_path}{Style.RESET_ALL}")
 
-            script_url = remote_data.get('download_url', f"{GITHUB_RAW_BASE}/LiteGamma%20Tools%20Full%20Version.py")
-
-            expected_sha256 = remote_data.get('checksums', {}).get('sha256')
+            # Формируем правильный URL для скачивания
+            filename = os.path.basename(__file__)
+            # Заменяем пробелы на %20 в имени файла
+            encoded_filename = filename.replace(' ', '%20')
+            
+            # Используем URL из remote_data или формируем сами
+            script_url = remote_data.get('download_url', f"{GITHUB_RAW_BASE}/{encoded_filename}")
+            
+            print(f"{Fore.CYAN}Скачиваю с URL: {script_url}{Style.RESET_ALL}")
 
             response = requests.get(script_url, timeout=30)
             if response.status_code == 200:
                 new_content = response.text
-
-                if expected_sha256:
-                    actual_sha256 = hashlib.sha256(new_content.encode()).hexdigest()
-                    if actual_sha256 != expected_sha256:
-                        print(f"{Fore.RED}❌ Ошибка: хеш файла не совпадает!{Style.RESET_ALL}")
-                        print(f"Ожидаемый: {expected_sha256}")
-                        print(f"Полученный: {actual_sha256}")
-                        return False
+                
+                # Проверяем, что скачали не пустой файл
+                if len(new_content) < 100:
+                    print(f"{Fore.RED}❌ Скачанный файл слишком мал. Возможно, неверный URL.{Style.RESET_ALL}")
+                    return False
 
                 # Обновляем версию в файле
                 new_content = self.update_version_in_file(new_content, self.new_version)
@@ -211,7 +234,8 @@ class UpdateManager:
 
                 return True
             else:
-                print(f"{Fore.RED}❌ Не удалось скачать обновление{Style.RESET_ALL}")
+                print(f"{Fore.RED}❌ Не удалось скачать обновление. Код ответа: {response.status_code}{Style.RESET_ALL}")
+                print(f"{Fore.RED}URL: {script_url}{Style.RESET_ALL}")
                 return False
 
         except Exception as e:
@@ -226,9 +250,7 @@ class UpdateManager:
         # Ищем разные варианты объявления версии
         patterns = [
             (r'CURRENT_VERSION\s*=\s*["\']([^"\']+)["\']', f'CURRENT_VERSION = "{new_version}"'),
-            (r'CURRENT_VERSION\s*=\s*([0-9.]+)', f'CURRENT_VERSION = "{new_version}"'),
-            (r'__version__\s*=\s*["\']([^"\']+)["\']', f'__version__ = "{new_version}"'),
-            (r'VERSION\s*=\s*["\']([^"\']+)["\']', f'VERSION = "{new_version}"')
+            (r'CURRENT_VERSION\s*=\s*([0-9.]+)', f'CURRENT_VERSION = "{new_version}"')
         ]
 
         updated_content = content
@@ -257,10 +279,9 @@ class UpdateManager:
             version_match = re.search(r'CURRENT_VERSION\s*=\s*["\']?([0-9.]+)["\']?', content)
             if version_match:
                 file_version = version_match.group(1)
-                print(f"{Fore.CYAN}📄 Версия в файле: {file_version}{Style.RESET_ALL}")
                 return file_version
-        except Exception as e:
-            print(f"{Fore.RED}✘ Ошибка проверки версии: {e}{Style.RESET_ALL}")
+        except:
+            pass
         return None
 
     def restart_program(self):
@@ -299,7 +320,13 @@ class UpdateManager:
                 await self.check_for_updates(force=True)
                 input("\nНажмите Enter...")
             elif choice == '2' and self.update_available:
-                await self.perform_update({'version': self.new_version, 'changelog': self.changelog})
+                # Создаем словарь с данными для обновления
+                update_data = {
+                    'version': self.new_version,
+                    'changelog': self.changelog,
+                    'download_url': f"{GITHUB_RAW_BASE}/LiteGamma%20Tools%20Full%20Version.py"
+                }
+                await self.perform_update(update_data)
                 input("\nНажмите Enter...")
             elif choice == '3':
                 self.show_update_history()
@@ -317,32 +344,47 @@ class UpdateManager:
 
     async def diagnose_version(self):
         """Диагностика проблемы с версией"""
-        print(f"{Fore.CYAN}🔍 Диагностика версии:{Style.RESET_ALL}")
+        print(f"\n{Fore.CYAN}🔍 ДИАГНОСТИКА ВЕРСИИ:{Style.RESET_ALL}")
         print(f"  Глобальная CURRENT_VERSION: {CURRENT_VERSION}")
-
-        # Проверяем в файле
-        file_version = self.verify_version_in_file()
-        print(f"  Версия в файле: {file_version}")
-
-        # Проверяем в конфиге
+        print(f"  GitHub пользователь: {GITHUB_USER}")
+        print(f"  GitHub репозиторий: {GITHUB_REPO}")
+        print(f"  GitHub ветка: {GITHUB_BRANCH}")
+        
+        # Проверяем файл version.json на GitHub
+        version_url = f"{GITHUB_RAW_BASE}/version.json"
+        print(f"\n{Fore.CYAN}Проверка version.json:{Style.RESET_ALL}")
+        print(f"  URL: {version_url}")
+        
         try:
-            if os.path.exists(config_file):
-                with open(config_file, 'r') as f:
-                    config = json.load(f)
-                    config_version = config.get('current_version', 'не найдено')
-                    print(f"  Версия в config.json: {config_version}")
-        except:
-            print(f"  Версия в config.json: ошибка чтения")
-
-        # Проверяем в version.json на GitHub
-        try:
-            response = requests.get(f"{GITHUB_RAW_BASE}/version.json", timeout=5)
+            response = requests.get(version_url, timeout=10)
+            print(f"  Статус ответа: {response.status_code}")
+            
             if response.status_code == 200:
-                remote = response.json()
-                print(f"  Версия на GitHub: {remote.get('version', 'не найдено')}")
-                print(f"  Что нового: {remote.get('changelog', [])}")
-        except:
-            print(f"  Версия на GitHub: ошибка проверки")
+                remote_data = response.json()
+                print(f"  Версия на GitHub: {remote_data.get('version', 'не найдено')}")
+                print(f"  Что нового: {remote_data.get('changelog', [])}")
+                print(f"  download_url: {remote_data.get('download_url', 'не указан')}")
+            else:
+                print(f"  {Fore.RED}Ошибка: не удалось получить version.json{Style.RESET_ALL}")
+        except Exception as e:
+            print(f"  {Fore.RED}Ошибка: {e}{Style.RESET_ALL}")
+        
+        # Проверяем сам файл скрипта
+        filename = os.path.basename(__file__)
+        encoded_filename = filename.replace(' ', '%20')
+        script_url = f"{GITHUB_RAW_BASE}/{encoded_filename}"
+        print(f"\n{Fore.CYAN}Проверка файла скрипта:{Style.RESET_ALL}")
+        print(f"  URL: {script_url}")
+        
+        try:
+            response = requests.head(script_url, timeout=10)
+            print(f"  Статус ответа: {response.status_code}")
+            if response.status_code == 200:
+                print(f"  {Fore.GREEN}Файл доступен для скачивания{Style.RESET_ALL}")
+            else:
+                print(f"  {Fore.RED}Файл не найден на GitHub{Style.RESET_ALL}")
+        except Exception as e:
+            print(f"  {Fore.RED}Ошибка: {e}{Style.RESET_ALL}")
 
     def show_update_history(self):
         """Показывает историю обновлений"""
@@ -2042,7 +2084,7 @@ async def add_session_by_number():
 
 async def main_menu():
     """Главное меню программы."""
-    global CURRENT_VERSION  # Добавляем global здесь
+    global CURRENT_VERSION
 
     load_config()
     os.makedirs(session_folder, exist_ok=True)
