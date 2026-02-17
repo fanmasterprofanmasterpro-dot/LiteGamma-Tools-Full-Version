@@ -75,7 +75,8 @@ class UpdateManager:
             response = requests.get(version_url, timeout=10)
 
             if response.status_code != 200:
-                print(f"{Fore.YELLOW}⚠️ Не удалось проверить обновления. Код ответа: {response.status_code}{Style.RESET_ALL}")
+                print(
+                    f"{Fore.YELLOW}⚠️ Не удалось проверить обновления. Код ответа: {response.status_code}{Style.RESET_ALL}")
                 print(f"{Fore.YELLOW}URL: {version_url}{Style.RESET_ALL}")
                 return False
 
@@ -259,29 +260,30 @@ class UpdateManager:
             print(f"{Fore.RED}✘ Ошибка сохранения: {e}{Style.RESET_ALL}")
 
     def update_version_in_file(self, content, new_version):
-    """Обновляет версию в содержимом файла"""
-    import re
-    
-    # Пытаемся найти и заменить строку с версией
-    patterns = [
-        (r'CURRENT_VERSION\s*=\s*["\']([^"\']+)["\']', f'CURRENT_VERSION = "{new_version}"'),
-        (r'CURRENT_VERSION\s*=\s*([0-9.]+)', f'CURRENT_VERSION = "{new_version}"')
-    ]
-    
-    updated_content = content
-    for pattern, replacement in patterns:
-        updated_content = re.sub(pattern, replacement, updated_content)
-    
-    # Если версия не была найдена и заменена, добавляем её после импортов
-    if updated_content == content:
-        # Ищем конец секции импортов (двойной перенос строки)
-        import_end = updated_content.find('\n\n')
-        if import_end != -1:
-            version_line = f'\nCURRENT_VERSION = "{new_version}"\n'
-            updated_content = updated_content[:import_end] + version_line + updated_content[import_end:]
-    
-    return updated_content
+        """Обновляет версию в содержимом файла"""
+        import re
 
+        # Пытаемся найти и заменить строку с версией
+        patterns = [
+            (r'CURRENT_VERSION\s*=\s*["\']([^"\']+)["\']', f'CURRENT_VERSION = "{new_version}"'),
+            (r'CURRENT_VERSION\s*=\s*([0-9.]+)', f'CURRENT_VERSION = "{new_version}"')
+        ]
+
+        updated_content = content
+        for pattern, replacement in patterns:
+            updated_content = re.sub(pattern, replacement, updated_content)
+
+        # Если версия не была найдена и заменена, добавляем её после импортов
+        if updated_content == content:
+            # Ищем конец секции импортов (двойной перенос строки)
+            import_end = updated_content.find('\n\n')
+            if import_end != -1:
+                version_line = f'\nCURRENT_VERSION = "{new_version}"\n'
+                updated_content = updated_content[:import_end] + version_line + updated_content[import_end:]
+
+        return updated_content
+    
+    
     def verify_version_in_file(self):
         try:
             with open(__file__, 'r', encoding='utf-8') as f:
@@ -2376,4 +2378,3 @@ if __name__ == '__main__':
     except Exception as e:
         print(f"\n{Fore.RED}✘ Ошибка: {e}{Style.RESET_ALL}")
         traceback.print_exc()
-
