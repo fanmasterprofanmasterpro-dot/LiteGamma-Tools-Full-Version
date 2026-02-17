@@ -2,7 +2,12 @@
   "version": "1.0.0",
   "release_date": "2026-02-17",
   "changelog": [
-    "🔹 Первая версия"
+    "🔹 Добавлена система автообновления",
+    "🔹 Улучшена стабильность работы"
   ],
-  "download_url": "https://raw.githubusercontent.com/fanmasterprofanmasterpro-dot/LiteGamma-Tools-Full-Version/main/test%20foolder.py"
+  "download_url": "https://raw.githubusercontent.com/fanmasterprofanmasterpro-dot/LiteGamma-Tools-Full-Version/main/LiteGamma%20Tools%20Full%20Version.py",
+  "checksums": {
+    "sha256": "будет заполнено автоматически",
+    "md5": "будет заполнено автоматически"
+  }
 }
