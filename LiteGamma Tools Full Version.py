@@ -54,7 +54,6 @@ RESET = Style.RESET_ALL
 
 class UpdateManager:
     def __init__(self):
-        self.version_file = "version.json"
         self.backup_folder = "backups"
         self.update_available = False
         self.new_version = None
@@ -63,21 +62,16 @@ class UpdateManager:
     async def check_for_updates(self, force=False):
         """Проверяет наличие обновлений на GitHub"""
         try:
-            if not force and not self.should_check_update():
-                return False
-
             print(f"{Fore.CYAN}🔍 Проверка обновлений...{Style.RESET_ALL}")
-            await add_to_log_buffer("🔍 Проверка обновлений...")
 
-            # ПРОСТОЙ URL без сложностей
+            # ПРОСТОЙ URL
             version_url = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/{GITHUB_BRANCH}/version.json"
-            print(f"{Fore.CYAN}URL для проверки: {version_url}{Style.RESET_ALL}")
+            print(f"{Fore.CYAN}URL: {version_url}{Style.RESET_ALL}")
 
             response = requests.get(version_url, timeout=10)
 
             if response.status_code != 200:
-                print(
-                    f"{Fore.YELLOW}⚠️ Не удалось проверить обновления. Код ответа: {response.status_code}{Style.RESET_ALL}")
+                print(f"{Fore.RED}❌ Не удалось получить version.json (код {response.status_code}){Style.RESET_ALL}")
                 return False
 
             remote_data = response.json()
@@ -86,73 +80,35 @@ class UpdateManager:
             print(f"{Fore.CYAN}Версия на GitHub: {remote_version}{Style.RESET_ALL}")
             print(f"{Fore.CYAN}Текущая версия: {CURRENT_VERSION}{Style.RESET_ALL}")
 
-            # Сравниваем версии (просто как строки)
+            # Сравниваем версии
             if remote_version > CURRENT_VERSION:
                 self.update_available = True
                 self.new_version = remote_version
                 self.changelog = remote_data.get("changelog", [])
 
-                print(f"{Fore.GREEN}📦 Доступна новая версия: {remote_version}{Style.RESET_ALL}")
-                print(f"{Fore.CYAN}Текущая версия: {CURRENT_VERSION}{Style.RESET_ALL}")
+                print(f"{Fore.GREEN}✅ Доступна новая версия: {remote_version}{Style.RESET_ALL}")
 
                 if self.changelog:
                     print(f"\n{Fore.MAGENTA}Что нового:{Style.RESET_ALL}")
                     for change in self.changelog:
                         print(f"  {change}")
 
-                self.save_last_check()
-
-                if AUTO_UPDATE:
-                    return await self.perform_update(remote_data)
-
                 return True
             else:
-                print(f"{Fore.GREEN}✅ У вас актуальная версия ({CURRENT_VERSION}){Style.RESET_ALL}")
-                self.save_last_check()
+                print(f"{Fore.GREEN}✅ У вас актуальная версия{Style.RESET_ALL}")
                 return False
 
         except Exception as e:
-            print(f"{Fore.RED}❌ Ошибка при проверке обновлений: {e}{Style.RESET_ALL}")
-            traceback.print_exc()
+            print(f"{Fore.RED}❌ Ошибка: {e}{Style.RESET_ALL}")
             return False
 
-    def is_newer_version(self, version1, version2):
-        """Проверяет, является ли version1 новее version2"""
+    async def perform_update(self):
+        """Выполняет обновление"""
         try:
-            # Простое строковое сравнение
-            return version1 > version2
-        except:
-            return False
+            print(f"\n{Fore.YELLOW}⚙️ Обновление до версии {self.new_version}...{Style.RESET_ALL}")
 
-    def should_check_update(self):
-        """Проверяет, нужно ли проверять обновления"""
-        try:
-            if os.path.exists(LAST_UPDATE_CHECK_FILE):
-                with open(LAST_UPDATE_CHECK_FILE, 'r') as f:
-                    data = json.load(f)
-                    last_check = data.get('last_check', 0)
-                    return time.time() - last_check > UPDATE_CHECK_INTERVAL
-            return True
-        except:
-            return True
-
-    def save_last_check(self):
-        """Сохраняет время последней проверки"""
-        try:
-            with open(LAST_UPDATE_CHECK_FILE, 'w') as f:
-                json.dump({'last_check': time.time()}, f)
-        except:
-            pass
-
-    async def perform_update(self, remote_data):
-        """Выполняет обновление программы"""
-        try:
-            print(f"\n{Fore.YELLOW}⚙️ Начинаю обновление до версии {self.new_version}...{Style.RESET_ALL}")
-
-            # Создаем папку для бэкапов
+            # Создаем бэкап
             os.makedirs(self.backup_folder, exist_ok=True)
-
-            # Создаем бэкап текущего файла
             backup_name = f"backup_v{CURRENT_VERSION}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.py"
             backup_path = os.path.join(self.backup_folder, backup_name)
 
@@ -163,143 +119,83 @@ class UpdateManager:
             with open(backup_path, 'w', encoding='utf-8') as f:
                 f.write(current_content)
 
-            print(f"{Fore.GREEN}✅ Бэкап создан: {backup_path}{Style.RESET_ALL}")
+            print(f"{Fore.GREEN}✅ Бэкап создан{Style.RESET_ALL}")
 
             # Скачиваем новый файл
             filename = os.path.basename(__file__)
-            # Важно! Правильное кодирование URL
             encoded_filename = filename.replace(' ', '%20')
-
-            # ПРОСТОЙ URL для скачивания
             script_url = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/{GITHUB_BRANCH}/{encoded_filename}"
 
-            print(f"{Fore.CYAN}Скачиваю с URL: {script_url}{Style.RESET_ALL}")
-
+            print(f"{Fore.CYAN}Скачиваю: {script_url}{Style.RESET_ALL}")
             response = requests.get(script_url, timeout=30)
-            if response.status_code == 200:
-                new_content = response.text
 
-                # Проверяем, что скачали не пустой файл
-                if len(new_content) < 100:
-                    print(f"{Fore.RED}❌ Скачанный файл слишком мал. Возможно, неверный URL.{Style.RESET_ALL}")
-                    return False
-
-                # Обновляем версию в файле
-                new_content = self.update_version_in_file(new_content, self.new_version)
-
-                # Сохраняем новый файл
-                with open(current_file, 'w', encoding='utf-8') as f:
-                    f.write(new_content)
-
-                print(f"{Fore.GREEN}✅ Скрипт успешно обновлен до версии {self.new_version}!{Style.RESET_ALL}")
-
-                # Обновляем глобальную переменную версии
-                global CURRENT_VERSION
-                CURRENT_VERSION = self.new_version
-
-                print(f"\n{Fore.YELLOW}⚠️ Для применения обновлений необходим перезапуск{Style.RESET_ALL}")
-                if input(f"{Fore.MAGENTA}Перезапустить сейчас? (y/n): {Style.RESET_ALL}").lower() == 'y':
-                    self.restart_program()
-
-                return True
-            else:
-                print(f"{Fore.RED}❌ Не удалось скачать обновление. Код ответа: {response.status_code}{Style.RESET_ALL}")
-                print(f"{Fore.RED}URL: {script_url}{Style.RESET_ALL}")
+            if response.status_code != 200:
+                print(f"{Fore.RED}❌ Ошибка скачивания (код {response.status_code}){Style.RESET_ALL}")
                 return False
 
+            new_content = response.text
+
+            # Обновляем версию в файле
+            new_content = self.update_version_in_file(new_content, self.new_version)
+
+            # Сохраняем
+            with open(current_file, 'w', encoding='utf-8') as f:
+                f.write(new_content)
+
+            print(f"{Fore.GREEN}✅ Обновление завершено!{Style.RESET_ALL}")
+            print(f"\n{Fore.YELLOW}⚠️ Перезапусти программу{Style.RESET_ALL}")
+
+            return True
+
         except Exception as e:
-            print(f"{Fore.RED}❌ Ошибка при обновлении: {e}{Style.RESET_ALL}")
-            traceback.print_exc()
+            print(f"{Fore.RED}❌ Ошибка: {e}{Style.RESET_ALL}")
             return False
 
     def update_version_in_file(self, content, new_version):
-        """Обновляет версию в содержимом файла"""
+        """Обновляет версию в файле"""
         import re
 
-        # Простой поиск и замена строки с версией
+        # Ищем строку с версией
         pattern = r'CURRENT_VERSION\s*=\s*["\']([^"\']+)["\']'
         replacement = f'CURRENT_VERSION = "{new_version}"'
 
-        updated_content = re.sub(pattern, replacement, content)
+        new_content = re.sub(pattern, replacement, content)
 
-        # Если не нашли в кавычках, пробуем без кавычек
-        if updated_content == content:
+        # Если не нашли, пробуем другой паттерн
+        if new_content == content:
             pattern = r'CURRENT_VERSION\s*=\s*([0-9.]+)'
-            updated_content = re.sub(pattern, f'CURRENT_VERSION = "{new_version}"', content)
+            new_content = re.sub(pattern, f'CURRENT_VERSION = "{new_version}"', content)
 
-        return updated_content
-
-    def restart_program(self):
-        """Перезапускает программу"""
-        print(f"{Fore.CYAN}🔄 Перезапуск...{Style.RESET_ALL}")
-        python = sys.executable
-        os.execl(python, python, *sys.argv)
+        return new_content
 
     async def show_update_menu(self):
-        """Показывает меню обновлений"""
+        """Меню обновлений"""
         while True:
             os.system('cls' if os.name == 'nt' else 'clear')
-            print_header("🔄 СИСТЕМА ОБНОВЛЕНИЙ")
+            print_header("🔄 ОБНОВЛЕНИЯ")
 
-            print(f"{CLR_INFO}Текущая версия: {CLR_SUCCESS}{CURRENT_VERSION}")
+            print(f"{CLR_INFO}Текущая версия: {CLR_SUCCESS}{CURRENT_VERSION}{Style.RESET_ALL}")
 
             if self.update_available:
-                print(f"{CLR_WARN}Доступна новая версия: {self.new_version}{Style.RESET_ALL}")
-                print(f"\n{CLR_MAIN}📝 Что нового:")
-                for change in self.changelog:
-                    print(f"  {change}")
-            else:
-                print(f"{CLR_SUCCESS}✅ Обновлений не найдено{Style.RESET_ALL}")
+                print(f"{CLR_WARN}Доступна версия: {self.new_version}{Style.RESET_ALL}")
+                if self.changelog:
+                    print(f"\n{CLR_MAIN}Что нового:{Style.RESET_ALL}")
+                    for change in self.changelog:
+                        print(f"  {change}")
 
             print(f"\n{CLR_INFO}1. 🔍 Проверить обновления")
-            print(f"{CLR_INFO}2. ⬇️ Скачать и установить обновление")
-            print(f"{CLR_INFO}3. ⚙️ Настройки обновлений")
+            if self.update_available:
+                print(f"{CLR_INFO}2. ⬇️ Установить обновление")
             print(f"{CLR_ERR}0. 🔙 Назад")
 
-            choice = input(f"\n{CLR_MAIN}Выберите действие ➔ {RESET}").strip()
+            choice = input(f"\n{CLR_MAIN}Выбери ➔ {RESET}").strip()
 
             if choice == '1':
                 await self.check_for_updates(force=True)
-                input("\nНажмите Enter...")
+                input("\nНажми Enter...")
             elif choice == '2' and self.update_available:
-                update_data = {
-                    'version': self.new_version,
-                    'changelog': self.changelog
-                }
-                await self.perform_update(update_data)
-                input("\nНажмите Enter...")
-            elif choice == '3':
-                self.show_update_settings()
-            elif choice == '0':
-                break
-
-    def show_update_settings(self):
-        """Настройки обновлений"""
-        global AUTO_UPDATE, NOTIFY_ON_UPDATE, UPDATE_CHECK_INTERVAL
-
-        while True:
-            os.system('cls' if os.name == 'nt' else 'clear')
-            print_header("⚙️ НАСТРОЙКИ ОБНОВЛЕНИЙ")
-
-            print(
-                f"{CLR_INFO}1. Автоматическое обновление: {CLR_SUCCESS if AUTO_UPDATE else CLR_ERR}{'ВКЛ' if AUTO_UPDATE else 'ВЫКЛ'}")
-            print(
-                f"{CLR_INFO}2. Уведомления об обновлениях: {CLR_SUCCESS if NOTIFY_ON_UPDATE else CLR_ERR}{'ВКЛ' if NOTIFY_ON_UPDATE else 'ВЫКЛ'}")
-            print(f"{CLR_INFO}3. Интервал проверки: {CLR_WARN}{UPDATE_CHECK_INTERVAL // 60} минут")
-            print(f"{CLR_ERR}0. 🔙 Назад")
-
-            choice = input(f"\n{CLR_MAIN}Выберите пункт ➔ {RESET}").strip()
-
-            if choice == '1':
-                AUTO_UPDATE = not AUTO_UPDATE
-            elif choice == '2':
-                NOTIFY_ON_UPDATE = not NOTIFY_ON_UPDATE
-            elif choice == '3':
-                try:
-                    new_interval = input(f"Интервал в минутах (текущий: {UPDATE_CHECK_INTERVAL // 60}): ")
-                    UPDATE_CHECK_INTERVAL = int(new_interval) * 60
-                except:
-                    pass
+                await self.perform_update()
+                input("\nНажми Enter...")
             elif choice == '0':
                 break
 
