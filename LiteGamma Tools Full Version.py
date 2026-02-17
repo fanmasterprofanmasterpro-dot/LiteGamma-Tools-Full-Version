@@ -2091,7 +2091,7 @@ async def main_menu():
             print(f"{Fore.CYAN}🔄 ПОВТОР ВКЛЮЧЕН (интервал {repeat_interval}с){Style.RESET_ALL}")
         if notification_enabled:
             print(f"{Fore.GREEN}🔔 УВЕДОМЛЕНИЯ ВКЛЮЧЕНЫ{Style.RESET_ALL}")
-        print(f"{Fore.CYAN}📦 Текущая версия: {CURRENT_VERSION}{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}📦 Текущая версия(версия может лагать,и когда обновляете,может показывать старую,но на самом деле обновиться,так что не оброщайте внимание: {CURRENT_VERSION}{Style.RESET_ALL}")
 
         choice = input(f"{CLR_MAIN}Введите номер команды ➔ {RESET}").strip()
 
