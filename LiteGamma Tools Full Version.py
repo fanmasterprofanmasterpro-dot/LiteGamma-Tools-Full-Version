@@ -34,7 +34,7 @@ GITHUB_RAW_BASE = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO
 GITHUB_API_BASE = f"https://api.github.com/repos/{GITHUB_USER}/{GITHUB_REPO}"
 
 # =============== ВЕРСИЯ ПРОГРАММЫ ===============
-CURRENT_VERSION = "1.2.6"
+CURRENT_VERSION = "1.2.3"
 UPDATE_CHECK_INTERVAL = 3600
 LAST_UPDATE_CHECK_FILE = "last_update_check.json"
 AUTO_UPDATE = True
@@ -64,7 +64,7 @@ class UpdateManager:
         try:
             print(f"{Fore.CYAN}🔍 Проверка обновлений...{Style.RESET_ALL}")
 
-            # ПРОСТОЙ URL
+            # URL для проверки версии
             version_url = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/{GITHUB_BRANCH}/version.json"
             print(f"{Fore.CYAN}URL: {version_url}{Style.RESET_ALL}")
 
@@ -104,6 +104,8 @@ class UpdateManager:
 
     async def perform_update(self):
         """Выполняет обновление"""
+        global CURRENT_VERSION
+        
         try:
             print(f"\n{Fore.YELLOW}⚙️ Обновление до версии {self.new_version}...{Style.RESET_ALL}")
 
@@ -142,26 +144,29 @@ class UpdateManager:
             with open(current_file, 'w', encoding='utf-8') as f:
                 f.write(new_content)
 
-            print(f"{Fore.GREEN}✅ Обновление завершено!{Style.RESET_ALL}")
+            # Обновляем глобальную переменную версии
+            CURRENT_VERSION = self.new_version
+
+            print(f"{Fore.GREEN}✅ Обновление до версии {self.new_version} завершено!{Style.RESET_ALL}")
             print(f"\n{Fore.YELLOW}⚠️ Перезапусти программу{Style.RESET_ALL}")
 
             return True
 
         except Exception as e:
             print(f"{Fore.RED}❌ Ошибка: {e}{Style.RESET_ALL}")
+            traceback.print_exc()
             return False
 
     def update_version_in_file(self, content, new_version):
         """Обновляет версию в файле"""
         import re
 
-        # Ищем строку с версией
+        # Ищем строку с версией в кавычках
         pattern = r'CURRENT_VERSION\s*=\s*["\']([^"\']+)["\']'
         replacement = f'CURRENT_VERSION = "{new_version}"'
-
         new_content = re.sub(pattern, replacement, content)
 
-        # Если не нашли, пробуем другой паттерн
+        # Если не нашли, пробуем без кавычек
         if new_content == content:
             pattern = r'CURRENT_VERSION\s*=\s*([0-9.]+)'
             new_content = re.sub(pattern, f'CURRENT_VERSION = "{new_version}"', content)
@@ -2109,4 +2114,3 @@ if __name__ == '__main__':
     except Exception as e:
         print(f"\n{Fore.RED}✘ Ошибка: {e}{Style.RESET_ALL}")
         traceback.print_exc()
-
