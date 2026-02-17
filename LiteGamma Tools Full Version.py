@@ -6,6 +6,11 @@ import json
 import datetime
 import re
 import tempfile
+import requests
+import sys
+import hashlib
+import shutil
+from pathlib import Path
 from telethon import TelegramClient
 from telethon.tl.types import Channel, Chat, User
 from telethon.tl.functions.channels import JoinChannelRequest
@@ -20,6 +25,19 @@ from telethon.errors import (
 )
 from colorama import init, Fore, Style
 
+# =============== UPDATE CONFIGURATION ===============
+GITHUB_USER = "fanmasterprofanmasterpro-dot"  # Ваш GitHub username
+GITHUB_REPO = "LiteGamma-Tools-Full-Version"  # Название репозитория
+GITHUB_BRANCH = "main"  # или master
+GITHUB_RAW_BASE = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/{GITHUB_BRANCH}"
+GITHUB_API_BASE = f"https://api.github.com/repos/{GITHUB_USER}/{GITHUB_REPO}"
+
+CURRENT_VERSION = "1.0.0"
+UPDATE_CHECK_INTERVAL = 3600  # Проверка каждые 60 минут
+LAST_UPDATE_CHECK_FILE = "last_update_check.json"
+AUTO_UPDATE = True  # Автоматическое обновление
+NOTIFY_ON_UPDATE = True  # Уведомлять об обновлениях
+
 init(autoreset=True)
 # Цветовые схемы
 CLR_MAIN = Fore.CYAN + Style.BRIGHT
@@ -30,6 +48,301 @@ CLR_ERR = Fore.RED + Style.BRIGHT
 CLR_INFO = Fore.BLUE + Style.BRIGHT
 BR = Style.BRIGHT
 RESET = Style.RESET_ALL
+
+
+class UpdateManager:
+    def __init__(self):
+        self.version_file = "version.json"
+        self.backup_folder = "backups"
+        self.update_available = False
+        self.new_version = None
+        self.changelog = []
+
+    async def check_for_updates(self, force=False):
+        """Проверяет наличие обновлений на GitHub"""
+        try:
+            # Проверяем, когда последний раз проверяли
+            if not force and not self.should_check_update():
+                return False
+
+            print(f"{Fore.CYAN}🔍 Проверка обновлений...{Style.RESET_ALL}")
+            await add_to_log_buffer("🔍 Проверка обновлений...")
+
+            # Получаем version.json с GitHub
+            version_url = f"{GITHUB_RAW_BASE}/version.json"
+            response = requests.get(version_url, timeout=10)
+
+            if response.status_code != 200:
+                print(f"{Fore.YELLOW}⚠️ Не удалось проверить обновления{Style.RESET_ALL}")
+                return False
+
+            remote_data = response.json()
+            remote_version = remote_data.get("version", "0.0.0")
+
+            # Сравниваем версии
+            if remote_version > CURRENT_VERSION:
+                self.update_available = True
+                self.new_version = remote_version
+                self.changelog = remote_data.get("changelog", [])
+
+                print(f"{Fore.GREEN}📦 Доступна новая версия: {remote_version}{Style.RESET_ALL}")
+                print(f"{Fore.CYAN}Текущая версия: {CURRENT_VERSION}{Style.RESET_ALL}")
+
+                if self.changelog:
+                    print(f"\n{Fore.MAGENTA}Что нового:{Style.RESET_ALL}")
+                    for change in self.changelog:
+                        print(f"  {change}")
+
+                # Сохраняем время проверки
+                self.save_last_check()
+
+                # Автоматическое обновление
+                if AUTO_UPDATE:
+                    return await self.perform_update(remote_data)
+
+                return True
+            else:
+                print(f"{Fore.GREEN}✅ У вас актуальная версия ({CURRENT_VERSION}){Style.RESET_ALL}")
+                self.save_last_check()
+                return False
+
+        except Exception as e:
+            print(f"{Fore.YELLOW}⚠️ Ошибка при проверке обновлений: {e}{Style.RESET_ALL}")
+            return False
+
+    def should_check_update(self):
+        """Проверяет, нужно ли проверять обновления"""
+        try:
+            if os.path.exists(LAST_UPDATE_CHECK_FILE):
+                with open(LAST_UPDATE_CHECK_FILE, 'r') as f:
+                    data = json.load(f)
+                    last_check = data.get('last_check', 0)
+                    return time.time() - last_check > UPDATE_CHECK_INTERVAL
+            return True
+        except:
+            return True
+
+    def save_last_check(self):
+        """Сохраняет время последней проверки"""
+        try:
+            with open(LAST_UPDATE_CHECK_FILE, 'w') as f:
+                json.dump({'last_check': time.time()}, f)
+        except:
+            pass
+
+    async def perform_update(self, remote_data):
+        """Выполняет обновление скрипта"""
+        try:
+            print(f"\n{Fore.YELLOW}⚙️ Начинаю обновление до версии {self.new_version}...{Style.RESET_ALL}")
+
+            # Создаем папку для бэкапов
+            os.makedirs(self.backup_folder, exist_ok=True)
+
+            # Создаем бэкап текущей версии
+            backup_name = f"backup_v{CURRENT_VERSION}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.py"
+            backup_path = os.path.join(self.backup_folder, backup_name)
+
+            current_file = __file__
+            with open(current_file, 'r', encoding='utf-8') as f:
+                current_content = f.read()
+
+            with open(backup_path, 'w', encoding='utf-8') as f:
+                f.write(current_content)
+
+            print(f"{Fore.GREEN}✅ Бэкап создан: {backup_path}{Style.RESET_ALL}")
+
+            # Скачиваем новую версию
+            script_url = remote_data.get('download_url', f"{GITHUB_RAW_BASE}/LiteGamma%20Tools%20Full%20Version.py")
+
+            # Проверяем хеш файла
+            expected_sha256 = remote_data.get('checksums', {}).get('sha256')
+
+            response = requests.get(script_url, timeout=30)
+            if response.status_code == 200:
+                new_content = response.text
+
+                # Проверяем целостность файла
+                if expected_sha256:
+                    actual_sha256 = hashlib.sha256(new_content.encode()).hexdigest()
+                    if actual_sha256 != expected_sha256:
+                        print(f"{Fore.RED}❌ Ошибка: хеш файла не совпадает!{Style.RESET_ALL}")
+                        print(f"Ожидаемый: {expected_sha256}")
+                        print(f"Полученный: {actual_sha256}")
+                        return False
+
+                # Обновляем версию в файле
+                new_content = self.update_version_in_file(new_content, self.new_version)
+
+                # Сохраняем новую версию
+                with open(current_file, 'w', encoding='utf-8') as f:
+                    f.write(new_content)
+
+                print(f"{Fore.GREEN}✅ Скрипт успешно обновлен до версии {self.new_version}!{Style.RESET_ALL}")
+
+                # Отправляем уведомление
+                if NOTIFY_ON_UPDATE and notification_enabled:
+                    await send_notification(
+                        f"🔄 **Программа обновлена!**\n\n"
+                        f"📦 Новая версия: {self.new_version}\n"
+                        f"📅 Дата: {remote_data.get('release_date', 'Неизвестно')}\n"
+                        f"📝 Изменения:\n" + "\n".join([f"  {c}" for c in self.changelog]),
+                        "update"
+                    )
+
+                # Спрашиваем о перезапуске
+                print(f"\n{Fore.YELLOW}⚠️ Для применения обновлений необходим перезапуск{Style.RESET_ALL}")
+                if input(f"{Fore.MAGENTA}Перезапустить сейчас? (y/n): {Style.RESET_ALL}").lower() == 'y':
+                    self.restart_program()
+
+                return True
+            else:
+                print(f"{Fore.RED}❌ Не удалось скачать обновление{Style.RESET_ALL}")
+                return False
+
+        except Exception as e:
+            print(f"{Fore.RED}❌ Ошибка при обновлении: {e}{Style.RESET_ALL}")
+            traceback.print_exc()
+            return False
+
+    def update_version_in_file(self, content, new_version):
+        """Обновляет версию в файле"""
+        import re
+        pattern = r'CURRENT_VERSION\s*=\s*["\']([^"\']+)["\']'
+        replacement = f'CURRENT_VERSION = "{new_version}"'
+        return re.sub(pattern, replacement, content)
+
+    def restart_program(self):
+        """Перезапускает программу"""
+        print(f"{Fore.CYAN}🔄 Перезапуск...{Style.RESET_ALL}")
+        python = sys.executable
+        os.execl(python, python, *sys.argv)
+
+    async def show_update_menu(self):
+        """Показывает меню обновлений"""
+        while True:
+            os.system('cls' if os.name == 'nt' else 'clear')
+            print_header("🔄 СИСТЕМА ОБНОВЛЕНИЙ")
+
+            print(f"{CLR_INFO}Текущая версия: {CLR_SUCCESS}{CURRENT_VERSION}")
+
+            if self.update_available:
+                print(f"{CLR_WARN}Доступна новая версия: {self.new_version}{Style.RESET_ALL}")
+                print(f"\n{CLR_MAIN}📝 Что нового:")
+                for change in self.changelog:
+                    print(f"  {change}")
+            else:
+                print(f"{CLR_SUCCESS}✅ Обновлений не найдено{Style.RESET_ALL}")
+
+            print(f"\n{CLR_INFO}1. 🔍 Проверить обновления")
+            print(f"{CLR_INFO}2. ⬇️ Скачать и установить обновление")
+            print(f"{CLR_INFO}3. 📋 История обновлений")
+            print(f"{CLR_INFO}4. ⚙️ Настройки обновлений")
+            print(f"{CLR_INFO}5. 🔙 Восстановить из бэкапа")
+            print(f"{CLR_ERR}0. 🔙 Назад")
+
+            choice = input(f"\n{CLR_MAIN}Выберите действие ➔ {RESET}").strip()
+
+            if choice == '1':
+                await self.check_for_updates(force=True)
+                input("\nНажмите Enter...")
+            elif choice == '2' and self.update_available:
+                await self.perform_update({'version': self.new_version, 'changelog': self.changelog})
+                input("\nНажмите Enter...")
+            elif choice == '3':
+                self.show_update_history()
+                input("\nНажмите Enter...")
+            elif choice == '4':
+                self.show_update_settings()
+            elif choice == '5':
+                self.restore_from_backup()
+                input("\nНажмите Enter...")
+            elif choice == '0':
+                break
+
+    def show_update_history(self):
+        """Показывает историю обновлений"""
+        print(f"\n{Fore.CYAN}📋 История обновлений:{Style.RESET_ALL}")
+        backups = sorted(Path(self.backup_folder).glob("backup_*.py"), reverse=True)
+
+        if not backups:
+            print("  Нет сохраненных бэкапов")
+            return
+
+        for i, backup in enumerate(backups[:10], 1):
+            # Пытаемся определить версию из имени файла
+            version_match = re.search(r'v([\d.]+)', backup.name)
+            version = version_match.group(1) if version_match else "неизвестно"
+
+            size = backup.stat().st_size / 1024
+            modified = datetime.datetime.fromtimestamp(backup.stat().st_mtime)
+            print(f"  {i}. {backup.name}")
+            print(f"     Версия: {version}, Размер: {size:.1f}KB, Дата: {modified.strftime('%Y-%m-%d %H:%M')}")
+
+    def restore_from_backup(self):
+        """Восстанавливает из бэкапа"""
+        backups = sorted(Path(self.backup_folder).glob("backup_*.py"), reverse=True)
+
+        if not backups:
+            print(f"{Fore.RED}❌ Нет доступных бэкапов{Style.RESET_ALL}")
+            return
+
+        print(f"\n{Fore.CYAN}Доступные бэкапы:{Style.RESET_ALL}")
+        for i, backup in enumerate(backups[:10], 1):
+            print(f"  {i}. {backup.name}")
+
+        try:
+            choice = int(input(f"\n{Fore.MAGENTA}Выберите номер бэкапа: {Style.RESET_ALL}")) - 1
+            if 0 <= choice < len(backups):
+                backup_file = backups[choice]
+
+                # Создаем бэкап текущей версии перед восстановлением
+                current_backup = Path(
+                    self.backup_folder) / f"pre_restore_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.py"
+                shutil.copy2(__file__, current_backup)
+
+                # Восстанавливаем
+                shutil.copy2(backup_file, __file__)
+                print(f"{Fore.GREEN}✅ Восстановлено из бэкапа!{Style.RESET_ALL}")
+
+                if input(f"{Fore.MAGENTA}Перезапустить сейчас? (y/n): {Style.RESET_ALL}").lower() == 'y':
+                    self.restart_program()
+        except ValueError:
+            print(f"{Fore.RED}❌ Неверный выбор{Style.RESET_ALL}")
+
+    def show_update_settings(self):
+        """Настройки обновлений"""
+        global AUTO_UPDATE, NOTIFY_ON_UPDATE, UPDATE_CHECK_INTERVAL
+
+        while True:
+            os.system('cls' if os.name == 'nt' else 'clear')
+            print_header("⚙️ НАСТРОЙКИ ОБНОВЛЕНИЙ")
+
+            print(
+                f"{CLR_INFO}1. Автоматическое обновление: {CLR_SUCCESS if AUTO_UPDATE else CLR_ERR}{'ВКЛ' if AUTO_UPDATE else 'ВЫКЛ'}")
+            print(
+                f"{CLR_INFO}2. Уведомления об обновлениях: {CLR_SUCCESS if NOTIFY_ON_UPDATE else CLR_ERR}{'ВКЛ' if NOTIFY_ON_UPDATE else 'ВЫКЛ'}")
+            print(f"{CLR_INFO}3. Интервал проверки: {CLR_WARN}{UPDATE_CHECK_INTERVAL // 60} минут")
+            print(f"{CLR_INFO}4. GitHub репозиторий: {CLR_WARN}{GITHUB_USER}/{GITHUB_REPO}")
+            print(f"{CLR_ERR}0. 🔙 Назад")
+
+            choice = input(f"\n{CLR_MAIN}Выберите пункт ➔ {RESET}").strip()
+
+            if choice == '1':
+                AUTO_UPDATE = not AUTO_UPDATE
+            elif choice == '2':
+                NOTIFY_ON_UPDATE = not NOTIFY_ON_UPDATE
+            elif choice == '3':
+                try:
+                    new_interval = input(f"Интервал в минутах (текущий: {UPDATE_CHECK_INTERVAL // 60}): ")
+                    UPDATE_CHECK_INTERVAL = int(new_interval) * 60
+                except:
+                    pass
+            elif choice == '0':
+                break
+
+
+# Создаем глобальный менеджер обновлений
+update_manager = UpdateManager()
 
 
 def print_header(text):
@@ -257,7 +570,8 @@ def save_config():
         "notification_chat_id": notification_chat_id,
         "notify_invalid_session": notify_invalid_session,
         "notify_cycle_results": notify_cycle_results,
-        "notify_full_logs": notify_full_logs
+        "notify_full_logs": notify_full_logs,
+        "current_version": CURRENT_VERSION
     }
     try:
         with open(config_file, 'w', encoding='utf-8') as f:
@@ -268,7 +582,7 @@ def save_config():
 
 
 def load_config():
-    global current_api_id, current_api_hash, session_folder, message_to_send, delay_between_messages, delay_between_accounts, max_messages_per_account, repeat_broadcast, repeat_interval, delete_after_send, recipient_type, use_media, media_path, fast_mode, fast_delay, notification_enabled, notification_bot_token, notification_chat_id, notify_invalid_session, notify_cycle_results, notify_full_logs
+    global current_api_id, current_api_hash, session_folder, message_to_send, delay_between_messages, delay_between_accounts, max_messages_per_account, repeat_broadcast, repeat_interval, delete_after_send, recipient_type, use_media, media_path, fast_mode, fast_delay, notification_enabled, notification_bot_token, notification_chat_id, notify_invalid_session, notify_cycle_results, notify_full_logs, CURRENT_VERSION
     try:
         if os.path.exists(config_file):
             with open(config_file, 'r', encoding='utf-8') as f:
@@ -294,6 +608,7 @@ def load_config():
                 notify_invalid_session = config.get("notify_invalid_session", DEFAULT_NOTIFY_INVALID_SESSION)
                 notify_cycle_results = config.get("notify_cycle_results", DEFAULT_NOTIFY_CYCLE_RESULTS)
                 notify_full_logs = config.get("notify_full_logs", DEFAULT_NOTIFY_FULL_LOGS)
+                CURRENT_VERSION = config.get("current_version", CURRENT_VERSION)
             print(f"{Fore.GREEN}✔ Конфигурация загружена.{Style.RESET_ALL}")
     except Exception as e:
         print(f"{Fore.YELLOW}⚠️ Ошибка загрузки конфигурации: {e}{Style.RESET_ALL}")
@@ -1709,6 +2024,10 @@ async def main_menu():
     load_config()
     os.makedirs(session_folder, exist_ok=True)
 
+    # Проверка обновлений при запуске
+    if AUTO_UPDATE:
+        asyncio.create_task(update_manager.check_for_updates())
+
     # Инициализируем клиент уведомлений, если включено
     if notification_enabled:
         await init_notification_client()
@@ -1732,7 +2051,8 @@ async def main_menu():
         print(f"{CLR_MAIN}  [3] ➔  ⚙️  НАСТРОЙКИ СИСТЕМЫ")
         print(f"{CLR_INFO}  [4] ➔  📂  МОИ СЕССИИ (ИНФО)")
         print(f"{CLR_ACCENT}  [5] ➔  ➕  ДОБАВИТЬ АККАУНТ")
-        print(f"{CLR_ERR}  [6] ➔  🚪  ВЫЙТИ")
+        print(f"{CLR_ACCENT}  [6] ➔  🔄  ОБНОВЛЕНИЯ")
+        print(f"{CLR_ERR}  [7] ➔  🚪  ВЫЙТИ")
 
         print(f"\n{CLR_ACCENT}─────────────────────────────────────────────────────")
 
@@ -1743,6 +2063,7 @@ async def main_menu():
             print(f"{Fore.CYAN}🔄 ПОВТОР ВКЛЮЧЕН (интервал {repeat_interval}с){Style.RESET_ALL}")
         if notification_enabled:
             print(f"{Fore.GREEN}🔔 УВЕДОМЛЕНИЯ ВКЛЮЧЕНЫ{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}📦 Текущая версия: {CURRENT_VERSION}{Style.RESET_ALL}")
 
         choice = input(f"{CLR_MAIN}Введите номер команды ➔ {RESET}").strip()
 
@@ -1964,12 +2285,15 @@ async def main_menu():
             await add_session_by_number()
             input("Нажмите Enter для продолжения...")
         elif choice == '6':
+            await update_manager.show_update_menu()
+            input("Нажмите Enter для продолжения...")
+        elif choice == '7':
             save_config()
             await close_notification_client()
             print(f"{Fore.CYAN}🚪 До свидания!{Style.RESET_ALL}")
             break
         else:
-            print(f"{Fore.RED}✘ Выберите 1-6{Style.RESET_ALL}")
+            print(f"{Fore.RED}✘ Выберите 1-7{Style.RESET_ALL}")
             await asyncio.sleep(1)
 
 
