@@ -2071,7 +2071,7 @@ async def main_menu():
     while True:
         os.system('cls' if os.name == 'nt' else 'clear')
         print(f"{CLR_ACCENT}╔═══════════════════════════════════════════════════╗")
-        print(f"{CLR_ACCENT}║{CLR_MAIN}     🚀  LITEGAMMA TOOLS  |  FULL VERSION          {CLR_ACCENT}║")
+        print(f"{CLR_ACCENT}║{CLR_MAIN}     🚀 LITEGAMMA TOOLS❤️  |  FULL VERSION          {CLR_ACCENT}║")
         print(f"{CLR_ACCENT}║{CLR_INFO}       С уважением : @BananaStorebot_bot           {CLR_ACCENT}║")
         print(f"{CLR_ACCENT}╚═══════════════════════════════════════════════════╝")
 
@@ -2339,4 +2339,5 @@ if __name__ == '__main__':
     except Exception as e:
         print(f"\n{Fore.RED}✘ Ошибка: {e}{Style.RESET_ALL}")
         traceback.print_exc()
+
 
