@@ -34,7 +34,7 @@ GITHUB_RAW_BASE = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO
 GITHUB_API_BASE = f"https://api.github.com/repos/{GITHUB_USER}/{GITHUB_REPO}"
 
 # =============== ВЕРСИЯ ПРОГРАММЫ ===============
-CURRENT_VERSION = "1.2.2"  
+CURRENT_VERSION = "1.2.1"  
 UPDATE_CHECK_INTERVAL = 3600
 LAST_UPDATE_CHECK_FILE = "last_update_check.json"
 AUTO_UPDATE = True
@@ -69,7 +69,7 @@ class UpdateManager:
             print(f"{Fore.CYAN}🔍 Проверка обновлений...{Style.RESET_ALL}")
             await add_to_log_buffer("🔍 Проверка обновлений...")
 
-          
+         
             version_url = f"{GITHUB_RAW_BASE}/version.json"
             print(f"{Fore.CYAN}URL для проверки: {version_url}{Style.RESET_ALL}")
             
@@ -86,7 +86,7 @@ class UpdateManager:
             print(f"{Fore.CYAN}Версия на GitHub: {remote_version}{Style.RESET_ALL}")
             print(f"{Fore.CYAN}Текущая версия: {CURRENT_VERSION}{Style.RESET_ALL}")
 
-            
+           
             if self.is_newer_version(remote_version, CURRENT_VERSION):
                 self.update_available = True
                 self.new_version = remote_version
@@ -140,7 +140,7 @@ class UpdateManager:
                     return False
             return False
         except:
-           
+         
             return version1 > version2
 
     def should_check_update(self):
@@ -170,10 +170,10 @@ class UpdateManager:
         try:
             print(f"\n{Fore.YELLOW}⚙️ Начинаю обновление до версии {self.new_version}...{Style.RESET_ALL}")
 
-            # Создаем папку для бэкапов
+            
             os.makedirs(self.backup_folder, exist_ok=True)
 
-            # Создаем бэкап текущей версии
+            
             backup_name = f"backup_v{CURRENT_VERSION}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.py"
             backup_path = os.path.join(self.backup_folder, backup_name)
 
@@ -186,12 +186,12 @@ class UpdateManager:
 
             print(f"{Fore.GREEN}✅ Бэкап создан: {backup_path}{Style.RESET_ALL}")
 
-          
+       
             filename = os.path.basename(__file__)
-          
+        
             encoded_filename = filename.replace(' ', '%20')
             
-          
+           
             script_url = remote_data.get('download_url', f"{GITHUB_RAW_BASE}/{encoded_filename}")
             
             print(f"{Fore.CYAN}Скачиваю с URL: {script_url}{Style.RESET_ALL}")
@@ -200,7 +200,7 @@ class UpdateManager:
             if response.status_code == 200:
                 new_content = response.text
                 
-               
+                
                 if len(new_content) < 100:
                     print(f"{Fore.RED}❌ Скачанный файл слишком мал. Возможно, неверный URL.{Style.RESET_ALL}")
                     return False
@@ -211,12 +211,12 @@ class UpdateManager:
                 with open(current_file, 'w', encoding='utf-8') as f:
                     f.write(new_content)
 
-                # Обновляем глобальную переменную
+               
                 CURRENT_VERSION = self.new_version
 
                 print(f"{Fore.GREEN}✅ Скрипт успешно обновлен до версии {self.new_version}!{Style.RESET_ALL}")
 
-              
+                
                 self.save_config_without_version()
 
                 if NOTIFY_ON_UPDATE and notification_enabled:
@@ -267,7 +267,7 @@ class UpdateManager:
             "notify_invalid_session": notify_invalid_session,
             "notify_cycle_results": notify_cycle_results,
             "notify_full_logs": notify_full_logs
-        
+           
         }
         try:
             with open(config_file, 'w', encoding='utf-8') as f:
@@ -280,7 +280,7 @@ class UpdateManager:
         """Обновляет версию в файле"""
         import re
 
-   
+        
         patterns = [
             (r'CURRENT_VERSION\s*=\s*["\']([^"\']+)["\']', f'CURRENT_VERSION = "{new_version}"'),
             (r'CURRENT_VERSION\s*=\s*([0-9.]+)', f'CURRENT_VERSION = "{new_version}"')
@@ -290,9 +290,9 @@ class UpdateManager:
         for pattern, replacement in patterns:
             updated_content = re.sub(pattern, replacement, updated_content)
 
-       
+        
         if updated_content == content:
-          
+            
             version_line = f'\nCURRENT_VERSION = "{new_version}"\n'
            
             import_end = updated_content.find('\n\n')
@@ -307,7 +307,7 @@ class UpdateManager:
             with open(__file__, 'r', encoding='utf-8') as f:
                 content = f.read()
 
-      
+           
             import re
             version_match = re.search(r'CURRENT_VERSION\s*=\s*["\']?([0-9.]+)["\']?', content)
             if version_match:
@@ -353,7 +353,7 @@ class UpdateManager:
                 await self.check_for_updates(force=True)
                 input("\nНажмите Enter...")
             elif choice == '2' and self.update_available:
-               
+                
                 update_data = {
                     'version': self.new_version,
                     'changelog': self.changelog,
@@ -383,7 +383,7 @@ class UpdateManager:
         print(f"  GitHub репозиторий: {GITHUB_REPO}")
         print(f"  GitHub ветка: {GITHUB_BRANCH}")
         
-    
+        # Проверяем файл version.json на GitHub
         version_url = f"{GITHUB_RAW_BASE}/version.json"
         print(f"\n{Fore.CYAN}Проверка version.json:{Style.RESET_ALL}")
         print(f"  URL: {version_url}")
@@ -402,7 +402,7 @@ class UpdateManager:
         except Exception as e:
             print(f"  {Fore.RED}Ошибка: {e}{Style.RESET_ALL}")
         
-     
+        # Проверяем сам файл скрипта
         filename = os.path.basename(__file__)
         encoded_filename = filename.replace(' ', '%20')
         script_url = f"{GITHUB_RAW_BASE}/{encoded_filename}"
