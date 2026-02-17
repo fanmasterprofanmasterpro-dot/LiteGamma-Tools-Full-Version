@@ -1,0 +1,90 @@
+name: Auto Update System
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'LiteGamma Tools Full Version.py'
+      - 'version.json'
+  release:
+    types: [published]
+  schedule:
+    - cron: '0 */12 * * *'  # Каждые 12 часов
+  workflow_dispatch:  # Ручной запуск
+
+jobs:
+  check-and-update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests pyyaml
+
+      - name: Calculate file hashes
+        id: hashes
+        run: |
+          # SHA256 хеш
+          sha256=$(sha256sum "LiteGamma Tools Full Version.py" | cut -d' ' -f1)
+          echo "sha256=$sha256" >> $GITHUB_OUTPUT
+          
+          # MD5 хеш
+          md5=$(md5sum "LiteGamma Tools Full Version.py" | cut -d' ' -f1)
+          echo "md5=$md5" >> $GITHUB_OUTPUT
+          
+          # Размер файла
+          size=$(wc -c < "LiteGamma Tools Full Version.py")
+          echo "size=$size" >> $GITHUB_OUTPUT
+
+      - name: Update version.json with checksums
+        run: |
+          # Обновляем checksums в version.json
+          python -c "
+import json
+with open('version.json', 'r') as f:
+    data = json.load(f)
+data['checksums']['sha256'] = '${{ steps.hashes.outputs.sha256 }}'
+data['checksums']['md5'] = '${{ steps.hashes.outputs.md5 }}'
+data['file_size'] = ${{ steps.hashes.outputs.size }}
+data['last_updated'] = '$(date -u +"%Y-%m-%dT%H:%M:%SZ")'
+with open('version.json', 'w') as f:
+    json.dump(data, f, indent=2)
+"
+
+      - name: Commit and push if changed
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add version.json
+          git diff --quiet && git diff --staged --quiet || git commit -m "🔨 Auto-update version.json [skip ci]"
+          git push
+
+      - name: Create Release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Release v${{ steps.version.outputs.version }}
+          body_path: CHANGELOG.md
+          files: |
+            LiteGamma Tools Full Version.py
+            version.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Notify about update
+        if: always()
+        run: |
+          echo "✅ Обновление проверено и выполнено успешно!"
+          echo "📦 Версия: $(jq -r .version version.json)"
+          echo "🔒 SHA256: ${{ steps.hashes.outputs.sha256 }}"
