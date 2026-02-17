@@ -1,9 +1,9 @@
 {
-  "version": "1.2.1",
+  "version": "1.2.2",
   "release_date": "2026-02-18",
   "changelog": [
     "🔹 Исправлена система обновлений",
-    "🔹 Добавлена подробная диагностика"
+    "🔹 Исправлены все ошибки"
   ],
   "download_url": "https://raw.githubusercontent.com/fanmasterprofanmasterpro-dot/LiteGamma-Tools-Full-Version/main/LiteGamma%20Tools%20Full%20Version.py"
 }
