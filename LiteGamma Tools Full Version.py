@@ -26,17 +26,17 @@ from telethon.errors import (
 from colorama import init, Fore, Style
 
 # =============== UPDATE CONFIGURATION ===============
-GITHUB_USER = "fanmasterprofanmasterpro-dot"  # Ваш GitHub username
-GITHUB_REPO = "LiteGamma-Tools-Full-Version"  # Название репозитория
-GITHUB_BRANCH = "main"  # или master
+GITHUB_USER = "fanmasterprofanmasterpro-dot"
+GITHUB_REPO = "LiteGamma-Tools-Full-Version"
+GITHUB_BRANCH = "main"
 GITHUB_RAW_BASE = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/{GITHUB_BRANCH}"
 GITHUB_API_BASE = f"https://api.github.com/repos/{GITHUB_USER}/{GITHUB_REPO}"
 
 CURRENT_VERSION = "1.0.0"
-UPDATE_CHECK_INTERVAL = 3600  # Проверка каждые 60 минут
+UPDATE_CHECK_INTERVAL = 3600
 LAST_UPDATE_CHECK_FILE = "last_update_check.json"
-AUTO_UPDATE = True  # Автоматическое обновление
-NOTIFY_ON_UPDATE = True  # Уведомлять об обновлениях
+AUTO_UPDATE = True
+NOTIFY_ON_UPDATE = True
 
 init(autoreset=True)
 # Цветовые схемы
@@ -59,16 +59,16 @@ class UpdateManager:
         self.changelog = []
 
     async def check_for_updates(self, force=False):
-        """Проверяет наличие обновлений на GitHub"""
+
         try:
-            # Проверяем, когда последний раз проверяли
+
             if not force and not self.should_check_update():
                 return False
 
             print(f"{Fore.CYAN}🔍 Проверка обновлений...{Style.RESET_ALL}")
             await add_to_log_buffer("🔍 Проверка обновлений...")
 
-            # Получаем version.json с GitHub
+
             version_url = f"{GITHUB_RAW_BASE}/version.json"
             response = requests.get(version_url, timeout=10)
 
@@ -79,7 +79,7 @@ class UpdateManager:
             remote_data = response.json()
             remote_version = remote_data.get("version", "0.0.0")
 
-            # Сравниваем версии
+
             if remote_version > CURRENT_VERSION:
                 self.update_available = True
                 self.new_version = remote_version
@@ -93,10 +93,10 @@ class UpdateManager:
                     for change in self.changelog:
                         print(f"  {change}")
 
-                # Сохраняем время проверки
+
                 self.save_last_check()
 
-                # Автоматическое обновление
+
                 if AUTO_UPDATE:
                     return await self.perform_update(remote_data)
 
@@ -111,7 +111,7 @@ class UpdateManager:
             return False
 
     def should_check_update(self):
-        """Проверяет, нужно ли проверять обновления"""
+
         try:
             if os.path.exists(LAST_UPDATE_CHECK_FILE):
                 with open(LAST_UPDATE_CHECK_FILE, 'r') as f:
@@ -123,7 +123,7 @@ class UpdateManager:
             return True
 
     def save_last_check(self):
-        """Сохраняет время последней проверки"""
+
         try:
             with open(LAST_UPDATE_CHECK_FILE, 'w') as f:
                 json.dump({'last_check': time.time()}, f)
@@ -131,14 +131,14 @@ class UpdateManager:
             pass
 
     async def perform_update(self, remote_data):
-        """Выполняет обновление скрипта"""
+
         try:
             print(f"\n{Fore.YELLOW}⚙️ Начинаю обновление до версии {self.new_version}...{Style.RESET_ALL}")
 
-            # Создаем папку для бэкапов
+
             os.makedirs(self.backup_folder, exist_ok=True)
 
-            # Создаем бэкап текущей версии
+
             backup_name = f"backup_v{CURRENT_VERSION}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.py"
             backup_path = os.path.join(self.backup_folder, backup_name)
 
@@ -151,17 +151,17 @@ class UpdateManager:
 
             print(f"{Fore.GREEN}✅ Бэкап создан: {backup_path}{Style.RESET_ALL}")
 
-            # Скачиваем новую версию
+
             script_url = remote_data.get('download_url', f"{GITHUB_RAW_BASE}/LiteGamma%20Tools%20Full%20Version.py")
 
-            # Проверяем хеш файла
+
             expected_sha256 = remote_data.get('checksums', {}).get('sha256')
 
             response = requests.get(script_url, timeout=30)
             if response.status_code == 200:
                 new_content = response.text
 
-                # Проверяем целостность файла
+
                 if expected_sha256:
                     actual_sha256 = hashlib.sha256(new_content.encode()).hexdigest()
                     if actual_sha256 != expected_sha256:
@@ -170,16 +170,16 @@ class UpdateManager:
                         print(f"Полученный: {actual_sha256}")
                         return False
 
-                # Обновляем версию в файле
+
                 new_content = self.update_version_in_file(new_content, self.new_version)
 
-                # Сохраняем новую версию
+
                 with open(current_file, 'w', encoding='utf-8') as f:
                     f.write(new_content)
 
                 print(f"{Fore.GREEN}✅ Скрипт успешно обновлен до версии {self.new_version}!{Style.RESET_ALL}")
 
-                # Отправляем уведомление
+
                 if NOTIFY_ON_UPDATE and notification_enabled:
                     await send_notification(
                         f"🔄 **Программа обновлена!**\n\n"
@@ -189,7 +189,7 @@ class UpdateManager:
                         "update"
                     )
 
-                # Спрашиваем о перезапуске
+
                 print(f"\n{Fore.YELLOW}⚠️ Для применения обновлений необходим перезапуск{Style.RESET_ALL}")
                 if input(f"{Fore.MAGENTA}Перезапустить сейчас? (y/n): {Style.RESET_ALL}").lower() == 'y':
                     self.restart_program()
@@ -205,20 +205,20 @@ class UpdateManager:
             return False
 
     def update_version_in_file(self, content, new_version):
-        """Обновляет версию в файле"""
+
         import re
         pattern = r'CURRENT_VERSION\s*=\s*["\']([^"\']+)["\']'
         replacement = f'CURRENT_VERSION = "{new_version}"'
         return re.sub(pattern, replacement, content)
 
     def restart_program(self):
-        """Перезапускает программу"""
+
         print(f"{Fore.CYAN}🔄 Перезапуск...{Style.RESET_ALL}")
         python = sys.executable
         os.execl(python, python, *sys.argv)
 
     async def show_update_menu(self):
-        """Показывает меню обновлений"""
+
         while True:
             os.system('cls' if os.name == 'nt' else 'clear')
             print_header("🔄 СИСТЕМА ОБНОВЛЕНИЙ")
@@ -260,7 +260,7 @@ class UpdateManager:
                 break
 
     def show_update_history(self):
-        """Показывает историю обновлений"""
+
         print(f"\n{Fore.CYAN}📋 История обновлений:{Style.RESET_ALL}")
         backups = sorted(Path(self.backup_folder).glob("backup_*.py"), reverse=True)
 
@@ -279,7 +279,7 @@ class UpdateManager:
             print(f"     Версия: {version}, Размер: {size:.1f}KB, Дата: {modified.strftime('%Y-%m-%d %H:%M')}")
 
     def restore_from_backup(self):
-        """Восстанавливает из бэкапа"""
+
         backups = sorted(Path(self.backup_folder).glob("backup_*.py"), reverse=True)
 
         if not backups:
@@ -295,12 +295,12 @@ class UpdateManager:
             if 0 <= choice < len(backups):
                 backup_file = backups[choice]
 
-                # Создаем бэкап текущей версии перед восстановлением
+
                 current_backup = Path(
                     self.backup_folder) / f"pre_restore_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.py"
                 shutil.copy2(__file__, current_backup)
 
-                # Восстанавливаем
+
                 shutil.copy2(backup_file, __file__)
                 print(f"{Fore.GREEN}✅ Восстановлено из бэкапа!{Style.RESET_ALL}")
 
@@ -310,7 +310,7 @@ class UpdateManager:
             print(f"{Fore.RED}❌ Неверный выбор{Style.RESET_ALL}")
 
     def show_update_settings(self):
-        """Настройки обновлений"""
+
         global AUTO_UPDATE, NOTIFY_ON_UPDATE, UPDATE_CHECK_INTERVAL
 
         while True:
@@ -341,7 +341,7 @@ class UpdateManager:
                 break
 
 
-# Создаем глобальный менеджер обновлений
+
 update_manager = UpdateManager()
 
 
@@ -357,33 +357,31 @@ def print_stata(text):
     print(f"{CLR_ACCENT}╚" + "═" * (len(text) + 4) + "╝\n")
 
 
-# =============== CONFIGURATION ===============
-# Важно: Установите свои api_id и api_hash
-# Получить их можно на my.telegram.org
+
 DEFAULT_API_ID = 0
 DEFAULT_API_HASH = "ЗАМЕНИТЕ НА ВАШ API HASH, ТАКЖЕ НАСТРОЙТЕ API ID "
-DEFAULT_SESSION_FOLDER = "work"
+DEFAULT_SESSION_FOLDER = "session"
 DEFAULT_MESSAGE = """Привет! Это тестовое сообщение от бота рассылки!
 Спасибо за покупку в нашем магазине @BananaStorebot_bot 😉"""
 DEFAULT_DELAY_BETWEEN_MESSAGES = 3
 DEFAULT_DELAY_BETWEEN_ACCOUNTS = 10
 DEFAULT_MAX_MESSAGES_PER_ACCOUNT = 50
 DEFAULT_REPEAT_BROADCAST = False
-DEFAULT_REPEAT_INTERVAL = 30  # Интервал повтора в секундах
+DEFAULT_REPEAT_INTERVAL = 30
 DEFAULT_DELETE_AFTER_SEND = False
-DEFAULT_RECIPIENT_TYPE = "all"  # all, users, groups
+DEFAULT_RECIPIENT_TYPE = "all"
 DEFAULT_USE_MEDIA = False
 DEFAULT_MEDIA_PATH = ""
-DEFAULT_FAST_MODE = False  # Быстрый режим (задержка < 1 секунды)
-DEFAULT_FAST_DELAY = 0.3  # Задержка в быстром режиме (секунды)
+DEFAULT_FAST_MODE = False
+DEFAULT_FAST_DELAY = 0.3
 
-# Настройки уведомлений
+
 DEFAULT_NOTIFICATION_ENABLED = False
 DEFAULT_NOTIFICATION_BOT_TOKEN = ""
 DEFAULT_NOTIFICATION_CHAT_ID = ""
-DEFAULT_NOTIFY_INVALID_SESSION = True  # Уведомлять о неавторизованных сессиях
-DEFAULT_NOTIFY_CYCLE_RESULTS = True  # Уведомлять о результатах циклов
-DEFAULT_NOTIFY_FULL_LOGS = False  # Отправлять полные логи
+DEFAULT_NOTIFY_INVALID_SESSION = True
+DEFAULT_NOTIFY_CYCLE_RESULTS = True
+DEFAULT_NOTIFY_FULL_LOGS = False
 
 # Глобальные переменные
 current_api_id = DEFAULT_API_ID
@@ -394,13 +392,13 @@ delay_between_messages = DEFAULT_DELAY_BETWEEN_MESSAGES
 delay_between_accounts = DEFAULT_DELAY_BETWEEN_ACCOUNTS
 max_messages_per_account = DEFAULT_MAX_MESSAGES_PER_ACCOUNT
 repeat_broadcast = DEFAULT_REPEAT_BROADCAST
-repeat_interval = DEFAULT_REPEAT_INTERVAL  # Интервал повтора
+repeat_interval = DEFAULT_REPEAT_INTERVAL
 delete_after_send = DEFAULT_DELETE_AFTER_SEND
-recipient_type = DEFAULT_RECIPIENT_TYPE  # all, users, groups
+recipient_type = DEFAULT_RECIPIENT_TYPE
 use_media = DEFAULT_USE_MEDIA
 media_path = DEFAULT_MEDIA_PATH
-fast_mode = DEFAULT_FAST_MODE  # Быстрый режим
-fast_delay = DEFAULT_FAST_DELAY  # Задержка в быстром режиме
+fast_mode = DEFAULT_FAST_MODE
+fast_delay = DEFAULT_FAST_DELAY
 
 # Глобальные переменные для уведомлений
 notification_enabled = DEFAULT_NOTIFICATION_ENABLED
@@ -417,38 +415,37 @@ config_file = "config.json"
 group_list_file = "group.json"
 enter_links_file = "enter.json"
 
-# Клиент для уведомлений
+
 notification_client = None
 
-# Буфер для логов
+
 log_buffer = []
 log_buffer_lock = asyncio.Lock()
 
 
 async def init_notification_client():
-    """Инициализирует клиент для отправки уведомлений."""
+
     global notification_client
     if notification_enabled and notification_bot_token and notification_chat_id:
         try:
-            # Закрываем предыдущий клиент, если был
+
             if notification_client:
                 await notification_client.disconnect()
 
-            # Создаём новый клиент
+
             notification_client = TelegramClient(
                 'notification_bot_session',
                 api_id=current_api_id,
                 api_hash=current_api_hash
             )
 
-            # Запускаем клиент от имени бота
+
             await notification_client.start(bot_token=notification_bot_token)
 
-            # Проверяем, что клиент работает
             me = await notification_client.get_me()
             print(f"{Fore.GREEN}✔ Бот для уведомлений инициализирован: @{me.username}{Style.RESET_ALL}")
 
-            # Отправляем тестовое сообщение
+
             await notification_client.send_message(
                 int(notification_chat_id),
                 "🔔 Уведомления успешно настроены!"
@@ -462,7 +459,7 @@ async def init_notification_client():
 
 
 async def close_notification_client():
-    """Закрывает клиент уведомлений."""
+
     global notification_client
     if notification_client:
         await notification_client.disconnect()
@@ -471,7 +468,7 @@ async def close_notification_client():
 
 
 async def add_to_log_buffer(message):
-    """Добавляет сообщение в буфер логов."""
+
     global log_buffer
     async with log_buffer_lock:
         timestamp = datetime.datetime.now().strftime("%H:%M:%S")
@@ -482,13 +479,13 @@ async def add_to_log_buffer(message):
 
 
 async def save_logs_to_file():
-    """Сохраняет буфер логов во временный файл."""
+
     if not log_buffer:
         return None
 
     async with log_buffer_lock:
         try:
-            # Создаем временный файл
+
             fd, temp_path = tempfile.mkstemp(suffix='.txt', prefix='telegram_log_', text=True)
             with os.fdopen(fd, 'w', encoding='utf-8') as f:
                 f.write(f"Лог рассылки от {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
@@ -502,11 +499,11 @@ async def save_logs_to_file():
 
 
 async def send_notification(message, notification_type="info"):
-    """Отправляет уведомление в Telegram, если включено."""
+
     if not notification_enabled or not notification_client or not notification_chat_id:
         return
 
-    # Проверяем, нужно ли отправлять этот тип уведомления
+
     if notification_type == "invalid_session" and not notify_invalid_session:
         return
     if notification_type == "cycle_result" and not notify_cycle_results:
@@ -515,25 +512,25 @@ async def send_notification(message, notification_type="info"):
         return
 
     try:
-        # Если это полный лог и буфер не пуст
+
         if notification_type == "full_log" and log_buffer:
-            # Сохраняем логи в файл
+
             log_file_path = await save_logs_to_file()
             if log_file_path and os.path.exists(log_file_path):
-                # Отправляем файл
+
                 await notification_client.send_file(
                     int(notification_chat_id),
                     log_file_path,
                     caption=f"📋 **Полный лог рассылки**\nВремя: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\nВсего записей: {len(log_buffer)}"
                 )
-                # Удаляем временный файл
+
                 try:
                     os.unlink(log_file_path)
                 except:
                     pass
             else:
-                # Если не удалось создать файл, отправляем текстом
-                full_log = "\n".join(log_buffer[-50:])  # Отправляем только последние 50 строк
+
+                full_log = "\n".join(log_buffer[-50:])
                 if len(full_log) > 3500:
                     full_log = full_log[-3500:]
                 await notification_client.send_message(
@@ -615,7 +612,7 @@ def load_config():
 
 
 def log_invalid_session(session_file):
-    """Записывает невалидную сессию в лог-файл и отправляет уведомление."""
+
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     log_entry = f"{session_file} не рабочая ({timestamp})"
     try:
@@ -623,7 +620,7 @@ def log_invalid_session(session_file):
             f.write(log_entry + "\n")
         print(f"{Fore.CYAN}✉ Сессия '{session_file}' добавлена в '{invalid_session_log_file}'{Style.RESET_ALL}")
 
-        # Отправляем уведомление о невалидной сессии
+
         asyncio.create_task(
             send_notification(f"⚠️ Невалидная сессия: {session_file}\nВремя: {timestamp}", "invalid_session"))
     except Exception as e:
@@ -631,13 +628,13 @@ def log_invalid_session(session_file):
 
 
 def extract_links_from_text(text):
-    """Извлекает все ссылки из текста."""
+
     url_pattern = r'https?://[^\s<>"]+|www\.[^\s<>"]+'
     return re.findall(url_pattern, text)
 
 
 def load_target_groups(filename=group_list_file):
-    """Загружает список целей из JSON файла (может содержать ID групп, ссылки на группы или ссылки на папки)."""
+
     target_groups = []
     if not os.path.exists(filename):
         print(f"{Fore.RED}✘ Файл '{filename}' не найден.{Style.RESET_ALL}")
@@ -667,7 +664,7 @@ def load_target_groups(filename=group_list_file):
 
 
 def load_enter_links(filename=enter_links_file):
-    """Загружает ссылки для входа из JSON файла."""
+
     enter_links = []
     if not os.path.exists(filename):
         print(f"{Fore.RED}✘ Файл '{filename}' не найден.{Style.RESET_ALL}")
@@ -697,14 +694,9 @@ def load_enter_links(filename=enter_links_file):
 
 
 async def process_folder_link(client, link, session_name=""):
-    """
-    Обрабатывает ссылку на папку:
-    1. Проверяет, есть ли у аккаунта доступ к папке
-    2. Если нет - вступает в папку
-    3. Возвращает список чатов из папки
-    """
+
     try:
-        # Извлекаем slug из ссылки на папку
+
         if 'addlist/' in link:
             slug = link.split('addlist/')[-1].split('?')[0]
         else:
@@ -715,10 +707,10 @@ async def process_folder_link(client, link, session_name=""):
         await add_to_log_buffer(log_msg)
 
         try:
-            # Проверяем информацию о папке
+
             check_result = await client(CheckChatlistInviteRequest(slug))
 
-            # Получаем список чатов
+
             all_chats = []
             if hasattr(check_result, 'chats') and check_result.chats:
                 all_chats = list(check_result.chats)
@@ -726,7 +718,7 @@ async def process_folder_link(client, link, session_name=""):
                 print(f"{Fore.GREEN}{log_msg}{Style.RESET_ALL}")
                 await add_to_log_buffer(log_msg)
 
-                # Выводим названия чатов
+
                 for idx, chat in enumerate(all_chats, 1):
                     chat_title = getattr(chat, 'title', f"чат ID {chat.id}")
                     can_write = True
@@ -741,15 +733,15 @@ async def process_folder_link(client, link, session_name=""):
 
                 return all_chats, True
             else:
-                # Если нет чатов, возможно нужно вступить
+
                 log_msg = f"⚠️ [{session_name}] Папка доступна, но чаты не получены. Возможно, нужно вступить..."
                 print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
                 await add_to_log_buffer(log_msg)
 
-                # Проверяем, есть ли информация для вступления
+
                 if hasattr(check_result, 'peers') and check_result.peers:
                     try:
-                        # Вступаем в папку
+
                         join_result = await client(JoinChatlistInviteRequest(
                             slug=slug,
                             peers=check_result.peers
@@ -759,10 +751,10 @@ async def process_folder_link(client, link, session_name=""):
                         print(f"{Fore.GREEN}{log_msg}{Style.RESET_ALL}")
                         await add_to_log_buffer(log_msg)
 
-                        # Небольшая пауза для обновления
+
                         await asyncio.sleep(2)
 
-                        # Проверяем снова
+
                         updated_check = await client(CheckChatlistInviteRequest(slug))
                         if hasattr(updated_check, 'chats') and updated_check.chats:
                             all_chats = list(updated_check.chats)
@@ -816,20 +808,17 @@ async def process_folder_link(client, link, session_name=""):
 
 
 async def get_chat_from_link(client, link, session_name=""):
-    """
-    Получает объект чата по ссылке.
-    Для папок (addlist): автоматически вступает и получает все чаты
-    """
+
     try:
         link = link.strip()
 
-        # Проверяем, является ли ссылка папкой с группами (addlist)
+
         if 'addlist' in link:
             log_msg = f"📁 [{session_name}] Обнаружена ссылка на папку с группами"
             print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg)
 
-            # Обрабатываем папку
+
             chats, success = await process_folder_link(client, link, session_name)
 
             if success and chats:
@@ -845,12 +834,12 @@ async def get_chat_from_link(client, link, session_name=""):
                 await add_to_log_buffer(log_msg)
                 return None, "error"
 
-        # Обычная ссылка на группу или приглашение
+
         else:
             try:
-                # Обработка ссылок с joinchat или +
+
                 if 'joinchat' in link or '+' in link:
-                    # Извлекаем hash из ссылки
+
                     if 'joinchat/' in link:
                         hash_part = link.split('joinchat/')[-1].split('?')[0]
                     elif '+' in link:
@@ -910,10 +899,7 @@ async def get_chat_from_link(client, link, session_name=""):
 
 
 async def get_user_chats(client, chat_type="all"):
-    """
-    Получает чаты пользователя с фильтрацией по типу.
-    chat_type: "all" - все, "users" - только личные, "groups" - только группы
-    """
+
     chats = []
     skipped_channels = 0
 
