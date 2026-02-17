@@ -1,13 +1,9 @@
 {
-  "version": "1.0.0",
-  "release_date": "2026-02-17",
+  "version": "1.1.1",  // ← Увеличьте номер версии!
+  "release_date": "2026-02-18",
   "changelog": [
-    "🔹 Добавлена система автообновления",
-    "🔹 Улучшена стабильность работы"
+    "🔹 Исправлена ошибка с отправкой сообщений",
+    "🔹 Улучшена скорость работы"
   ],
-  "download_url": "https://raw.githubusercontent.com/fanmasterprofanmasterpro-dot/LiteGamma-Tools-Full-Version/main/LiteGamma%20Tools%20Full%20Version.py",
-  "checksums": {
-    "sha256": "будет заполнено автоматически",
-    "md5": "будет заполнено автоматически"
-  }
+  "download_url": "https://raw.githubusercontent.com/fanmasterprofanmasterpro-dot/LiteGamma-Tools-Full-Version/main/LiteGamma%20Tools%20Full%20Version.py"
 }
