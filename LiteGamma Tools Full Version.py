@@ -10,7 +10,7 @@ import requests
 import sys
 import hashlib
 import shutil
-import time
+import time 
 from pathlib import Path
 from telethon import TelegramClient
 from telethon.tl.types import Channel, Chat, User, Message
@@ -2479,4 +2479,5 @@ if __name__ == '__main__':
     except Exception as e:
         print(f"\n{Fore.RED}✘ Ошибка: {e}{Style.RESET_ALL}")
         traceback.print_exc()
+
 
