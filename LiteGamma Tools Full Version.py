@@ -13,7 +13,7 @@ import shutil
 import time
 from pathlib import Path
 from telethon import TelegramClient
-from telethon.tl.types import Channel, Chat, User
+from telethon.tl.types import Channel, Chat, User, Message
 from telethon.tl.functions.channels import JoinChannelRequest
 from telethon.tl.functions.messages import ImportChatInviteRequest, CheckChatInviteRequest
 from telethon.tl.functions.chatlists import CheckChatlistInviteRequest, JoinChatlistInviteRequest
@@ -22,7 +22,7 @@ from telethon.errors import (
     UserPrivacyRestrictedError, AuthKeyUnregisteredError, PhoneCodeInvalidError,
     SessionPasswordNeededError, PhoneNumberInvalidError, PasswordHashInvalidError,
     RPCError, InviteHashExpiredError, InviteHashInvalidError, UserAlreadyParticipantError,
-    UsernameNotOccupiedError, InviteRequestSentError
+    UsernameNotOccupiedError, InviteRequestSentError, MessageIdInvalidError
 )
 from colorama import init, Fore, Style
 
@@ -33,14 +33,14 @@ GITHUB_BRANCH = "main"
 GITHUB_RAW_BASE = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/{GITHUB_BRANCH}"
 GITHUB_API_BASE = f"https://api.github.com/repos/{GITHUB_USER}/{GITHUB_REPO}"
 
-CURRENT_VERSION = "1.3.1"
+CURRENT_VERSION = "1.5.1"  
 UPDATE_CHECK_INTERVAL = 3600
 LAST_UPDATE_CHECK_FILE = "last_update_check.json"
 AUTO_UPDATE = True
 NOTIFY_ON_UPDATE = True
 
 init(autoreset=True)
-# Цветовые схемы
+
 CLR_MAIN = Fore.CYAN + Style.BRIGHT
 CLR_ACCENT = Fore.MAGENTA + Style.BRIGHT
 CLR_SUCCESS = Fore.GREEN + Style.BRIGHT
@@ -60,7 +60,7 @@ class UpdateManager:
         self.changelog = []
 
     async def check_for_updates(self, force=False):
-        """Проверяет наличие обновлений на GitHub"""
+        
         try:
             if not force and not self.should_check_update():
                 return False
@@ -78,7 +78,7 @@ class UpdateManager:
             remote_data = response.json()
             remote_version = remote_data.get("version", "0.0.0")
 
-            # Сравниваем версии
+         
             if self.compare_versions(remote_version, CURRENT_VERSION) > 0:
                 self.update_available = True
                 self.new_version = remote_version
@@ -108,11 +108,11 @@ class UpdateManager:
             return False
 
     def compare_versions(self, version1, version2):
-        """Сравнивает две версии"""
+       
         v1_parts = [int(x) for x in version1.split('.')]
         v2_parts = [int(x) for x in version2.split('.')]
 
-        # Дополняем нулями до одинаковой длины
+        
         while len(v1_parts) < len(v2_parts):
             v1_parts.append(0)
         while len(v2_parts) < len(v1_parts):
@@ -126,7 +126,7 @@ class UpdateManager:
         return 0
 
     def should_check_update(self):
-        """Проверяет, нужно ли проверять обновления"""
+       
         try:
             if os.path.exists(LAST_UPDATE_CHECK_FILE):
                 with open(LAST_UPDATE_CHECK_FILE, 'r') as f:
@@ -138,7 +138,7 @@ class UpdateManager:
             return True
 
     def save_last_check(self):
-        """Сохраняет время последней проверки"""
+       
         try:
             with open(LAST_UPDATE_CHECK_FILE, 'w') as f:
                 json.dump({'last_check': time.time()}, f)
@@ -146,7 +146,7 @@ class UpdateManager:
             pass
 
     async def perform_update(self, remote_data):
-        """Выполняет обновление скрипта"""
+        
         global CURRENT_VERSION
 
         try:
@@ -182,18 +182,18 @@ class UpdateManager:
                         print(f"Полученный: {actual_sha256}")
                         return False
 
-                # Обновляем версию в файле
+               
                 new_content = self.update_version_in_file(new_content, self.new_version)
 
                 with open(current_file, 'w', encoding='utf-8') as f:
                     f.write(new_content)
 
-                # Обновляем глобальную переменную
+               
                 CURRENT_VERSION = self.new_version
 
                 print(f"{Fore.GREEN}✅ Скрипт успешно обновлен до версии {self.new_version}!{Style.RESET_ALL}")
 
-                # Сохраняем в конфиг
+           
                 save_config()
 
                 if NOTIFY_ON_UPDATE and notification_enabled:
@@ -220,10 +220,10 @@ class UpdateManager:
             return False
 
     def update_version_in_file(self, content, new_version):
-        """Обновляет версию в файле"""
+       
         import re
 
-        # Ищем разные варианты объявления версии
+      
         patterns = [
             (r'CURRENT_VERSION\s*=\s*["\']([^"\']+)["\']', f'CURRENT_VERSION = "{new_version}"'),
             (r'CURRENT_VERSION\s*=\s*([0-9.]+)', f'CURRENT_VERSION = "{new_version}"'),
@@ -235,11 +235,11 @@ class UpdateManager:
         for pattern, replacement in patterns:
             updated_content = re.sub(pattern, replacement, updated_content)
 
-        # Проверяем, что замена произошла
+       
         if updated_content == content:
-            # Если не нашли, добавляем объявление версии после импортов
+          
             version_line = f'\nCURRENT_VERSION = "{new_version}"\n'
-            # Вставляем после импортов
+            
             import_end = updated_content.find('\n\n')
             if import_end != -1:
                 updated_content = updated_content[:import_end] + version_line + updated_content[import_end:]
@@ -247,12 +247,12 @@ class UpdateManager:
         return updated_content
 
     def verify_version_in_file(self):
-        """Проверяет, какая версия реально записана в файле"""
+       
         try:
             with open(__file__, 'r', encoding='utf-8') as f:
                 content = f.read()
 
-            # Ищем версию в файле
+           
             import re
             version_match = re.search(r'CURRENT_VERSION\s*=\s*["\']?([0-9.]+)["\']?', content)
             if version_match:
@@ -264,13 +264,13 @@ class UpdateManager:
         return None
 
     def restart_program(self):
-        """Перезапускает программу"""
+        
         print(f"{Fore.CYAN}🔄 Перезапуск...{Style.RESET_ALL}")
         python = sys.executable
         os.execl(python, python, *sys.argv)
 
     async def show_update_menu(self):
-        """Показывает меню обновлений"""
+     
         while True:
             os.system('cls' if os.name == 'nt' else 'clear')
             print_header("🔄 СИСТЕМА ОБНОВЛЕНИЙ")
@@ -316,15 +316,15 @@ class UpdateManager:
                 break
 
     async def diagnose_version(self):
-        """Диагностика проблемы с версией"""
+        
         print(f"{Fore.CYAN}🔍 Диагностика версии:{Style.RESET_ALL}")
         print(f"  Глобальная CURRENT_VERSION: {CURRENT_VERSION}")
 
-        # Проверяем в файле
+        
         file_version = self.verify_version_in_file()
         print(f"  Версия в файле: {file_version}")
 
-        # Проверяем в конфиге
+       
         try:
             if os.path.exists(config_file):
                 with open(config_file, 'r') as f:
@@ -334,7 +334,7 @@ class UpdateManager:
         except:
             print(f"  Версия в config.json: ошибка чтения")
 
-        # Проверяем в version.json на GitHub
+        
         try:
             response = requests.get(f"{GITHUB_RAW_BASE}/version.json", timeout=5)
             if response.status_code == 200:
@@ -345,7 +345,7 @@ class UpdateManager:
             print(f"  Версия на GitHub: ошибка проверки")
 
     def show_update_history(self):
-        """Показывает историю обновлений"""
+       
         print(f"\n{Fore.CYAN}📋 История обновлений:{Style.RESET_ALL}")
         backups = sorted(Path(self.backup_folder).glob("backup_*.py"), reverse=True)
 
@@ -362,7 +362,7 @@ class UpdateManager:
             print(f"     Версия: {version}, Размер: {size:.1f}KB, Дата: {modified.strftime('%Y-%m-%d %H:%M')}")
 
     def restore_from_backup(self):
-        """Восстанавливает из бэкапа"""
+        
         backups = sorted(Path(self.backup_folder).glob("backup_*.py"), reverse=True)
 
         if not backups:
@@ -391,7 +391,7 @@ class UpdateManager:
             print(f"{Fore.RED}❌ Неверный выбор{Style.RESET_ALL}")
 
     def show_update_settings(self):
-        """Настройки обновлений"""
+      
         global AUTO_UPDATE, NOTIFY_ON_UPDATE, UPDATE_CHECK_INTERVAL
 
         while True:
@@ -422,7 +422,7 @@ class UpdateManager:
                 break
 
 
-# Создаем глобальный менеджер обновлений
+
 update_manager = UpdateManager()
 
 
@@ -456,6 +456,10 @@ DEFAULT_MEDIA_PATH = ""
 DEFAULT_FAST_MODE = False
 DEFAULT_FAST_DELAY = 0.3
 
+
+DEFAULT_USE_FORWARD = False
+DEFAULT_FORWARD_LINK = ""
+
 DEFAULT_NOTIFICATION_ENABLED = False
 DEFAULT_NOTIFICATION_BOT_TOKEN = ""
 DEFAULT_NOTIFICATION_CHAT_ID = ""
@@ -480,6 +484,10 @@ media_path = DEFAULT_MEDIA_PATH
 fast_mode = DEFAULT_FAST_MODE
 fast_delay = DEFAULT_FAST_DELAY
 
+
+use_forward = DEFAULT_USE_FORWARD
+forward_link = DEFAULT_FORWARD_LINK
+
 # Глобальные переменные для уведомлений
 notification_enabled = DEFAULT_NOTIFICATION_ENABLED
 notification_bot_token = DEFAULT_NOTIFICATION_BOT_TOKEN
@@ -502,7 +510,7 @@ log_buffer_lock = asyncio.Lock()
 
 
 async def init_notification_client():
-    """Инициализирует клиент для отправки уведомлений."""
+
     global notification_client
     if notification_enabled and notification_bot_token and notification_chat_id:
         try:
@@ -533,7 +541,7 @@ async def init_notification_client():
 
 
 async def close_notification_client():
-    """Закрывает клиент уведомлений."""
+
     global notification_client
     if notification_client:
         await notification_client.disconnect()
@@ -542,7 +550,7 @@ async def close_notification_client():
 
 
 async def add_to_log_buffer(message):
-    """Добавляет сообщение в буфер логов."""
+
     global log_buffer
     async with log_buffer_lock:
         timestamp = datetime.datetime.now().strftime("%H:%M:%S")
@@ -552,7 +560,7 @@ async def add_to_log_buffer(message):
 
 
 async def save_logs_to_file():
-    """Сохраняет буфер логов во временный файл."""
+
     if not log_buffer:
         return None
 
@@ -571,7 +579,7 @@ async def save_logs_to_file():
 
 
 async def send_notification(message, notification_type="info"):
-    """Отправляет уведомление в Telegram, если включено."""
+
     if not notification_enabled or not notification_client or not notification_chat_id:
         return
 
@@ -628,6 +636,8 @@ def save_config():
         "media_path": media_path,
         "fast_mode": fast_mode,
         "fast_delay": fast_delay,
+        "use_forward": use_forward,  # НОВОЕ
+        "forward_link": forward_link,  # НОВОЕ
         "notification_enabled": notification_enabled,
         "notification_bot_token": notification_bot_token,
         "notification_chat_id": notification_chat_id,
@@ -645,7 +655,7 @@ def save_config():
 
 
 def load_config():
-    global current_api_id, current_api_hash, session_folder, message_to_send, delay_between_messages, delay_between_accounts, max_messages_per_account, repeat_broadcast, repeat_interval, delete_after_send, recipient_type, use_media, media_path, fast_mode, fast_delay, notification_enabled, notification_bot_token, notification_chat_id, notify_invalid_session, notify_cycle_results, notify_full_logs, CURRENT_VERSION
+    global current_api_id, current_api_hash, session_folder, message_to_send, delay_between_messages, delay_between_accounts, max_messages_per_account, repeat_broadcast, repeat_interval, delete_after_send, recipient_type, use_media, media_path, fast_mode, fast_delay, use_forward, forward_link, notification_enabled, notification_bot_token, notification_chat_id, notify_invalid_session, notify_cycle_results, notify_full_logs, CURRENT_VERSION
     try:
         if os.path.exists(config_file):
             with open(config_file, 'r', encoding='utf-8') as f:
@@ -665,6 +675,8 @@ def load_config():
                 media_path = config.get("media_path", DEFAULT_MEDIA_PATH)
                 fast_mode = config.get("fast_mode", DEFAULT_FAST_MODE)
                 fast_delay = config.get("fast_delay", DEFAULT_FAST_DELAY)
+                use_forward = config.get("use_forward", DEFAULT_USE_FORWARD)  # НОВОЕ
+                forward_link = config.get("forward_link", DEFAULT_FORWARD_LINK)  # НОВОЕ
                 notification_enabled = config.get("notification_enabled", DEFAULT_NOTIFICATION_ENABLED)
                 notification_bot_token = config.get("notification_bot_token", DEFAULT_NOTIFICATION_BOT_TOKEN)
                 notification_chat_id = config.get("notification_chat_id", DEFAULT_NOTIFICATION_CHAT_ID)
@@ -678,7 +690,7 @@ def load_config():
 
 
 def log_invalid_session(session_file):
-    """Записывает невалидную сессию в лог-файл и отправляет уведомление."""
+
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     log_entry = f"{session_file} не рабочая ({timestamp})"
     try:
@@ -693,7 +705,7 @@ def log_invalid_session(session_file):
 
 
 def extract_links_from_text(text):
-    """Извлекает все ссылки из текста."""
+
     url_pattern = r'https?://[^\s<>"]+|www\.[^\s<>"]+'
     return re.findall(url_pattern, text)
 
@@ -729,7 +741,7 @@ def load_target_groups(filename=group_list_file):
 
 
 def load_enter_links(filename=enter_links_file):
-    """Загружает ссылки для входа из JSON файла."""
+
     enter_links = []
     if not os.path.exists(filename):
         print(f"{Fore.RED}✘ Файл '{filename}' не найден.{Style.RESET_ALL}")
@@ -758,8 +770,57 @@ def load_enter_links(filename=enter_links_file):
     return enter_links
 
 
+
+async def get_message_from_link(client, link):
+
+    try:
+       
+        if 't.me/' not in link:
+            return None, "Неверный формат ссылки. Должно быть: https://t.me/username/123"
+
+      
+        path = link.split('t.me/')[-1]
+        parts = path.split('/')
+
+        if len(parts) < 2:
+            return None, "Ссылка должна содержать username и ID сообщения. Пример: https://t.me/username/123"
+
+        username = parts[0]
+
+        message_id_str = parts[1].split('?')[0]
+
+        try:
+            message_id = int(message_id_str)
+        except ValueError:
+            return None, f"ID сообщения должен быть числом, получено: {message_id_str}"
+
+  
+        try:
+            entity = await client.get_entity(username)
+            chat_title = getattr(entity, 'title', username)
+            print(f"{Fore.CYAN}📎 Найден чат: {chat_title}{Style.RESET_ALL}")
+        except Exception as e:
+            return None, f"Не удалось найти чат/канал '{username}': {e}"
+
+
+        try:
+            messages = await client.get_messages(entity, ids=message_id)
+            if messages:
+                print(f"{Fore.GREEN}✅ Сообщение найдено (ID: {message_id}){Style.RESET_ALL}")
+                return messages, None
+            else:
+                return None, f"Сообщение с ID {message_id} не найдено в чате {username}"
+        except MessageIdInvalidError:
+            return None, f"Сообщение с ID {message_id} не существует или недоступно"
+        except Exception as e:
+            return None, f"Ошибка при получении сообщения: {e}"
+
+    except Exception as e:
+        return None, f"Ошибка при обработке ссылки: {e}"
+
+
 async def process_folder_link(client, link, session_name=""):
-    """Обрабатывает ссылку на папку с группами"""
+
     try:
         if 'addlist/' in link:
             slug = link.split('addlist/')[-1].split('?')[0]
@@ -864,7 +925,7 @@ async def process_folder_link(client, link, session_name=""):
 
 
 async def get_chat_from_link(client, link, session_name=""):
-    """Получает объект чата по ссылке."""
+
     try:
         link = link.strip()
 
@@ -950,7 +1011,7 @@ async def get_chat_from_link(client, link, session_name=""):
 
 
 async def get_user_chats(client, chat_type="all"):
-    """Получает чаты пользователя с фильтрацией по типу."""
+
     chats = []
     skipped_channels = 0
 
@@ -1011,11 +1072,27 @@ async def get_user_chats(client, chat_type="all"):
         return []
 
 
-async def send_message_safely(client, chat, message, delete_after=False, media_path=None):
-    """Отправляет сообщение с опциональным медиафайлом и опционально удаляет его у себя."""
+
+async def send_message_safely(client, chat, message, delete_after=False, media_path=None, forward_link=None):
+
     sent_message = None
     try:
-        if media_path and os.path.exists(media_path):
+        if forward_link:
+       
+            msg_to_forward, error = await get_message_from_link(client, forward_link)
+            if msg_to_forward:
+             
+                sent_message = await client.forward_messages(chat, msg_to_forward)
+                log_msg = f"📨 Сообщение переслано из: {forward_link}"
+                print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
+                await add_to_log_buffer(log_msg)
+            else:
+                log_msg = f"❌ Ошибка получения сообщения для пересылки: {error}"
+                print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
+                await add_to_log_buffer(log_msg)
+                return False, None
+
+        elif media_path and os.path.exists(media_path):
             sent_message = await client.send_file(chat, media_path, caption=message)
         else:
             sent_message = await client.send_message(chat, message)
@@ -1027,12 +1104,13 @@ async def send_message_safely(client, chat, message, delete_after=False, media_p
             await add_to_log_buffer(log_msg)
 
         return True, sent_message
+
     except FloodWaitError as e:
         log_msg = f"⏳ FloodWait {e.seconds} сек..."
         print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
         await add_to_log_buffer(log_msg)
         await asyncio.sleep(e.seconds)
-        return await send_message_safely(client, chat, message, delete_after, media_path)
+        return await send_message_safely(client, chat, message, delete_after, media_path, forward_link)
     except (ChatAdminRequiredError, ChannelPrivateError, UserPrivacyRestrictedError):
         return False, None
     except Exception as e:
@@ -1043,7 +1121,7 @@ async def send_message_safely(client, chat, message, delete_after=False, media_p
 
 
 async def join_chat_safely(client, link, session_name=""):
-    """Безопасное вступление в чат/группу по ссылке."""
+
     try:
         link = link.strip()
 
@@ -1148,7 +1226,7 @@ async def join_chat_safely(client, link, session_name=""):
 
 
 async def process_account_join(session_file, api_id, api_hash, join_links, delay_between_joins=5):
-    """Обрабатывает вступление для одного аккаунта."""
+
     client_session_name = os.path.join(session_folder, session_file.replace('.session', ''))
     client = TelegramClient(
         client_session_name, api_id, api_hash,
@@ -1317,8 +1395,10 @@ async def run_join_broadcast(api_id, api_hash, session_files, join_links):
     print(Fore.MAGENTA + "--- Вступление в группы завершено ---" + Style.RESET_ALL)
 
 
+# ОБНОВЛЕННАЯ ФУНКЦИЯ PROCESS_ACCOUNT
 async def process_account(session_file, api_id, api_hash, message, max_messages, delete_after, use_media_flag,
-                          media_file_path, recipient_filter, fast_mode_flag, fast_delay_val, target_chats_ids=None):
+                          media_file_path, recipient_filter, fast_mode_flag, fast_delay_val, use_forward_flag,
+                          forward_link_val, target_chats_ids=None):
     """Обрабатывает рассылку для одного аккаунта."""
     client_session_name = os.path.join(session_folder, session_file.replace('.session', ''))
     client = TelegramClient(
@@ -1361,6 +1441,11 @@ async def process_account(session_file, api_id, api_hash, message, max_messages,
         if fast_mode_flag:
             log_msg = f"⚡ БЫСТРЫЙ РЕЖИМ: задержка {fast_delay_val}с"
             print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
+            await add_to_log_buffer(log_msg)
+
+        if use_forward_flag and forward_link_val:
+            log_msg = f"📨 РЕЖИМ ПЕРЕСЫЛКИ: {forward_link_val}"
+            print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg)
 
         chats_to_process = []
@@ -1442,7 +1527,13 @@ async def process_account(session_file, api_id, api_hash, message, max_messages,
 
             media_to_use = media_file_path if use_media_flag and media_file_path and os.path.exists(
                 media_file_path) else None
-            success, sent_message = await send_message_safely(client, chat, message, delete_after, media_to_use)
+            forward_link_to_use = forward_link_val if use_forward_flag else None
+
+            success, sent_message = await send_message_safely(
+                client, chat, message, delete_after,
+                media_path=media_to_use,
+                forward_link=forward_link_to_use
+            )
 
             if success:
                 sent_count += 1
@@ -1530,13 +1621,21 @@ async def process_account(session_file, api_id, api_hash, message, max_messages,
     return sent_count, skipped_count, deleted_count, total_chats_processed, authorized
 
 
+# ОБНОВЛЕННАЯ ФУНКЦИЯ RUN_BROADCAST
 async def run_broadcast(api_id, api_hash, session_files, message, max_messages_per_account, repeat_broadcast_flag,
                         repeat_interval_val, delete_after, use_media_flag, media_file_path, recipient_filter,
-                        fast_mode_flag, fast_delay_val, target_chats_ids=None, cycle_number=1):
+                        fast_mode_flag, fast_delay_val, use_forward_flag, forward_link_val, target_chats_ids=None,
+                        cycle_number=1):
     """Запускает рассылку для нескольких аккаунтов."""
     filter_names = {"all": "Все диалоги", "users": "Только личные чаты", "groups": "Только группы"}
     print("\n" + Fore.MAGENTA + "--- Запуск рассылки ---" + Style.RESET_ALL)
-    print(f"Сообщение: '{message[:60]}...'")
+
+    if use_forward_flag and forward_link_val:
+        print(f"{Fore.CYAN}📨 РЕЖИМ: ПЕРЕСЫЛКА СООБЩЕНИЯ")
+        print(f"{Fore.CYAN}📎 Ссылка: {forward_link_val}{Style.RESET_ALL}")
+    else:
+        print(f"Сообщение: '{message[:60]}...'")
+
     if use_media_flag and media_file_path and os.path.exists(media_file_path):
         print(f"{Fore.CYAN}🖼 Медиафайл: {os.path.basename(media_file_path)}")
     print(f"Сессий: {len(session_files)}")
@@ -1578,7 +1677,7 @@ async def run_broadcast(api_id, api_hash, session_files, message, max_messages_p
                 process_account(
                     session_file, api_id, api_hash,
                     message, max_messages_per_account, delete_after, use_media_flag, media_file_path, recipient_filter,
-                    fast_mode_flag, fast_delay_val,
+                    fast_mode_flag, fast_delay_val, use_forward_flag, forward_link_val,
                     target_chats_ids=target_chats_ids
                 )
             )
@@ -1660,9 +1759,10 @@ async def run_broadcast(api_id, api_hash, session_files, message, max_messages_p
     print(Fore.MAGENTA + "--- Рассылка завершена ---" + Style.RESET_ALL)
 
 
+# ОБНОВЛЕННАЯ ФУНКЦИЯ DISPLAY_SETTINGS_MENU
 async def display_settings_menu():
     """Меню настроек."""
-    global current_api_id, current_api_hash, session_folder, message_to_send, delay_between_messages, delay_between_accounts, max_messages_per_account, repeat_broadcast, repeat_interval, delete_after_send, recipient_type, use_media, media_path, fast_mode, fast_delay, notification_enabled, notification_bot_token, notification_chat_id, notify_invalid_session, notify_cycle_results, notify_full_logs
+    global current_api_id, current_api_hash, session_folder, message_to_send, delay_between_messages, delay_between_accounts, max_messages_per_account, repeat_broadcast, repeat_interval, delete_after_send, recipient_type, use_media, media_path, fast_mode, fast_delay, use_forward, forward_link, notification_enabled, notification_bot_token, notification_chat_id, notify_invalid_session, notify_cycle_results, notify_full_logs
 
     while True:
         os.system('cls' if os.name == 'nt' else 'clear')
@@ -1679,7 +1779,10 @@ async def display_settings_menu():
         print(f"\n{CLR_WARN}Текущие значения:{Style.RESET_ALL}")
         print(f"  API ID: {current_api_id}")
         print(f"  Папка сессий: {session_folder}")
-        print(f"  Сообщение: {message_to_send[:30]}...")
+        if use_forward and forward_link:
+            print(f"  📨 Пересылка: {forward_link[:30]}...")
+        else:
+            print(f"  Сообщение: {message_to_send[:30]}...")
         if notification_enabled:
             print(f"  🔔 Уведомления: ВКЛ")
 
@@ -1758,8 +1861,15 @@ async def display_settings_menu():
                     f"{CLR_INFO}2. 🖼 Использовать медиа: {CLR_SUCCESS if use_media else CLR_ERR}{'ВКЛ' if use_media else 'ВЫКЛ'}")
                 if use_media:
                     print(f"{CLR_INFO}3. 📁 Путь к медиафайлу: {CLR_WARN}{media_path or 'Не указан'}")
+
+                # НОВЫЕ ПУНКТЫ ДЛЯ ПЕРЕСЫЛКИ
                 print(
-                    f"{CLR_INFO}4. 🗑 Удаление у себя: {CLR_SUCCESS if delete_after_send else CLR_ERR}{'ВКЛ' if delete_after_send else 'ВЫКЛ'}")
+                    f"{CLR_INFO}4. 🔗 Пересылать сообщение: {CLR_SUCCESS if use_forward else CLR_ERR}{'ВКЛ' if use_forward else 'ВЫКЛ'}")
+                if use_forward:
+                    print(f"{CLR_INFO}5. 📎 Ссылка на сообщение: {CLR_WARN}{forward_link or 'Не указана'}")
+
+                print(
+                    f"{CLR_INFO}6. 🗑 Удаление у себя: {CLR_SUCCESS if delete_after_send else CLR_ERR}{'ВКЛ' if delete_after_send else 'ВЫКЛ'}")
                 print(f"{CLR_ERR}0. 🔙 Назад")
 
                 sub_choice = input(f"\n{CLR_MAIN}Выберите пункт ➔ {RESET}").strip()
@@ -1786,6 +1896,8 @@ async def display_settings_menu():
                         print(f"{Fore.GREEN}✔ Сообщение обновлено.{Style.RESET_ALL}")
                 elif sub_choice == '2':
                     use_media = not use_media
+                    if use_media:
+                        use_forward = False  # Отключаем пересылку при включении медиа
                     print(
                         f"{Fore.GREEN}✔ Использование медиа {'включено' if use_media else 'выключено'}.{Style.RESET_ALL}")
                     if use_media and not media_path:
@@ -1798,7 +1910,26 @@ async def display_settings_menu():
                             print(f"{Fore.GREEN}✔ Путь к медиафайлу обновлен.{Style.RESET_ALL}")
                         else:
                             print(f"{Fore.RED}✘ Файл не найден!{Style.RESET_ALL}")
+
+                # НОВЫЕ ОБРАБОТЧИКИ
                 elif sub_choice == '4':
+                    use_forward = not use_forward
+                    if use_forward:
+                        use_media = False  # Отключаем медиа при включении пересылки
+                    print(
+                        f"{Fore.GREEN}✔ Пересылка сообщений {'включена' if use_forward else 'выключена'}.{Style.RESET_ALL}")
+
+                elif sub_choice == '5' and use_forward:
+                    new_link = input(f"Ссылка на сообщение (пример: https://t.me/username/123): ").strip()
+                    if new_link:
+                        if 't.me/' in new_link and len(new_link.split('/')) >= 4:
+                            forward_link = new_link
+                            print(f"{Fore.GREEN}✔ Ссылка для пересылки обновлена.{Style.RESET_ALL}")
+                        else:
+                            print(
+                                f"{Fore.RED}✘ Неверный формат ссылки! Пример: https://t.me/username/123{Style.RESET_ALL}")
+
+                elif sub_choice == '6':
                     delete_after_send = not delete_after_send
                     print(
                         f"{Fore.GREEN}✔ Удаление у себя {'включено' if delete_after_send else 'выключено'}.{Style.RESET_ALL}")
@@ -1948,6 +2079,8 @@ async def display_settings_menu():
                     'media_path': DEFAULT_MEDIA_PATH,
                     'fast_mode': DEFAULT_FAST_MODE,
                     'fast_delay': DEFAULT_FAST_DELAY,
+                    'use_forward': DEFAULT_USE_FORWARD,  # НОВОЕ
+                    'forward_link': DEFAULT_FORWARD_LINK,  # НОВОЕ
                     'notification_enabled': DEFAULT_NOTIFICATION_ENABLED,
                     'notification_bot_token': DEFAULT_NOTIFICATION_BOT_TOKEN,
                     'notification_chat_id': DEFAULT_NOTIFICATION_CHAT_ID,
@@ -2042,7 +2175,7 @@ async def add_session_by_number():
 
 async def main_menu():
     """Главное меню программы."""
-    global CURRENT_VERSION  # Добавляем global здесь
+    global CURRENT_VERSION
 
     load_config()
     os.makedirs(session_folder, exist_ok=True)
@@ -2089,9 +2222,13 @@ async def main_menu():
             print(f"{Fore.YELLOW}⚡ ТЕКУЩИЙ РЕЖИМ: БЫСТРЫЙ (задержка {fast_delay}с){Style.RESET_ALL}")
         if repeat_broadcast:
             print(f"{Fore.CYAN}🔄 ПОВТОР ВКЛЮЧЕН (интервал {repeat_interval}с){Style.RESET_ALL}")
+        if use_forward and forward_link:
+            print(f"{Fore.CYAN}📨 РЕЖИМ: ПЕРЕСЫЛКА СООБЩЕНИЯ{Style.RESET_ALL}")
+        if use_media and media_path:
+            print(f"{Fore.CYAN}🖼 МЕДИА РЕЖИМ: {os.path.basename(media_path)}{Style.RESET_ALL}")
         if notification_enabled:
             print(f"{Fore.GREEN}🔔 УВЕДОМЛЕНИЯ ВКЛЮЧЕНЫ{Style.RESET_ALL}")
-        print(f"{Fore.CYAN}📦 Текущая версия(версия может лагать,и когда обновляете,может показывать старую,но на самом деле обновиться): {CURRENT_VERSION}{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}📦 Версия: {CURRENT_VERSION}{Style.RESET_ALL}")
 
         choice = input(f"{CLR_MAIN}Введите номер команды ➔ {RESET}").strip()
 
@@ -2196,7 +2333,10 @@ async def main_menu():
                     print(f"{Fore.CYAN}● Цели: {len(target_groups_file_data)} групп/ссылок из файла{Style.RESET_ALL}")
             else:
                 print(f"{Fore.CYAN}● Цели: {recipient_names[recipient_type]}")
-            if use_media and media_path and os.path.exists(media_path):
+
+            if use_forward and forward_link:
+                print(f"{Fore.CYAN}📨 Пересылка: {forward_link}{Style.RESET_ALL}")
+            elif use_media and media_path and os.path.exists(media_path):
                 print(f"{Fore.CYAN}🖼 Медиафайл: {os.path.basename(media_path)}")
             print(f"🔢 Макс./аккаунт: {max_messages_per_account}")
 
@@ -2218,7 +2358,7 @@ async def main_menu():
                 await run_broadcast(current_api_id, current_api_hash, selected_sessions, message_to_send,
                                     max_messages_per_account, repeat_broadcast, repeat_interval, delete_after_send,
                                     use_media, media_path, recipient_type,
-                                    fast_mode, fast_delay,
+                                    fast_mode, fast_delay, use_forward, forward_link,
                                     target_chats_ids=target_groups_file_data)
                 input("Нажмите Enter для продолжения...")
 
@@ -2339,5 +2479,3 @@ if __name__ == '__main__':
     except Exception as e:
         print(f"\n{Fore.RED}✘ Ошибка: {e}{Style.RESET_ALL}")
         traceback.print_exc()
-
-
