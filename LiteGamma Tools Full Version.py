@@ -14,7 +14,7 @@ import time
 from pathlib import Path
 from telethon import TelegramClient
 from telethon.tl.types import Channel, Chat, User, Message
-from telethon.tl.functions.channels import JoinChannelRequest
+from telethon.tl.functions.channels import JoinChannelRequest 
 from telethon.tl.functions.messages import ImportChatInviteRequest, CheckChatInviteRequest
 from telethon.tl.functions.chatlists import CheckChatlistInviteRequest, JoinChatlistInviteRequest
 from telethon.errors import (
@@ -2479,3 +2479,4 @@ if __name__ == '__main__':
     except Exception as e:
         print(f"\n{Fore.RED}✘ Ошибка: {e}{Style.RESET_ALL}")
         traceback.print_exc()
+
