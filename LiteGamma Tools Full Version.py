@@ -1,4 +1,4 @@
-import os
+import os 
 
 import asyncio
 
@@ -7143,4 +7143,5 @@ if __name__ == '__main__':
         print(f"\n{Fore.RED}✘ Ошибка: {e}{Style.RESET_ALL}")
 
         traceback.print_exc()
+
 
