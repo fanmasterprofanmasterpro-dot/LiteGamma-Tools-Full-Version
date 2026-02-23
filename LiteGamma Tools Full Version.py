@@ -1,57 +1,30 @@
 import os
-
 import asyncio
-
 import signal
-
 import traceback
-
 import json
-
 import datetime
-
 import re
-
 import tempfile
-
 import requests
-
 import sys
-
 import hashlib
-
 import shutil
-
 import time
-
 from pathlib import Path
-
 from telethon import TelegramClient, events
-
 from telethon.tl.types import Channel, Chat, User, MessageEntityMention, MessageEntityMentionName, MessageEntityTextUrl,MessageEntityUrl
-
 from telethon.tl.functions.channels import JoinChannelRequest
-
 from telethon.tl.functions.messages import ImportChatInviteRequest, CheckChatInviteRequest
-
 from telethon.tl.functions.chatlists import CheckChatlistInviteRequest, JoinChatlistInviteRequest
-
 from telethon.errors import (
-
     FloodWaitError, ChannelPrivateError, ChatAdminRequiredError,
-
     UserPrivacyRestrictedError, AuthKeyUnregisteredError, PhoneCodeInvalidError,
-
     SessionPasswordNeededError, PhoneNumberInvalidError, PasswordHashInvalidError,
-
     RPCError, InviteHashExpiredError, InviteHashInvalidError, UserAlreadyParticipantError,
-
     UsernameNotOccupiedError, InviteRequestSentError, InviteHashEmptyError
-
 )
-
 from colorama import init, Fore, Style
-
 from datetime import datetime, timedelta
 
 
@@ -7143,4 +7116,5 @@ if __name__ == '__main__':
         print(f"\n{Fore.RED}✘ Ошибка: {e}{Style.RESET_ALL}")
 
         traceback.print_exc()
+
 
