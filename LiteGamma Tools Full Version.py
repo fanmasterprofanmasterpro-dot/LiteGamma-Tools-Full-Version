@@ -24,7 +24,7 @@ import shutil
 
 import time
 
-from pathlib import Path
+from pathlib import Path 
 
 from telethon import TelegramClient, events
 
@@ -7143,5 +7143,6 @@ if __name__ == '__main__':
         print(f"\n{Fore.RED}✘ Ошибка: {e}{Style.RESET_ALL}")
 
         traceback.print_exc()
+
 
 
