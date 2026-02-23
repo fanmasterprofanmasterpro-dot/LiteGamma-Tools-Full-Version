@@ -10,11 +10,12 @@ import requests
 import sys
 import hashlib
 import shutil
-import time 
+import time
 from pathlib import Path
-from telethon import TelegramClient
-from telethon.tl.types import Channel, Chat, User, Message
-from telethon.tl.functions.channels import JoinChannelRequest 
+from telethon import TelegramClient, events
+from telethon.tl.types import Channel, Chat, User, MessageEntityMention, MessageEntityMentionName, MessageEntityTextUrl, \
+    MessageEntityUrl
+from telethon.tl.functions.channels import JoinChannelRequest
 from telethon.tl.functions.messages import ImportChatInviteRequest, CheckChatInviteRequest
 from telethon.tl.functions.chatlists import CheckChatlistInviteRequest, JoinChatlistInviteRequest
 from telethon.errors import (
@@ -22,9 +23,10 @@ from telethon.errors import (
     UserPrivacyRestrictedError, AuthKeyUnregisteredError, PhoneCodeInvalidError,
     SessionPasswordNeededError, PhoneNumberInvalidError, PasswordHashInvalidError,
     RPCError, InviteHashExpiredError, InviteHashInvalidError, UserAlreadyParticipantError,
-    UsernameNotOccupiedError, InviteRequestSentError, MessageIdInvalidError
+    UsernameNotOccupiedError, InviteRequestSentError, InviteHashEmptyError
 )
 from colorama import init, Fore, Style
+from datetime import datetime, timedelta
 
 # =============== UPDATE CONFIGURATION ===============
 GITHUB_USER = "fanmasterprofanmasterpro-dot"
@@ -33,14 +35,14 @@ GITHUB_BRANCH = "main"
 GITHUB_RAW_BASE = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/{GITHUB_BRANCH}"
 GITHUB_API_BASE = f"https://api.github.com/repos/{GITHUB_USER}/{GITHUB_REPO}"
 
-CURRENT_VERSION = "1.5.1"  
+CURRENT_VERSION = "1.5.2"  # Обновлена версия
 UPDATE_CHECK_INTERVAL = 3600
 LAST_UPDATE_CHECK_FILE = "last_update_check.json"
 AUTO_UPDATE = True
 NOTIFY_ON_UPDATE = True
 
 init(autoreset=True)
-
+# Цветовые схемы
 CLR_MAIN = Fore.CYAN + Style.BRIGHT
 CLR_ACCENT = Fore.MAGENTA + Style.BRIGHT
 CLR_SUCCESS = Fore.GREEN + Style.BRIGHT
@@ -49,6 +51,33 @@ CLR_ERR = Fore.RED + Style.BRIGHT
 CLR_INFO = Fore.BLUE + Style.BRIGHT
 BR = Style.BRIGHT
 RESET = Style.RESET_ALL
+
+# =============== НОВЫЕ НАСТРОЙКИ ДЛЯ АВТОПОДПИСКИ ===============
+AUTO_SUBSCRIBE_ENABLED = False  # Включена ли автоподписка
+AUTO_SUBSCRIBE_ON_MENTION = True  # Подписываться при упоминании
+AUTO_SUBSCRIBE_DELAY = 3  # Задержка между подписками (сек)
+AUTO_SUBSCRIBE_MAX_FLOOD_WAIT = 300  # Максимальное время ожидания флуда (5 мин)
+AUTO_SUBSCRIBE_RETRY_AFTER_FLOOD = True  # Повторять после флуда
+AUTO_SUBSCRIBE_CHECK_INTERVAL = 5  # Интервал проверки при ожидании
+AUTO_SUBSCRIBE_WAIT_FOR_MENTION = 10  # Макс время ожидания упоминания (сек) - УМЕНЬШЕНО ДО 10
+AUTO_SUBSCRIBE_PAUSE_BETWEEN_CHANNELS = 3  # Пауза между каналами
+AUTO_SUBSCRIBE_FORCED_CHANNELS = []  # Ручной список каналов для подписки
+AUTO_SUBSCRIBE_FIRST_CYCLE_ONLY = True  # Только первый цикл ждет подписки
+
+# Паттерны для поиска каналов
+CHANNEL_PATTERNS = [
+    r'@(\w+)',  # @username
+    r'https://t\.me/(\w+)',  # https://t.me/username
+    r't\.me/(\w+)',  # t.me/username
+    r'telegram\.me/(\w+)',  # telegram.me/username
+    r'joinchat/([\w\-]+)',  # joinchat links
+    r'\+([\w\-]+)',  # invite links
+]
+
+# Глобальные переменные для автоподписки
+flood_wait_occurred = False
+total_flood_time = 0
+failed_subscriptions_file = "failed_subscriptions.txt"  # Файл для неудачных подписок
 
 
 class UpdateManager:
@@ -60,7 +89,7 @@ class UpdateManager:
         self.changelog = []
 
     async def check_for_updates(self, force=False):
-        
+        """Проверяет наличие обновлений на GitHub"""
         try:
             if not force and not self.should_check_update():
                 return False
@@ -78,7 +107,7 @@ class UpdateManager:
             remote_data = response.json()
             remote_version = remote_data.get("version", "0.0.0")
 
-         
+            # Сравниваем версии
             if self.compare_versions(remote_version, CURRENT_VERSION) > 0:
                 self.update_available = True
                 self.new_version = remote_version
@@ -108,11 +137,11 @@ class UpdateManager:
             return False
 
     def compare_versions(self, version1, version2):
-       
+        """Сравнивает две версии"""
         v1_parts = [int(x) for x in version1.split('.')]
         v2_parts = [int(x) for x in version2.split('.')]
 
-        
+        # Дополняем нулями до одинаковой длины
         while len(v1_parts) < len(v2_parts):
             v1_parts.append(0)
         while len(v2_parts) < len(v1_parts):
@@ -126,7 +155,7 @@ class UpdateManager:
         return 0
 
     def should_check_update(self):
-       
+        """Проверяет, нужно ли проверять обновления"""
         try:
             if os.path.exists(LAST_UPDATE_CHECK_FILE):
                 with open(LAST_UPDATE_CHECK_FILE, 'r') as f:
@@ -138,7 +167,7 @@ class UpdateManager:
             return True
 
     def save_last_check(self):
-       
+        """Сохраняет время последней проверки"""
         try:
             with open(LAST_UPDATE_CHECK_FILE, 'w') as f:
                 json.dump({'last_check': time.time()}, f)
@@ -146,7 +175,7 @@ class UpdateManager:
             pass
 
     async def perform_update(self, remote_data):
-        
+        """Выполняет обновление скрипта"""
         global CURRENT_VERSION
 
         try:
@@ -154,7 +183,7 @@ class UpdateManager:
 
             os.makedirs(self.backup_folder, exist_ok=True)
 
-            backup_name = f"backup_v{CURRENT_VERSION}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.py"
+            backup_name = f"backup_v{CURRENT_VERSION}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.py"
             backup_path = os.path.join(self.backup_folder, backup_name)
 
             current_file = __file__
@@ -182,18 +211,18 @@ class UpdateManager:
                         print(f"Полученный: {actual_sha256}")
                         return False
 
-               
+                # Обновляем версию в файле
                 new_content = self.update_version_in_file(new_content, self.new_version)
 
                 with open(current_file, 'w', encoding='utf-8') as f:
                     f.write(new_content)
 
-               
+                # Обновляем глобальную переменную
                 CURRENT_VERSION = self.new_version
 
                 print(f"{Fore.GREEN}✅ Скрипт успешно обновлен до версии {self.new_version}!{Style.RESET_ALL}")
 
-           
+                # Сохраняем в конфиг
                 save_config()
 
                 if NOTIFY_ON_UPDATE and notification_enabled:
@@ -220,10 +249,10 @@ class UpdateManager:
             return False
 
     def update_version_in_file(self, content, new_version):
-       
+        """Обновляет версию в файле"""
         import re
 
-      
+        # Ищем разные варианты объявления версии
         patterns = [
             (r'CURRENT_VERSION\s*=\s*["\']([^"\']+)["\']', f'CURRENT_VERSION = "{new_version}"'),
             (r'CURRENT_VERSION\s*=\s*([0-9.]+)', f'CURRENT_VERSION = "{new_version}"'),
@@ -235,11 +264,11 @@ class UpdateManager:
         for pattern, replacement in patterns:
             updated_content = re.sub(pattern, replacement, updated_content)
 
-       
+        # Проверяем, что замена произошла
         if updated_content == content:
-          
+            # Если не нашли, добавляем объявление версии после импортов
             version_line = f'\nCURRENT_VERSION = "{new_version}"\n'
-            
+            # Вставляем после импортов
             import_end = updated_content.find('\n\n')
             if import_end != -1:
                 updated_content = updated_content[:import_end] + version_line + updated_content[import_end:]
@@ -247,12 +276,12 @@ class UpdateManager:
         return updated_content
 
     def verify_version_in_file(self):
-       
+        """Проверяет, какая версия реально записана в файле"""
         try:
             with open(__file__, 'r', encoding='utf-8') as f:
                 content = f.read()
 
-           
+            # Ищем версию в файле
             import re
             version_match = re.search(r'CURRENT_VERSION\s*=\s*["\']?([0-9.]+)["\']?', content)
             if version_match:
@@ -264,13 +293,13 @@ class UpdateManager:
         return None
 
     def restart_program(self):
-        
+        """Перезапускает программу"""
         print(f"{Fore.CYAN}🔄 Перезапуск...{Style.RESET_ALL}")
         python = sys.executable
         os.execl(python, python, *sys.argv)
 
     async def show_update_menu(self):
-     
+        """Показывает меню обновлений"""
         while True:
             os.system('cls' if os.name == 'nt' else 'clear')
             print_header("🔄 СИСТЕМА ОБНОВЛЕНИЙ")
@@ -316,15 +345,15 @@ class UpdateManager:
                 break
 
     async def diagnose_version(self):
-        
+        """Диагностика проблемы с версией"""
         print(f"{Fore.CYAN}🔍 Диагностика версии:{Style.RESET_ALL}")
         print(f"  Глобальная CURRENT_VERSION: {CURRENT_VERSION}")
 
-        
+        # Проверяем в файле
         file_version = self.verify_version_in_file()
         print(f"  Версия в файле: {file_version}")
 
-       
+        # Проверяем в конфиге
         try:
             if os.path.exists(config_file):
                 with open(config_file, 'r') as f:
@@ -334,7 +363,7 @@ class UpdateManager:
         except:
             print(f"  Версия в config.json: ошибка чтения")
 
-        
+        # Проверяем в version.json на GitHub
         try:
             response = requests.get(f"{GITHUB_RAW_BASE}/version.json", timeout=5)
             if response.status_code == 200:
@@ -345,7 +374,7 @@ class UpdateManager:
             print(f"  Версия на GitHub: ошибка проверки")
 
     def show_update_history(self):
-       
+        """Показывает историю обновлений"""
         print(f"\n{Fore.CYAN}📋 История обновлений:{Style.RESET_ALL}")
         backups = sorted(Path(self.backup_folder).glob("backup_*.py"), reverse=True)
 
@@ -357,12 +386,12 @@ class UpdateManager:
             version_match = re.search(r'v([\d.]+)', backup.name)
             version = version_match.group(1) if version_match else "неизвестно"
             size = backup.stat().st_size / 1024
-            modified = datetime.datetime.fromtimestamp(backup.stat().st_mtime)
+            modified = datetime.fromtimestamp(backup.stat().st_mtime)
             print(f"  {i}. {backup.name}")
             print(f"     Версия: {version}, Размер: {size:.1f}KB, Дата: {modified.strftime('%Y-%m-%d %H:%M')}")
 
     def restore_from_backup(self):
-        
+        """Восстанавливает из бэкапа"""
         backups = sorted(Path(self.backup_folder).glob("backup_*.py"), reverse=True)
 
         if not backups:
@@ -379,7 +408,7 @@ class UpdateManager:
                 backup_file = backups[choice]
 
                 current_backup = Path(
-                    self.backup_folder) / f"pre_restore_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.py"
+                    self.backup_folder) / f"pre_restore_{datetime.now().strftime('%Y%m%d_%H%M%S')}.py"
                 shutil.copy2(__file__, current_backup)
 
                 shutil.copy2(backup_file, __file__)
@@ -391,7 +420,7 @@ class UpdateManager:
             print(f"{Fore.RED}❌ Неверный выбор{Style.RESET_ALL}")
 
     def show_update_settings(self):
-      
+        """Настройки обновлений"""
         global AUTO_UPDATE, NOTIFY_ON_UPDATE, UPDATE_CHECK_INTERVAL
 
         while True:
@@ -422,7 +451,7 @@ class UpdateManager:
                 break
 
 
-
+# Создаем глобальный менеджер обновлений
 update_manager = UpdateManager()
 
 
@@ -456,16 +485,24 @@ DEFAULT_MEDIA_PATH = ""
 DEFAULT_FAST_MODE = False
 DEFAULT_FAST_DELAY = 0.3
 
-
-DEFAULT_USE_FORWARD = False
-DEFAULT_FORWARD_LINK = ""
-
 DEFAULT_NOTIFICATION_ENABLED = False
 DEFAULT_NOTIFICATION_BOT_TOKEN = ""
 DEFAULT_NOTIFICATION_CHAT_ID = ""
 DEFAULT_NOTIFY_INVALID_SESSION = True
 DEFAULT_NOTIFY_CYCLE_RESULTS = True
 DEFAULT_NOTIFY_FULL_LOGS = False
+
+# =============== НОВЫЕ НАСТРОЙКИ АВТОПОДПИСКИ ПО УМОЛЧАНИЮ ===============
+DEFAULT_AUTO_SUBSCRIBE_ENABLED = False
+DEFAULT_AUTO_SUBSCRIBE_ON_MENTION = True
+DEFAULT_AUTO_SUBSCRIBE_DELAY = 3
+DEFAULT_AUTO_SUBSCRIBE_MAX_FLOOD_WAIT = 300
+DEFAULT_AUTO_SUBSCRIBE_RETRY_AFTER_FLOOD = True
+DEFAULT_AUTO_SUBSCRIBE_CHECK_INTERVAL = 5
+DEFAULT_AUTO_SUBSCRIBE_WAIT_FOR_MENTION = 10
+DEFAULT_AUTO_SUBSCRIBE_PAUSE_BETWEEN_CHANNELS = 3
+DEFAULT_AUTO_SUBSCRIBE_FORCED_CHANNELS = []
+DEFAULT_AUTO_SUBSCRIBE_FIRST_CYCLE_ONLY = True
 
 # Глобальные переменные
 current_api_id = DEFAULT_API_ID
@@ -484,10 +521,6 @@ media_path = DEFAULT_MEDIA_PATH
 fast_mode = DEFAULT_FAST_MODE
 fast_delay = DEFAULT_FAST_DELAY
 
-
-use_forward = DEFAULT_USE_FORWARD
-forward_link = DEFAULT_FORWARD_LINK
-
 # Глобальные переменные для уведомлений
 notification_enabled = DEFAULT_NOTIFICATION_ENABLED
 notification_bot_token = DEFAULT_NOTIFICATION_BOT_TOKEN
@@ -495,6 +528,18 @@ notification_chat_id = DEFAULT_NOTIFICATION_CHAT_ID
 notify_invalid_session = DEFAULT_NOTIFY_INVALID_SESSION
 notify_cycle_results = DEFAULT_NOTIFY_CYCLE_RESULTS
 notify_full_logs = DEFAULT_NOTIFY_FULL_LOGS
+
+# =============== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ДЛЯ АВТОПОДПИСКИ ===============
+auto_subscribe_enabled = DEFAULT_AUTO_SUBSCRIBE_ENABLED
+auto_subscribe_on_mention = DEFAULT_AUTO_SUBSCRIBE_ON_MENTION
+auto_subscribe_delay = DEFAULT_AUTO_SUBSCRIBE_DELAY
+auto_subscribe_max_flood_wait = DEFAULT_AUTO_SUBSCRIBE_MAX_FLOOD_WAIT
+auto_subscribe_retry_after_flood = DEFAULT_AUTO_SUBSCRIBE_RETRY_AFTER_FLOOD
+auto_subscribe_check_interval = DEFAULT_AUTO_SUBSCRIBE_CHECK_INTERVAL
+auto_subscribe_wait_for_mention = DEFAULT_AUTO_SUBSCRIBE_WAIT_FOR_MENTION
+auto_subscribe_pause_between_channels = DEFAULT_AUTO_SUBSCRIBE_PAUSE_BETWEEN_CHANNELS
+auto_subscribe_forced_channels = DEFAULT_AUTO_SUBSCRIBE_FORCED_CHANNELS
+auto_subscribe_first_cycle_only = DEFAULT_AUTO_SUBSCRIBE_FIRST_CYCLE_ONLY
 
 stop_event = asyncio.Event()
 invalid_session_log_file = "invalidsession_list.txt"
@@ -509,8 +554,35 @@ log_buffer = []
 log_buffer_lock = asyncio.Lock()
 
 
-async def init_notification_client():
+def clear_failed_subscriptions_file():
+    """Очищает файл с неудачными подписками при запуске"""
+    try:
+        if os.path.exists(failed_subscriptions_file):
+            os.remove(failed_subscriptions_file)
+            print(f"{Fore.GREEN}✔ Файл '{failed_subscriptions_file}' очищен.{Style.RESET_ALL}")
+    except Exception as e:
+        print(f"{Fore.YELLOW}⚠️ Не удалось очистить файл '{failed_subscriptions_file}': {e}{Style.RESET_ALL}")
 
+
+def log_failed_subscription(session_name, channel_link, reason):
+    """Записывает неудачную подписку в файл"""
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    try:
+        # Проверяем, есть ли уже такая запись
+        if os.path.exists(failed_subscriptions_file):
+            with open(failed_subscriptions_file, 'r', encoding='utf-8') as f:
+                existing = f.read()
+                if channel_link in existing and session_name in existing:
+                    return  # Уже есть такая запись
+
+        with open(failed_subscriptions_file, 'a', encoding='utf-8') as f:
+            f.write(f"[{timestamp}] {session_name} | {channel_link} | {reason}\n")
+    except Exception as e:
+        print(f"{Fore.RED}✘ Ошибка записи в файл неудачных подписок: {e}{Style.RESET_ALL}")
+
+
+async def init_notification_client():
+    """Инициализирует клиент для отправки уведомлений."""
     global notification_client
     if notification_enabled and notification_bot_token and notification_chat_id:
         try:
@@ -541,7 +613,7 @@ async def init_notification_client():
 
 
 async def close_notification_client():
-
+    """Закрывает клиент уведомлений."""
     global notification_client
     if notification_client:
         await notification_client.disconnect()
@@ -550,17 +622,17 @@ async def close_notification_client():
 
 
 async def add_to_log_buffer(message):
-
+    """Добавляет сообщение в буфер логов."""
     global log_buffer
     async with log_buffer_lock:
-        timestamp = datetime.datetime.now().strftime("%H:%M:%S")
+        timestamp = datetime.now().strftime("%H:%M:%S")
         log_buffer.append(f"[{timestamp}] {message}")
         if len(log_buffer) > 2000:
             log_buffer = log_buffer[-2000:]
 
 
 async def save_logs_to_file():
-
+    """Сохраняет буфер логов во временный файл."""
     if not log_buffer:
         return None
 
@@ -568,7 +640,7 @@ async def save_logs_to_file():
         try:
             fd, temp_path = tempfile.mkstemp(suffix='.txt', prefix='telegram_log_', text=True)
             with os.fdopen(fd, 'w', encoding='utf-8') as f:
-                f.write(f"Лог рассылки от {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                f.write(f"Лог рассылки от {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
                 f.write("=" * 50 + "\n\n")
                 for line in log_buffer:
                     f.write(line + "\n")
@@ -579,7 +651,7 @@ async def save_logs_to_file():
 
 
 async def send_notification(message, notification_type="info"):
-
+    """Отправляет уведомление в Telegram, если включено."""
     if not notification_enabled or not notification_client or not notification_chat_id:
         return
 
@@ -597,7 +669,7 @@ async def send_notification(message, notification_type="info"):
                 await notification_client.send_file(
                     int(notification_chat_id),
                     log_file_path,
-                    caption=f"📋 **Полный лог рассылки**\nВремя: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\nВсего записей: {len(log_buffer)}"
+                    caption=f"📋 **Полный лог рассылки**\nВремя: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\nВсего записей: {len(log_buffer)}"
                 )
                 try:
                     os.unlink(log_file_path)
@@ -636,14 +708,23 @@ def save_config():
         "media_path": media_path,
         "fast_mode": fast_mode,
         "fast_delay": fast_delay,
-        "use_forward": use_forward,  # НОВОЕ
-        "forward_link": forward_link,  # НОВОЕ
         "notification_enabled": notification_enabled,
         "notification_bot_token": notification_bot_token,
         "notification_chat_id": notification_chat_id,
         "notify_invalid_session": notify_invalid_session,
         "notify_cycle_results": notify_cycle_results,
         "notify_full_logs": notify_full_logs,
+        # Новые настройки автоподписки
+        "auto_subscribe_enabled": auto_subscribe_enabled,
+        "auto_subscribe_on_mention": auto_subscribe_on_mention,
+        "auto_subscribe_delay": auto_subscribe_delay,
+        "auto_subscribe_max_flood_wait": auto_subscribe_max_flood_wait,
+        "auto_subscribe_retry_after_flood": auto_subscribe_retry_after_flood,
+        "auto_subscribe_check_interval": auto_subscribe_check_interval,
+        "auto_subscribe_wait_for_mention": auto_subscribe_wait_for_mention,
+        "auto_subscribe_pause_between_channels": auto_subscribe_pause_between_channels,
+        "auto_subscribe_forced_channels": auto_subscribe_forced_channels,
+        "auto_subscribe_first_cycle_only": auto_subscribe_first_cycle_only,
         "current_version": CURRENT_VERSION
     }
     try:
@@ -655,7 +736,9 @@ def save_config():
 
 
 def load_config():
-    global current_api_id, current_api_hash, session_folder, message_to_send, delay_between_messages, delay_between_accounts, max_messages_per_account, repeat_broadcast, repeat_interval, delete_after_send, recipient_type, use_media, media_path, fast_mode, fast_delay, use_forward, forward_link, notification_enabled, notification_bot_token, notification_chat_id, notify_invalid_session, notify_cycle_results, notify_full_logs, CURRENT_VERSION
+    global current_api_id, current_api_hash, session_folder, message_to_send, delay_between_messages, delay_between_accounts, max_messages_per_account, repeat_broadcast, repeat_interval, delete_after_send, recipient_type, use_media, media_path, fast_mode, fast_delay, notification_enabled, notification_bot_token, notification_chat_id, notify_invalid_session, notify_cycle_results, notify_full_logs, CURRENT_VERSION
+    global auto_subscribe_enabled, auto_subscribe_on_mention, auto_subscribe_delay, auto_subscribe_max_flood_wait, auto_subscribe_retry_after_flood, auto_subscribe_check_interval, auto_subscribe_wait_for_mention, auto_subscribe_pause_between_channels, auto_subscribe_forced_channels, auto_subscribe_first_cycle_only
+
     try:
         if os.path.exists(config_file):
             with open(config_file, 'r', encoding='utf-8') as f:
@@ -675,14 +758,32 @@ def load_config():
                 media_path = config.get("media_path", DEFAULT_MEDIA_PATH)
                 fast_mode = config.get("fast_mode", DEFAULT_FAST_MODE)
                 fast_delay = config.get("fast_delay", DEFAULT_FAST_DELAY)
-                use_forward = config.get("use_forward", DEFAULT_USE_FORWARD)  # НОВОЕ
-                forward_link = config.get("forward_link", DEFAULT_FORWARD_LINK)  # НОВОЕ
                 notification_enabled = config.get("notification_enabled", DEFAULT_NOTIFICATION_ENABLED)
                 notification_bot_token = config.get("notification_bot_token", DEFAULT_NOTIFICATION_BOT_TOKEN)
                 notification_chat_id = config.get("notification_chat_id", DEFAULT_NOTIFICATION_CHAT_ID)
                 notify_invalid_session = config.get("notify_invalid_session", DEFAULT_NOTIFY_INVALID_SESSION)
                 notify_cycle_results = config.get("notify_cycle_results", DEFAULT_NOTIFY_CYCLE_RESULTS)
                 notify_full_logs = config.get("notify_full_logs", DEFAULT_NOTIFY_FULL_LOGS)
+
+                # Загрузка настроек автоподписки
+                auto_subscribe_enabled = config.get("auto_subscribe_enabled", DEFAULT_AUTO_SUBSCRIBE_ENABLED)
+                auto_subscribe_on_mention = config.get("auto_subscribe_on_mention", DEFAULT_AUTO_SUBSCRIBE_ON_MENTION)
+                auto_subscribe_delay = config.get("auto_subscribe_delay", DEFAULT_AUTO_SUBSCRIBE_DELAY)
+                auto_subscribe_max_flood_wait = config.get("auto_subscribe_max_flood_wait",
+                                                           DEFAULT_AUTO_SUBSCRIBE_MAX_FLOOD_WAIT)
+                auto_subscribe_retry_after_flood = config.get("auto_subscribe_retry_after_flood",
+                                                              DEFAULT_AUTO_SUBSCRIBE_RETRY_AFTER_FLOOD)
+                auto_subscribe_check_interval = config.get("auto_subscribe_check_interval",
+                                                           DEFAULT_AUTO_SUBSCRIBE_CHECK_INTERVAL)
+                auto_subscribe_wait_for_mention = config.get("auto_subscribe_wait_for_mention",
+                                                             DEFAULT_AUTO_SUBSCRIBE_WAIT_FOR_MENTION)
+                auto_subscribe_pause_between_channels = config.get("auto_subscribe_pause_between_channels",
+                                                                   DEFAULT_AUTO_SUBSCRIBE_PAUSE_BETWEEN_CHANNELS)
+                auto_subscribe_forced_channels = config.get("auto_subscribe_forced_channels",
+                                                            DEFAULT_AUTO_SUBSCRIBE_FORCED_CHANNELS)
+                auto_subscribe_first_cycle_only = config.get("auto_subscribe_first_cycle_only",
+                                                             DEFAULT_AUTO_SUBSCRIBE_FIRST_CYCLE_ONLY)
+
                 CURRENT_VERSION = config.get("current_version", CURRENT_VERSION)
             print(f"{Fore.GREEN}✔ Конфигурация загружена.{Style.RESET_ALL}")
     except Exception as e:
@@ -690,8 +791,8 @@ def load_config():
 
 
 def log_invalid_session(session_file):
-
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    """Записывает невалидную сессию в лог-файл и отправляет уведомление."""
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     log_entry = f"{session_file} не рабочая ({timestamp})"
     try:
         with open(invalid_session_log_file, 'a', encoding='utf-8') as f:
@@ -705,7 +806,7 @@ def log_invalid_session(session_file):
 
 
 def extract_links_from_text(text):
-
+    """Извлекает все ссылки из текста."""
     url_pattern = r'https?://[^\s<>"]+|www\.[^\s<>"]+'
     return re.findall(url_pattern, text)
 
@@ -741,7 +842,7 @@ def load_target_groups(filename=group_list_file):
 
 
 def load_enter_links(filename=enter_links_file):
-
+    """Загружает ссылки для входа из JSON файла."""
     enter_links = []
     if not os.path.exists(filename):
         print(f"{Fore.RED}✘ Файл '{filename}' не найден.{Style.RESET_ALL}")
@@ -770,57 +871,694 @@ def load_enter_links(filename=enter_links_file):
     return enter_links
 
 
+# =============== ФУНКЦИИ ДЛЯ АВТОПОДПИСКИ ===============
+def format_time(seconds):
+    """Форматирует время в читаемый вид"""
+    if seconds < 60:
+        return f"{seconds} сек"
+    elif seconds < 3600:
+        minutes = seconds // 60
+        seconds_remain = seconds % 60
+        return f"{minutes} мин {seconds_remain} сек"
+    else:
+        hours = seconds // 3600
+        minutes = (seconds % 3600) // 60
+        return f"{hours} ч {minutes} мин"
 
-async def get_message_from_link(client, link):
+
+def extract_invite_hash(invite_link):
+    """Извлекает хеш из ссылки-приглашения"""
+    if '/joinchat/' in invite_link:
+        return invite_link.split('/joinchat/')[-1]
+    elif '/+' in invite_link:
+        return invite_link.split('/+')[-1]
+    elif 't.me/+' in invite_link:
+        return invite_link.split('t.me/+')[-1]
+    return None
+
+
+async def handle_flood_wait(e, operation_name="операция", session_name=""):
+    """Обрабатывает флуд-контроль и возвращает время ожидания"""
+    global flood_wait_occurred, total_flood_time
+
+    wait_seconds = e.seconds
+    flood_wait_occurred = True
+    total_flood_time += wait_seconds
+
+    # Текущее время и время окончания ожидания
+    current_time = datetime.now()
+    end_time = current_time + timedelta(seconds=wait_seconds)
+
+    log_msg = f"\n{'=' * 60}"
+    print(log_msg)
+    await add_to_log_buffer(log_msg)
+
+    log_msg = f"🚫 [{session_name}] ОБНАРУЖЕН ФЛУД-КОНТРОЛЬ!"
+    print(log_msg)
+    await add_to_log_buffer(log_msg)
+
+    log_msg = f"{'=' * 60}"
+    print(log_msg)
+    await add_to_log_buffer(log_msg)
+
+    log_msg = f"📌 Операция: {operation_name}"
+    print(log_msg)
+    await add_to_log_buffer(log_msg)
+
+    log_msg = f"⏱️ Время ожидания: {format_time(wait_seconds)}"
+    print(log_msg)
+    await add_to_log_buffer(log_msg)
+
+    log_msg = f"🕐 Начало: {current_time.strftime('%H:%M:%S')}"
+    print(log_msg)
+    await add_to_log_buffer(log_msg)
+
+    log_msg = f"🕐 Окончание: {end_time.strftime('%H:%M:%S')}"
+    print(log_msg)
+    await add_to_log_buffer(log_msg)
+
+    if wait_seconds > auto_subscribe_max_flood_wait:
+        log_msg = f"⚠️ Внимание! Время ожидания превышает лимит в {format_time(auto_subscribe_max_flood_wait)}"
+        print(log_msg)
+        await add_to_log_buffer(log_msg)
+        log_msg = f"❌ Пропускаем эту операцию"
+        print(log_msg)
+        await add_to_log_buffer(log_msg)
+        return False
+
+    log_msg = f"\n⏳ Ожидание... (проверка каждые {auto_subscribe_check_interval} сек)"
+    print(log_msg)
+    await add_to_log_buffer(log_msg)
+
+    # Ожидаем с индикацией прогресса
+    elapsed = 0
+    while elapsed < wait_seconds:
+        if stop_event.is_set():
+            log_msg = f"\n{Fore.YELLOW}🛑 Остановлено пользователем во время ожидания{Style.RESET_ALL}"
+            print(log_msg)
+            await add_to_log_buffer(log_msg)
+            return False
+
+        await asyncio.sleep(min(auto_subscribe_check_interval, wait_seconds - elapsed))
+        elapsed += auto_subscribe_check_interval
+        remaining = wait_seconds - elapsed
+        if remaining > 0:
+            progress = (elapsed / wait_seconds) * 100
+            log_msg = f"   Прогресс: {progress:.1f}% | Осталось: {format_time(remaining)}"
+            print(log_msg)
+            await add_to_log_buffer(log_msg)
+
+    log_msg = f"✅ Ожидание завершено! Продолжаем..."
+    print(log_msg)
+    await add_to_log_buffer(log_msg)
+    log_msg = f"{'=' * 60}\n"
+    print(log_msg)
+    await add_to_log_buffer(log_msg)
+    return True
+
+
+async def extract_channels_from_entities(message):
+    """Извлекает каналы из entities сообщения"""
+    channels = []
+
+    if not message.entities:
+        return channels
+
+    for entity in message.entities:
+        # Проверяем текстовые ссылки
+        if isinstance(entity, MessageEntityTextUrl) and entity.url:
+            if any(pattern in entity.url for pattern in ['t.me', 'telegram.me']):
+                channels.append(entity.url)
+                log_msg = f"🔗 Найдена ссылка в entity: {entity.url}"
+                print(log_msg)
+                await add_to_log_buffer(log_msg)
+
+        # Проверяем обычные URL
+        elif isinstance(entity, MessageEntityUrl):
+            url = message.text[entity.offset:entity.offset + entity.length]
+            if any(pattern in url for pattern in ['t.me', 'telegram.me']):
+                channels.append(url)
+                log_msg = f"🔗 Найден URL в entity: {url}"
+                print(log_msg)
+                await add_to_log_buffer(log_msg)
+
+        # Проверяем Mention (это может быть @username)
+        elif isinstance(entity, MessageEntityMention):
+            mention = message.text[entity.offset:entity.offset + entity.length]
+            if mention.startswith('@'):
+                channels.append(mention)
+                log_msg = f"🔗 Найдено упоминание: {mention}"
+                print(log_msg)
+                await add_to_log_buffer(log_msg)
+
+    return channels
+
+
+async def extract_channels_from_buttons(client, message):
+    """Извлекает каналы из кнопок сообщения"""
+    channels = []
 
     try:
-       
-        if 't.me/' not in link:
-            return None, "Неверный формат ссылки. Должно быть: https://t.me/username/123"
+        # Проверяем, есть ли кнопки в сообщении
+        if message.reply_markup and hasattr(message.reply_markup, 'rows'):
+            for row in message.reply_markup.rows:
+                for button in row.buttons:
+                    # Разные типы кнопок
+                    if hasattr(button, 'url') and button.url:
+                        if any(pattern in button.url for pattern in ['t.me', 'telegram.me']):
+                            channels.append(button.url)
+                            log_msg = f"🔘 Найдена кнопка-ссылка: {button.url}"
+                            print(log_msg)
+                            await add_to_log_buffer(log_msg)
+    except Exception as e:
+        log_msg = f"⚠️ Ошибка при анализе кнопок: {e}"
+        print(log_msg)
+        await add_to_log_buffer(log_msg)
 
-      
-        path = link.split('t.me/')[-1]
-        parts = path.split('/')
+    return channels
 
-        if len(parts) < 2:
-            return None, "Ссылка должна содержать username и ID сообщения. Пример: https://t.me/username/123"
 
-        username = parts[0]
+async def find_channels_in_message(client, message):
+    """Комплексный поиск каналов в сообщении"""
+    channels = []
 
-        message_id_str = parts[1].split('?')[0]
+    log_msg = "\n🔍 Анализируем сообщение..."
+    print(log_msg)
+    await add_to_log_buffer(log_msg)
 
+    # Способ 1: Из entities
+    entity_channels = await extract_channels_from_entities(message)
+    channels.extend(entity_channels)
+
+    # Способ 2: Из кнопок
+    button_channels = await extract_channels_from_buttons(client, message)
+    channels.extend(button_channels)
+
+    # Способ 3: Регулярные выражения по тексту
+    text = message.text or ''
+    for pattern in CHANNEL_PATTERNS:
+        matches = re.findall(pattern, text, re.IGNORECASE)
+        for match in matches:
+            if isinstance(match, tuple):
+                match = next((m for m in match if m), None)
+            if match and len(match) > 3:
+                if pattern == r'@(\w+)':
+                    channels.append(f"@{match}")
+                elif 'joinchat' in pattern or '+' in pattern:
+                    channels.append(f"https://t.me/joinchat/{match}")
+                else:
+                    channels.append(f"https://t.me/{match}")
+
+    # Способ 4: Ручной список
+    if auto_subscribe_forced_channels:
+        channels.extend(auto_subscribe_forced_channels)
+
+    # Удаляем дубликаты и пустые значения
+    unique_channels = []
+    seen = set()
+
+    for channel in channels:
+        # Нормализуем ссылки-приглашения
+        if 't.me/+' in channel or 'joinchat' in channel:
+            normalized = channel
+        elif channel.startswith('@'):
+            normalized = channel
+        elif 't.me' in channel:
+            normalized = channel
+        else:
+            normalized = f"@{channel}" if not channel.startswith(('http', '@')) else channel
+
+        if normalized not in seen and normalized:
+            seen.add(normalized)
+            unique_channels.append(normalized)
+
+    return unique_channels
+
+
+async def join_invite_link(client, invite_link, session_name=""):
+    """Присоединяется по ссылке-приглашению"""
+    try:
+        # Извлекаем хеш из ссылки
+        invite_hash = extract_invite_hash(invite_link)
+        if not invite_hash:
+            log_msg = f"❌ [{session_name}] Не удалось извлечь хеш из ссылки: {invite_link}"
+            print(log_msg)
+            await add_to_log_buffer(log_msg)
+            return False, "invalid_invite_link"
+
+        log_msg = f"🔑 [{session_name}] Извлечен хеш приглашения: {invite_hash}"
+        print(log_msg)
+        await add_to_log_buffer(log_msg)
+
+        # Пробуем присоединиться через ImportChatInviteRequest
         try:
-            message_id = int(message_id_str)
-        except ValueError:
-            return None, f"ID сообщения должен быть числом, получено: {message_id_str}"
-
-  
-        try:
-            entity = await client.get_entity(username)
-            chat_title = getattr(entity, 'title', username)
-            print(f"{Fore.CYAN}📎 Найден чат: {chat_title}{Style.RESET_ALL}")
+            await client(ImportChatInviteRequest(invite_hash))
+            log_msg = f"✅ [{session_name}] Успешно присоединились по ссылке-приглашению!"
+            print(log_msg)
+            await add_to_log_buffer(log_msg)
+            return True, "joined_by_invite"
+        except FloodWaitError as e:
+            log_msg = f"🚫 [{session_name}] Флуд-контроль при присоединении по приглашению!"
+            print(log_msg)
+            await add_to_log_buffer(log_msg)
+            if await handle_flood_wait(e, f"присоединение к {invite_link}", session_name):
+                return await join_invite_link(client, invite_link, session_name)
+            return False, "flood_wait"
+        except InviteHashExpiredError:
+            log_msg = f"❌ [{session_name}] Срок действия приглашения истек"
+            print(log_msg)
+            await add_to_log_buffer(log_msg)
+            log_failed_subscription(session_name, invite_link, "Срок действия приглашения истек")
+            return False, "invite_expired"
+        except InviteHashInvalidError:
+            log_msg = f"❌ [{session_name}] Недействительное приглашение"
+            print(log_msg)
+            await add_to_log_buffer(log_msg)
+            log_failed_subscription(session_name, invite_link, "Недействительное приглашение")
+            return False, "invite_invalid"
+        except InviteHashEmptyError:
+            log_msg = f"❌ [{session_name}] Пустой хеш приглашения"
+            print(log_msg)
+            await add_to_log_buffer(log_msg)
+            log_failed_subscription(session_name, invite_link, "Пустой хеш приглашения")
+            return False, "invite_empty"
         except Exception as e:
-            return None, f"Не удалось найти чат/канал '{username}': {e}"
-
-
-        try:
-            messages = await client.get_messages(entity, ids=message_id)
-            if messages:
-                print(f"{Fore.GREEN}✅ Сообщение найдено (ID: {message_id}){Style.RESET_ALL}")
-                return messages, None
-            else:
-                return None, f"Сообщение с ID {message_id} не найдено в чате {username}"
-        except MessageIdInvalidError:
-            return None, f"Сообщение с ID {message_id} не существует или недоступно"
-        except Exception as e:
-            return None, f"Ошибка при получении сообщения: {e}"
+            log_msg = f"❌ [{session_name}] Ошибка при присоединении по приглашению: {e}"
+            print(log_msg)
+            await add_to_log_buffer(log_msg)
+            log_failed_subscription(session_name, invite_link, str(e)[:100])
+            return False, f"invite_error: {str(e)[:50]}"
 
     except Exception as e:
-        return None, f"Ошибка при обработке ссылки: {e}"
+        log_msg = f"❌ [{session_name}] Ошибка при обработке ссылки-приглашения: {e}"
+        print(log_msg)
+        await add_to_log_buffer(log_msg)
+        log_failed_subscription(session_name, invite_link, str(e)[:100])
+        return False, "invite_processing_error"
+
+
+async def subscribe_to_channel(client, channel_ref, session_name="", retry_count=0):
+    """Подписывается на один канал с обработкой флуд-контроля"""
+    max_retries = 3  # Максимальное количество попыток при флуде
+
+    try:
+        log_msg = f"\n📥 [{session_name}] Обработка: {channel_ref}"
+        print(log_msg)
+        await add_to_log_buffer(log_msg)
+
+        # Проверяем, не ссылка ли это на приглашение
+        if any(x in channel_ref for x in ['joinchat', 't.me/+', '/+']):
+            log_msg = f"🔗 [{session_name}] Это ссылка-приглашение, пробуем присоединиться..."
+            print(log_msg)
+            await add_to_log_buffer(log_msg)
+            return await join_invite_link(client, channel_ref, session_name)
+
+        # Преобразуем @username в ссылку если нужно
+        if channel_ref.startswith('@'):
+            username = channel_ref[1:]
+            channel_ref = f"https://t.me/{username}"
+
+        # Получаем сущность канала
+        try:
+            channel_entity = await client.get_entity(channel_ref)
+            channel_title = getattr(channel_entity, 'title', username)
+            log_msg = f"✅ [{session_name}] Получена сущность канала: {channel_title}"
+            print(log_msg)
+            await add_to_log_buffer(log_msg)
+        except FloodWaitError as e:
+            log_msg = f"🚫 [{session_name}] Флуд-контроль при получении информации о канале!"
+            print(log_msg)
+            await add_to_log_buffer(log_msg)
+            if await handle_flood_wait(e, f"получение информации о {channel_ref}", session_name):
+                return await subscribe_to_channel(client, channel_ref, session_name, retry_count + 1)
+            return False, "flood_timeout"
+        except ValueError as e:
+            if "No user has" in str(e):
+                log_msg = f"❌ [{session_name}] Канал не найден: {channel_ref}"
+                print(log_msg)
+                await add_to_log_buffer(log_msg)
+                log_failed_subscription(session_name, channel_ref, "Канал не найден")
+                return False, "channel_not_found"
+            log_msg = f"⚠️ [{session_name}] Ошибка при получении канала: {e}"
+            print(log_msg)
+            await add_to_log_buffer(log_msg)
+            log_failed_subscription(session_name, channel_ref, str(e)[:100])
+            return False, "channel_error"
+        except Exception as e:
+            log_msg = f"⚠️ [{session_name}] Не удалось получить канал: {e}"
+            print(log_msg)
+            await add_to_log_buffer(log_msg)
+            log_failed_subscription(session_name, channel_ref, str(e)[:100])
+            return False, "entity_error"
+
+        # Проверяем, не подписаны ли уже
+        try:
+            await client.get_permissions(channel_entity, 'me')
+            log_msg = f"ℹ️ [{session_name}] Уже подписаны на этот канал"
+            print(log_msg)
+            await add_to_log_buffer(log_msg)
+            return True, "already_subscribed"
+        except FloodWaitError as e:
+            log_msg = f"🚫 [{session_name}] Флуд-контроль при проверке подписки!"
+            print(log_msg)
+            await add_to_log_buffer(log_msg)
+            if await handle_flood_wait(e, f"проверка подписки на {channel_ref}", session_name):
+                return await subscribe_to_channel(client, channel_ref, session_name, retry_count + 1)
+            return False, "flood_timeout"
+        except Exception:
+            # Не подписаны, пробуем вступить
+            pass
+
+        # Вступаем в канал
+        try:
+            await client(JoinChannelRequest(channel_entity))
+            log_msg = f"✅ [{session_name}] Успешно подписались на канал!"
+            print(log_msg)
+            await add_to_log_buffer(log_msg)
+
+            # Проверяем, действительно ли подписались
+            await asyncio.sleep(2)
+            try:
+                await client.get_permissions(channel_entity, 'me')
+                log_msg = f"✅ [{session_name}] Подписка подтверждена!"
+                print(log_msg)
+                await add_to_log_buffer(log_msg)
+            except:
+                log_msg = f"⚠️ [{session_name}] Не удалось подтвердить подписку"
+                print(log_msg)
+                await add_to_log_buffer(log_msg)
+
+            await asyncio.sleep(auto_subscribe_pause_between_channels)
+            return True, "subscribed"
+
+        except FloodWaitError as e:
+            log_msg = f"\n{'🚫' * 10} [{session_name}] ФЛУД-КОНТРОЛЬ {'🚫' * 10}"
+            print(log_msg)
+            await add_to_log_buffer(log_msg)
+            log_msg = f"📊 Статистика по флуду:"
+            print(log_msg)
+            await add_to_log_buffer(log_msg)
+            log_msg = f"   • Канал: {channel_ref}"
+            print(log_msg)
+            await add_to_log_buffer(log_msg)
+            log_msg = f"   • Попытка: {retry_count + 1}/{max_retries}"
+            print(log_msg)
+            await add_to_log_buffer(log_msg)
+            log_msg = f"   • Время ожидания: {format_time(e.seconds)}"
+            print(log_msg)
+            await add_to_log_buffer(log_msg)
+
+            if await handle_flood_wait(e, f"подписка на {channel_ref}", session_name):
+                if retry_count < max_retries:
+                    log_msg = f"🔄 [{session_name}] Повторная попытка {retry_count + 2}/{max_retries}..."
+                    print(log_msg)
+                    await add_to_log_buffer(log_msg)
+                    return await subscribe_to_channel(client, channel_ref, session_name, retry_count + 1)
+                else:
+                    log_msg = f"❌ [{session_name}] Достигнуто максимальное количество попыток ({max_retries})"
+                    print(log_msg)
+                    await add_to_log_buffer(log_msg)
+                    log_failed_subscription(session_name, channel_ref, "Максимальное количество попыток")
+                    return False, "max_retries_reached"
+            return False, "flood_timeout"
+
+        except Exception as e:
+            log_msg = f"❌ [{session_name}] Ошибка при подписке: {e}"
+            print(log_msg)
+            await add_to_log_buffer(log_msg)
+            log_failed_subscription(session_name, channel_ref, str(e)[:100])
+            return False, "subscribe_error"
+
+    except Exception as e:
+        log_msg = f"❌ [{session_name}] Ошибка при обработке канала: {e}"
+        print(log_msg)
+        await add_to_log_buffer(log_msg)
+        log_failed_subscription(session_name, channel_ref, str(e)[:100])
+        return False, "unknown_error"
+
+
+async def subscribe_to_channels(client, message, session_name=""):
+    """Подписывается на каналы из сообщения бота с обработкой флуда"""
+    global flood_wait_occurred, total_flood_time
+
+    # Сбрасываем счетчики для новой сессии подписок
+    flood_wait_occurred = False
+    total_flood_time = 0
+    start_time = time.time()
+
+    log_msg = "\n🔍 Ищем каналы для подписки..."
+    print(log_msg)
+    await add_to_log_buffer(log_msg)
+
+    channels_to_join = await find_channels_in_message(client, message)
+
+    if not channels_to_join:
+        log_msg = "❌ Не найдены ссылки на каналы"
+        print(log_msg)
+        await add_to_log_buffer(log_msg)
+        return False
+
+    log_msg = f"\n🔍 Найдены каналы для подписки:"
+    print(log_msg)
+    await add_to_log_buffer(log_msg)
+
+    for i, channel in enumerate(channels_to_join, 1):
+        log_msg = f"  {i}. {channel}"
+        print(log_msg)
+        await add_to_log_buffer(log_msg)
+
+    # Вступаем в каждый канал
+    results = {
+        "success": 0,
+        "already_subscribed": 0,
+        "failed": 0,
+        "flood_wait": 0,
+        "joined_by_invite": 0,
+        "details": []
+    }
+
+    for i, channel_ref in enumerate(channels_to_join, 1):
+        log_msg = f"\n{'─' * 40}"
+        print(log_msg)
+        await add_to_log_buffer(log_msg)
+
+        log_msg = f"📌 Канал {i}/{len(channels_to_join)}"
+        print(log_msg)
+        await add_to_log_buffer(log_msg)
+
+        log_msg = f"{'─' * 40}"
+        print(log_msg)
+        await add_to_log_buffer(log_msg)
+
+        success, status = await subscribe_to_channel(client, channel_ref, session_name)
+
+        if success:
+            if status == "already_subscribed":
+                results["already_subscribed"] += 1
+                results["details"].append(f"ℹ️ {channel_ref} - уже подписаны")
+            elif status == "joined_by_invite":
+                results["success"] += 1
+                results["joined_by_invite"] += 1
+                results["details"].append(f"✅ {channel_ref} - присоединились по приглашению")
+            else:
+                results["success"] += 1
+                results["details"].append(f"✅ {channel_ref} - успешно подписались")
+        else:
+            results["failed"] += 1
+            if "flood" in status:
+                results["flood_wait"] += 1
+            results["details"].append(f"❌ {channel_ref} - {status}")
+
+        # Пауза между каналами, если не было флуда
+        if i < len(channels_to_join) and not flood_wait_occurred:
+            log_msg = f"⏳ [{session_name}] Пауза {auto_subscribe_pause_between_channels} секунд перед следующим каналом..."
+            print(log_msg)
+            await add_to_log_buffer(log_msg)
+            await asyncio.sleep(auto_subscribe_pause_between_channels)
+
+    # Итоговая статистика
+    total_time = time.time() - start_time
+
+    log_msg = f"\n{'=' * 60}"
+    print(log_msg)
+    await add_to_log_buffer(log_msg)
+
+    log_msg = f"📊 ИТОГОВАЯ СТАТИСТИКА ПОДПИСОК [{session_name}]"
+    print(log_msg)
+    await add_to_log_buffer(log_msg)
+
+    log_msg = f"{'=' * 60}"
+    print(log_msg)
+    await add_to_log_buffer(log_msg)
+
+    log_msg = f"✅ Успешно подписались: {results['success']}"
+    print(log_msg)
+    await add_to_log_buffer(log_msg)
+
+    if results['joined_by_invite'] > 0:
+        log_msg = f"   └ По ссылкам-приглашениям: {results['joined_by_invite']}"
+        print(log_msg)
+        await add_to_log_buffer(log_msg)
+
+    log_msg = f"ℹ️ Уже были подписаны: {results['already_subscribed']}"
+    print(log_msg)
+    await add_to_log_buffer(log_msg)
+
+    log_msg = f"❌ Не удалось подписаться: {results['failed']}"
+    print(log_msg)
+    await add_to_log_buffer(log_msg)
+
+    if results['flood_wait'] > 0:
+        log_msg = f"🚫 Из-за флуд-контроля: {results['flood_wait']}"
+        print(log_msg)
+        await add_to_log_buffer(log_msg)
+
+    if total_flood_time > 0:
+        log_msg = f"⏱️ Общее время ожидания флуда: {format_time(int(total_flood_time))}"
+        print(log_msg)
+        await add_to_log_buffer(log_msg)
+
+    log_msg = f"⏱️ Общее время операции: {format_time(int(total_time))}"
+    print(log_msg)
+    await add_to_log_buffer(log_msg)
+
+    if flood_wait_occurred:
+        log_msg = f"\n⚠️ ВНИМАНИЕ: Во время подписки был обнаружен флуд-контроль!"
+        print(log_msg)
+        await add_to_log_buffer(log_msg)
+        log_msg = f"   Рекомендуется сделать паузу перед следующим действием."
+        print(log_msg)
+        await add_to_log_buffer(log_msg)
+        log_msg = f"   Рекомендуемая пауза: {format_time(min(total_flood_time * 2, 300))}"
+        print(log_msg)
+        await add_to_log_buffer(log_msg)
+
+    log_msg = f"{'=' * 60}\n"
+    print(log_msg)
+    await add_to_log_buffer(log_msg)
+
+    # Показываем детали по каждой ссылке
+    log_msg = "📋 Детали по каждой ссылке:"
+    print(log_msg)
+    await add_to_log_buffer(log_msg)
+
+    for detail in results["details"]:
+        log_msg = f"   {detail}"
+        print(log_msg)
+        await add_to_log_buffer(log_msg)
+
+    if results["success"] > 0 or results["already_subscribed"] > 0:
+        return True
+    return False
+
+
+async def monitor_and_subscribe(client, session_name="", target_group=None):
+    """Мониторит группу и подписывается при упоминании"""
+    global flood_wait_occurred, total_flood_time
+
+    if not target_group:
+        return
+
+    try:
+        # Получаем информацию о пользователе
+        me = await client.get_me()
+        user_id = me.id
+        username = me.username
+
+        log_msg = f"\n🔄 [{session_name}] Запущен мониторинг группы {getattr(target_group, 'title', target_group)}"
+        print(log_msg)
+        await add_to_log_buffer(log_msg)
+
+        log_msg = f"👤 [{session_name}] Аккаунт: {me.first_name} (@{username if username else 'нет юзернейма'})"
+        print(log_msg)
+        await add_to_log_buffer(log_msg)
+
+        # Флаг для отслеживания упоминания
+        mentioned = False
+        subscription_complete = False
+
+        @client.on(events.NewMessage(chats=target_group))
+        async def mention_handler(event):
+            nonlocal mentioned, subscription_complete
+
+            if mentioned or stop_event.is_set():
+                return
+
+            # Проверяем упоминание по user_id
+            if str(user_id) in event.message.text or (username and f"@{username}" in event.message.text):
+                mentioned = True
+                log_msg = f"\n🔔 [{session_name}] ПОЛУЧЕНО УПОМИНАНИЕ ОТ БОТА!"
+                print(log_msg)
+                await add_to_log_buffer(log_msg)
+
+                log_msg = f"📩 Текст сообщения:\n{event.message.text[:200]}..."
+                print(log_msg)
+                await add_to_log_buffer(log_msg)
+
+                # Подписываемся на каналы
+                log_msg = f"\n🔄 [{session_name}] Начинаем процесс подписки..."
+                print(log_msg)
+                await add_to_log_buffer(log_msg)
+
+                subscription_complete = await subscribe_to_channels(client, event.message, session_name)
+
+                if subscription_complete:
+                    log_msg = f"\n✅ [{session_name}] Все операции с каналами завершены!"
+                    print(log_msg)
+                    await add_to_log_buffer(log_msg)
+
+        # Отправляем сообщение для активации бота
+        log_msg = f"📤 [{session_name}] Отправляем сообщение для активации бота..."
+        print(log_msg)
+        await add_to_log_buffer(log_msg)
+
+        await client.send_message(target_group, "s")
+        log_msg = f"✅ [{session_name}] Сообщение отправлено, ожидаем упоминания (макс. {auto_subscribe_wait_for_mention} сек)..."
+        print(log_msg)
+        await add_to_log_buffer(log_msg)
+
+        # Ждём упоминания и завершения подписки
+        wait_time = 0
+        max_wait_time = auto_subscribe_wait_for_mention
+
+        while wait_time < max_wait_time and not stop_event.is_set():
+            if mentioned and subscription_complete:
+                log_msg = f"\n✅ [{session_name}] Все задачи выполнены!"
+                print(log_msg)
+                await add_to_log_buffer(log_msg)
+                break
+            elif mentioned and not subscription_complete:
+                await asyncio.sleep(1)
+                wait_time += 1
+                if wait_time % 5 == 0:
+                    log_msg = f"⏳ [{session_name}] Завершаем подписку... {wait_time}с"
+                    print(log_msg)
+                    await add_to_log_buffer(log_msg)
+            else:
+                await asyncio.sleep(1)
+                wait_time += 1
+                if wait_time % 5 == 0:
+                    log_msg = f"⏳ [{session_name}] Ожидание упоминания... {wait_time}/{max_wait_time}с"
+                    print(log_msg)
+                    await add_to_log_buffer(log_msg)
+
+        # Удаляем обработчик
+        client.remove_event_handler(mention_handler)
+
+        if wait_time >= max_wait_time:
+            log_msg = f"\n⏰ [{session_name}] Время ожидания упоминания истекло ({max_wait_time}с) - продолжаем без подписки"
+            print(log_msg)
+            await add_to_log_buffer(log_msg)
+
+    except Exception as e:
+        log_msg = f"❌ [{session_name}] Ошибка в мониторинге: {e}"
+        print(log_msg)
+        await add_to_log_buffer(log_msg)
+        traceback.print_exc()
 
 
 async def process_folder_link(client, link, session_name=""):
-
+    """Обрабатывает ссылку на папку с группами"""
     try:
         if 'addlist/' in link:
             slug = link.split('addlist/')[-1].split('?')[0]
@@ -925,7 +1663,7 @@ async def process_folder_link(client, link, session_name=""):
 
 
 async def get_chat_from_link(client, link, session_name=""):
-
+    """Получает объект чата по ссылке."""
     try:
         link = link.strip()
 
@@ -1011,7 +1749,7 @@ async def get_chat_from_link(client, link, session_name=""):
 
 
 async def get_user_chats(client, chat_type="all"):
-
+    """Получает чаты пользователя с фильтрацией по типу."""
     chats = []
     skipped_channels = 0
 
@@ -1072,27 +1810,11 @@ async def get_user_chats(client, chat_type="all"):
         return []
 
 
-
-async def send_message_safely(client, chat, message, delete_after=False, media_path=None, forward_link=None):
-
+async def send_message_safely(client, chat, message, delete_after=False, media_path=None):
+    """Отправляет сообщение с опциональным медиафайлом и опционально удаляет его у себя."""
     sent_message = None
     try:
-        if forward_link:
-       
-            msg_to_forward, error = await get_message_from_link(client, forward_link)
-            if msg_to_forward:
-             
-                sent_message = await client.forward_messages(chat, msg_to_forward)
-                log_msg = f"📨 Сообщение переслано из: {forward_link}"
-                print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
-                await add_to_log_buffer(log_msg)
-            else:
-                log_msg = f"❌ Ошибка получения сообщения для пересылки: {error}"
-                print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
-                await add_to_log_buffer(log_msg)
-                return False, None
-
-        elif media_path and os.path.exists(media_path):
+        if media_path and os.path.exists(media_path):
             sent_message = await client.send_file(chat, media_path, caption=message)
         else:
             sent_message = await client.send_message(chat, message)
@@ -1104,13 +1826,12 @@ async def send_message_safely(client, chat, message, delete_after=False, media_p
             await add_to_log_buffer(log_msg)
 
         return True, sent_message
-
     except FloodWaitError as e:
         log_msg = f"⏳ FloodWait {e.seconds} сек..."
         print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
         await add_to_log_buffer(log_msg)
         await asyncio.sleep(e.seconds)
-        return await send_message_safely(client, chat, message, delete_after, media_path, forward_link)
+        return await send_message_safely(client, chat, message, delete_after, media_path)
     except (ChatAdminRequiredError, ChannelPrivateError, UserPrivacyRestrictedError):
         return False, None
     except Exception as e:
@@ -1121,7 +1842,7 @@ async def send_message_safely(client, chat, message, delete_after=False, media_p
 
 
 async def join_chat_safely(client, link, session_name=""):
-
+    """Безопасное вступление в чат/группу по ссылке."""
     try:
         link = link.strip()
 
@@ -1226,7 +1947,7 @@ async def join_chat_safely(client, link, session_name=""):
 
 
 async def process_account_join(session_file, api_id, api_hash, join_links, delay_between_joins=5):
-
+    """Обрабатывает вступление для одного аккаунта."""
     client_session_name = os.path.join(session_folder, session_file.replace('.session', ''))
     client = TelegramClient(
         client_session_name, api_id, api_hash,
@@ -1395,10 +2116,9 @@ async def run_join_broadcast(api_id, api_hash, session_files, join_links):
     print(Fore.MAGENTA + "--- Вступление в группы завершено ---" + Style.RESET_ALL)
 
 
-# ОБНОВЛЕННАЯ ФУНКЦИЯ PROCESS_ACCOUNT
 async def process_account(session_file, api_id, api_hash, message, max_messages, delete_after, use_media_flag,
-                          media_file_path, recipient_filter, fast_mode_flag, fast_delay_val, use_forward_flag,
-                          forward_link_val, target_chats_ids=None):
+                          media_file_path, recipient_filter, fast_mode_flag, fast_delay_val, target_chats_ids=None,
+                          cycle_number=1):
     """Обрабатывает рассылку для одного аккаунта."""
     client_session_name = os.path.join(session_folder, session_file.replace('.session', ''))
     client = TelegramClient(
@@ -1443,10 +2163,54 @@ async def process_account(session_file, api_id, api_hash, message, max_messages,
             print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg)
 
-        if use_forward_flag and forward_link_val:
-            log_msg = f"📨 РЕЖИМ ПЕРЕСЫЛКИ: {forward_link_val}"
-            print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
+        # Проверяем, нужно ли запускать автоподписку (только первый цикл)
+        if auto_subscribe_enabled and auto_subscribe_first_cycle_only and cycle_number == 1:
+            log_msg = f"🤖 [{account_info}] Запускаем проверку автоподписки (цикл 1)..."
+            print(f"{Fore.MAGENTA}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg)
+
+            # Получаем группы для мониторинга
+            groups_to_monitor = []
+
+            if target_chats_ids:
+                # Если есть цели из файла, проверяем их
+                for target in target_chats_ids:
+                    if isinstance(target, str) and ('t.me' in target or '@' in target):
+                        try:
+                            entity = await client.get_entity(target)
+                            if isinstance(entity, (Channel, Chat)) and not isinstance(entity, User):
+                                groups_to_monitor.append(entity)
+                        except:
+                            pass
+            else:
+                # Иначе получаем все группы пользователя
+                all_chats = await get_user_chats(client, "groups")
+                groups_to_monitor.extend(all_chats)
+
+            # Для каждой группы проверяем, нужно ли подписываться
+            if groups_to_monitor:
+                log_msg = f"🔍 [{account_info}] Проверяем {len(groups_to_monitor)} групп на необходимость подписки..."
+                print(log_msg)
+                await add_to_log_buffer(log_msg)
+
+                for group in groups_to_monitor[:5]:  # Ограничим до 5 групп для производительности
+                    if stop_event.is_set():
+                        break
+
+                    try:
+                        await monitor_and_subscribe(client, account_info, group)
+                    except Exception as e:
+                        log_msg = f"⚠️ [{account_info}] Ошибка при проверке группы: {e}"
+                        print(log_msg)
+                        await add_to_log_buffer(log_msg)
+
+                log_msg = f"✅ [{account_info}] Проверка автоподписки завершена"
+                print(log_msg)
+                await add_to_log_buffer(log_msg)
+            else:
+                log_msg = f"ℹ️ [{account_info}] Нет групп для проверки автоподписки"
+                print(log_msg)
+                await add_to_log_buffer(log_msg)
 
         chats_to_process = []
 
@@ -1523,17 +2287,11 @@ async def process_account(session_file, api_id, api_hash, message, max_messages,
             print(log_msg)
             await add_to_log_buffer(log_msg)
 
-            current_time = datetime.datetime.now().strftime("%H:%M:%S.%f")[:-3]
+            current_time = datetime.now().strftime("%H:%M:%S.%f")[:-3]
 
             media_to_use = media_file_path if use_media_flag and media_file_path and os.path.exists(
                 media_file_path) else None
-            forward_link_to_use = forward_link_val if use_forward_flag else None
-
-            success, sent_message = await send_message_safely(
-                client, chat, message, delete_after,
-                media_path=media_to_use,
-                forward_link=forward_link_to_use
-            )
+            success, sent_message = await send_message_safely(client, chat, message, delete_after, media_to_use)
 
             if success:
                 sent_count += 1
@@ -1621,21 +2379,13 @@ async def process_account(session_file, api_id, api_hash, message, max_messages,
     return sent_count, skipped_count, deleted_count, total_chats_processed, authorized
 
 
-# ОБНОВЛЕННАЯ ФУНКЦИЯ RUN_BROADCAST
 async def run_broadcast(api_id, api_hash, session_files, message, max_messages_per_account, repeat_broadcast_flag,
                         repeat_interval_val, delete_after, use_media_flag, media_file_path, recipient_filter,
-                        fast_mode_flag, fast_delay_val, use_forward_flag, forward_link_val, target_chats_ids=None,
-                        cycle_number=1):
+                        fast_mode_flag, fast_delay_val, target_chats_ids=None, cycle_number=1):
     """Запускает рассылку для нескольких аккаунтов."""
     filter_names = {"all": "Все диалоги", "users": "Только личные чаты", "groups": "Только группы"}
     print("\n" + Fore.MAGENTA + "--- Запуск рассылки ---" + Style.RESET_ALL)
-
-    if use_forward_flag and forward_link_val:
-        print(f"{Fore.CYAN}📨 РЕЖИМ: ПЕРЕСЫЛКА СООБЩЕНИЯ")
-        print(f"{Fore.CYAN}📎 Ссылка: {forward_link_val}{Style.RESET_ALL}")
-    else:
-        print(f"Сообщение: '{message[:60]}...'")
-
+    print(f"Сообщение: '{message[:60]}...'")
     if use_media_flag and media_file_path and os.path.exists(media_file_path):
         print(f"{Fore.CYAN}🖼 Медиафайл: {os.path.basename(media_file_path)}")
     print(f"Сессий: {len(session_files)}")
@@ -1661,6 +2411,15 @@ async def run_broadcast(api_id, api_hash, session_files, message, max_messages_p
     if repeat_broadcast_flag:
         print(f"⏱️ Интервал повтора: {repeat_interval_val}с")
     print(f"🗑 Удаление у себя: {'ВКЛЮЧЕНО' if delete_after else 'ВЫКЛЮЧЕНО'}")
+
+    # Информация об автоподписке
+    if auto_subscribe_enabled:
+        if auto_subscribe_first_cycle_only:
+            print(
+                f"{Fore.MAGENTA}🤖 АВТОПОДПИСКА: Только 1-й цикл (ожидание {auto_subscribe_wait_for_mention}с){Style.RESET_ALL}")
+        else:
+            print(
+                f"{Fore.MAGENTA}🤖 АВТОПОДПИСКА: Каждый цикл (ожидание {auto_subscribe_wait_for_mention}с){Style.RESET_ALL}")
     print("---")
 
     while True:
@@ -1677,8 +2436,9 @@ async def run_broadcast(api_id, api_hash, session_files, message, max_messages_p
                 process_account(
                     session_file, api_id, api_hash,
                     message, max_messages_per_account, delete_after, use_media_flag, media_file_path, recipient_filter,
-                    fast_mode_flag, fast_delay_val, use_forward_flag, forward_link_val,
-                    target_chats_ids=target_chats_ids
+                    fast_mode_flag, fast_delay_val,
+                    target_chats_ids=target_chats_ids,
+                    cycle_number=cycle_number
                 )
             )
             tasks.append(task)
@@ -1724,6 +2484,11 @@ async def run_broadcast(api_id, api_hash, session_files, message, max_messages_p
             print(f"{Fore.GREEN}✔ Работало сессий: {working_sessions}/{len(processed_session_files)}")
             if invalid_count > 0:
                 print(f"{Fore.RED}✘ Недействительных сессий: {invalid_count}")
+
+            # Показываем информацию о файле с неудачными подписками
+            if os.path.exists(failed_subscriptions_file) and os.path.getsize(failed_subscriptions_file) > 0:
+                print(f"{Fore.YELLOW}📋 Неудачные подписки сохранены в: {failed_subscriptions_file}{Style.RESET_ALL}")
+
             print("=" * 50)
 
             if notify_cycle_results:
@@ -1759,10 +2524,268 @@ async def run_broadcast(api_id, api_hash, session_files, message, max_messages_p
     print(Fore.MAGENTA + "--- Рассылка завершена ---" + Style.RESET_ALL)
 
 
-# ОБНОВЛЕННАЯ ФУНКЦИЯ DISPLAY_SETTINGS_MENU
+# =============== НОВАЯ ФУНКЦИЯ ДЛЯ ЗАПУСКА АВТОПОДПИСКИ ===============
+async def run_auto_subscribe(api_id, api_hash, session_files, target_group_link):
+    """Запускает автоподписку для нескольких аккаунтов."""
+    print("\n" + Fore.MAGENTA + "--- Запуск автоподписки на каналы ---" + Style.RESET_ALL)
+    print(f"Сессий: {len(session_files)}")
+    print(f"Целевая группа: {target_group_link}")
+    print(f"Режим: {'По упоминанию' if auto_subscribe_on_mention else 'По расписанию'}")
+    print(f"Макс. время ожидания упоминания: {auto_subscribe_wait_for_mention}с")
+    print(f"Задержка между подписками: {auto_subscribe_pause_between_channels}с")
+    print("---")
+
+    tasks = []
+    processed_session_files = []
+
+    for i, session_file in enumerate(session_files):
+        if stop_event.is_set():
+            break
+
+        task = asyncio.create_task(
+            process_account_auto_subscribe(
+                session_file, api_id, api_hash, target_group_link
+            )
+        )
+        tasks.append(task)
+        processed_session_files.append(session_file)
+
+        # Задержка между запуском сессий
+        if i < len(session_files) - 1:
+            log_msg = f"\n⏳ Задержка {delay_between_accounts}с перед следующей сессией..."
+            print(log_msg)
+            await add_to_log_buffer(log_msg)
+            await asyncio.sleep(delay_between_accounts)
+
+    if tasks:
+        results = await asyncio.gather(*tasks)
+
+        successful = 0
+        failed = 0
+
+        for i, result in enumerate(results):
+            if result:
+                successful += 1
+            else:
+                failed += 1
+
+        print("\n" + "=" * 50)
+        print(f"{Fore.MAGENTA}     ✔ ОБЩАЯ СТАТИСТИКА АВТОПОДПИСКИ")
+        print("=" * 50)
+        print(f"{Fore.GREEN}✔ Успешно завершено: {successful}")
+        print(f"{Fore.RED}✘ Ошибок: {failed}")
+        print("=" * 50)
+
+        if notify_cycle_results:
+            notification_message = f"📊 **Результаты автоподписки**\n\n"
+            notification_message += f"✅ Успешно: {successful}\n"
+            notification_message += f"❌ Ошибок: {failed}\n"
+            await send_notification(notification_message, "cycle_result")
+
+    print(Fore.MAGENTA + "--- Автоподписка завершена ---" + Style.RESET_ALL)
+
+
+async def process_account_auto_subscribe(session_file, api_id, api_hash, target_group_link):
+    """Обрабатывает автоподписку для одного аккаунта."""
+    client_session_name = os.path.join(session_folder, session_file.replace('.session', ''))
+    client = TelegramClient(
+        client_session_name, api_id, api_hash,
+        connection_retries=5, timeout=20, request_retries=3, flood_sleep_threshold=60
+    )
+
+    account_info = "неавторизована"
+    success = False
+
+    try:
+        await client.connect()
+
+        if not await client.is_user_authorized():
+            log_msg = f"✘ [{session_file}] НЕ АВТОРИЗОВАНА - ПРОПУЩЕНА"
+            print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
+            await add_to_log_buffer(log_msg)
+            log_invalid_session(session_file)
+            return False
+
+        try:
+            me = await client.get_me()
+            account_info = f"@{me.username or me.id}"
+        except Exception as get_me_error:
+            log_msg = f"✘ [{session_file}] Ошибка при получении информации о пользователе: {get_me_error}"
+            print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
+            await add_to_log_buffer(log_msg)
+            log_invalid_session(session_file)
+            return False
+
+        log_msg = f"\n⚙ Обработка сессии: {session_file} ({account_info})"
+        print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
+        await add_to_log_buffer(log_msg)
+
+        # Получаем целевую группу
+        try:
+            target_group = await client.get_entity(target_group_link)
+            log_msg = f"✅ [{account_info}] Найдена группа: {target_group.title}"
+            print(f"{Fore.GREEN}{log_msg}{Style.RESET_ALL}")
+            await add_to_log_buffer(log_msg)
+        except Exception as e:
+            log_msg = f"❌ [{account_info}] Не удалось найти группу: {e}"
+            print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
+            await add_to_log_buffer(log_msg)
+            return False
+
+        # Запускаем мониторинг и подписку
+        await monitor_and_subscribe(client, account_info, target_group)
+
+        log_msg = f"\n✅ [{account_info}] Процесс автоподписки завершен"
+        print(f"{Fore.GREEN}{log_msg}{Style.RESET_ALL}")
+        await add_to_log_buffer(log_msg)
+        success = True
+
+    except Exception as e:
+        log_msg = f"✘ [{account_info}] Ошибка: {str(e)[:60]}"
+        print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
+        await add_to_log_buffer(log_msg)
+        traceback.print_exc()
+    finally:
+        try:
+            if client.is_connected():
+                await client.disconnect()
+        except:
+            pass
+
+    return success
+
+
+async def display_auto_subscribe_menu():
+    """Меню настроек автоподписки."""
+    global auto_subscribe_enabled, auto_subscribe_on_mention, auto_subscribe_delay, auto_subscribe_max_flood_wait
+    global auto_subscribe_retry_after_flood, auto_subscribe_check_interval, auto_subscribe_wait_for_mention
+    global auto_subscribe_pause_between_channels, auto_subscribe_forced_channels, auto_subscribe_first_cycle_only
+
+    while True:
+        os.system('cls' if os.name == 'nt' else 'clear')
+        print_header("🤖 НАСТРОЙКИ АВТОПОДПИСКИ")
+
+        print(
+            f"{CLR_INFO}1. 🔄 Автоподписка: {CLR_SUCCESS if auto_subscribe_enabled else CLR_ERR}{'ВКЛ' if auto_subscribe_enabled else 'ВЫКЛ'}")
+        print(
+            f"{CLR_INFO}2. 🎯 Режим упоминания: {CLR_SUCCESS if auto_subscribe_on_mention else CLR_ERR}{'ВКЛ' if auto_subscribe_on_mention else 'ВЫКЛ'}")
+        print(f"{CLR_INFO}3. ⏱️ Задержка между подписками: {CLR_WARN}{auto_subscribe_pause_between_channels}с")
+        print(f"{CLR_INFO}4. ⏳ Макс. время ожидания флуда: {CLR_WARN}{auto_subscribe_max_flood_wait}с")
+        print(
+            f"{CLR_INFO}5. 🔄 Повтор после флуда: {CLR_SUCCESS if auto_subscribe_retry_after_flood else CLR_ERR}{'ВКЛ' if auto_subscribe_retry_after_flood else 'ВЫКЛ'}")
+        print(f"{CLR_INFO}6. 🔍 Интервал проверки: {CLR_WARN}{auto_subscribe_check_interval}с")
+        print(f"{CLR_INFO}7. ⏰ Макс. ожидание упоминания: {CLR_WARN}{auto_subscribe_wait_for_mention}с")
+        print(
+            f"{CLR_INFO}8. 🔂 Только первый цикл: {CLR_SUCCESS if auto_subscribe_first_cycle_only else CLR_ERR}{'ВКЛ' if auto_subscribe_first_cycle_only else 'ВЫКЛ'}")
+        print(f"{CLR_INFO}9. 📋 Ручной список каналов (JSON формат)")
+
+        if auto_subscribe_forced_channels:
+            print(f"{CLR_INFO}   Текущий список: {CLR_WARN}{len(auto_subscribe_forced_channels)} каналов")
+            for i, ch in enumerate(auto_subscribe_forced_channels[:3], 1):
+                print(f"      {i}. {ch}")
+            if len(auto_subscribe_forced_channels) > 3:
+                print(f"      ... и еще {len(auto_subscribe_forced_channels) - 3}")
+
+        print(f"{CLR_ERR}0. 🔙 Назад")
+
+        choice = input(f"\n{CLR_MAIN}Выберите пункт ➔ {RESET}").strip()
+
+        if choice == '1':
+            auto_subscribe_enabled = not auto_subscribe_enabled
+            print(
+                f"{Fore.GREEN}✔ Автоподписка {'включена' if auto_subscribe_enabled else 'выключена'}.{Style.RESET_ALL}")
+
+        elif choice == '2':
+            auto_subscribe_on_mention = not auto_subscribe_on_mention
+            print(
+                f"{Fore.GREEN}✔ Режим упоминания {'включен' if auto_subscribe_on_mention else 'выключен'}.{Style.RESET_ALL}")
+
+        elif choice == '3':
+            try:
+                new_value = float(
+                    input(f"Задержка между подписками (сек, текущая: {auto_subscribe_pause_between_channels}): "))
+                if new_value >= 0.5:
+                    auto_subscribe_pause_between_channels = new_value
+                    print(f"{Fore.GREEN}✔ Задержка обновлена.{Style.RESET_ALL}")
+                else:
+                    print(f"{Fore.RED}✘ Задержка должна быть не менее 0.5 сек.{Style.RESET_ALL}")
+            except ValueError:
+                print(f"{Fore.RED}✘ Введите число.{Style.RESET_ALL}")
+
+        elif choice == '4':
+            try:
+                new_value = int(input(f"Макс. время ожидания флуда (сек, текущее: {auto_subscribe_max_flood_wait}): "))
+                if new_value >= 10:
+                    auto_subscribe_max_flood_wait = new_value
+                    print(f"{Fore.GREEN}✔ Время ожидания обновлено.{Style.RESET_ALL}")
+                else:
+                    print(f"{Fore.RED}✘ Время должно быть не менее 10 сек.{Style.RESET_ALL}")
+            except ValueError:
+                print(f"{Fore.RED}✘ Введите число.{Style.RESET_ALL}")
+
+        elif choice == '5':
+            auto_subscribe_retry_after_flood = not auto_subscribe_retry_after_flood
+            print(
+                f"{Fore.GREEN}✔ Повтор после флуда {'включен' if auto_subscribe_retry_after_flood else 'выключен'}.{Style.RESET_ALL}")
+
+        elif choice == '6':
+            try:
+                new_value = int(input(f"Интервал проверки (сек, текущий: {auto_subscribe_check_interval}): "))
+                if new_value >= 1:
+                    auto_subscribe_check_interval = new_value
+                    print(f"{Fore.GREEN}✔ Интервал проверки обновлен.{Style.RESET_ALL}")
+                else:
+                    print(f"{Fore.RED}✘ Интервал должен быть не менее 1 сек.{Style.RESET_ALL}")
+            except ValueError:
+                print(f"{Fore.RED}✘ Введите число.{Style.RESET_ALL}")
+
+        elif choice == '7':
+            try:
+                new_value = int(input(f"Макс. ожидание упоминания (сек, текущее: {auto_subscribe_wait_for_mention}): "))
+                if new_value >= 5:
+                    auto_subscribe_wait_for_mention = new_value
+                    print(f"{Fore.GREEN}✔ Время ожидания обновлено.{Style.RESET_ALL}")
+                else:
+                    print(f"{Fore.RED}✘ Время должно быть не менее 5 сек.{Style.RESET_ALL}")
+            except ValueError:
+                print(f"{Fore.RED}✘ Введите число.{Style.RESET_ALL}")
+
+        elif choice == '8':
+            auto_subscribe_first_cycle_only = not auto_subscribe_first_cycle_only
+            print(
+                f"{Fore.GREEN}✔ Режим 'Только первый цикл' {'включен' if auto_subscribe_first_cycle_only else 'выключен'}.{Style.RESET_ALL}")
+
+        elif choice == '9':
+            print(f"{Fore.YELLOW}Введите список каналов в формате JSON, например:")
+            print(f'["@channel1", "https://t.me/channel2", "t.me/+invite_hash"]')
+            current = json.dumps(auto_subscribe_forced_channels, ensure_ascii=False)
+            print(f"Текущий: {current}")
+
+            new_list = input("Новый список (или Enter для очистки): ").strip()
+            if new_list:
+                try:
+                    parsed = json.loads(new_list)
+                    if isinstance(parsed, list):
+                        auto_subscribe_forced_channels = parsed
+                        print(f"{Fore.GREEN}✔ Список обновлен.{Style.RESET_ALL}")
+                    else:
+                        print(f"{Fore.RED}✘ Должен быть массив JSON.{Style.RESET_ALL}")
+                except json.JSONDecodeError:
+                    print(f"{Fore.RED}✘ Ошибка парсинга JSON.{Style.RESET_ALL}")
+            else:
+                auto_subscribe_forced_channels = []
+                print(f"{Fore.GREEN}✔ Список очищен.{Style.RESET_ALL}")
+
+        elif choice == '0':
+            save_config()
+            break
+
+        await asyncio.sleep(1)
+
+
 async def display_settings_menu():
     """Меню настроек."""
-    global current_api_id, current_api_hash, session_folder, message_to_send, delay_between_messages, delay_between_accounts, max_messages_per_account, repeat_broadcast, repeat_interval, delete_after_send, recipient_type, use_media, media_path, fast_mode, fast_delay, use_forward, forward_link, notification_enabled, notification_bot_token, notification_chat_id, notify_invalid_session, notify_cycle_results, notify_full_logs
+    global current_api_id, current_api_hash, session_folder, message_to_send, delay_between_messages, delay_between_accounts, max_messages_per_account, repeat_broadcast, repeat_interval, delete_after_send, recipient_type, use_media, media_path, fast_mode, fast_delay, notification_enabled, notification_bot_token, notification_chat_id, notify_invalid_session, notify_cycle_results, notify_full_logs
 
     while True:
         os.system('cls' if os.name == 'nt' else 'clear')
@@ -1773,18 +2796,18 @@ async def display_settings_menu():
         print(f"{CLR_INFO}3. ✉️ Настройки сообщений")
         print(f"{CLR_INFO}4. 🚀 Настройки рассылки")
         print(f"{CLR_INFO}5. 🔔 Настройки уведомлений")
-        print(f"{CLR_ACCENT}6. ♻️ Сброс настроек")
+        print(f"{CLR_INFO}6. 🤖 Настройки автоподписки")  # Новый пункт
+        print(f"{CLR_ACCENT}7. ♻️ Сброс настроек")
         print(f"{CLR_ERR}0. 🔙 Назад в меню")
 
         print(f"\n{CLR_WARN}Текущие значения:{Style.RESET_ALL}")
         print(f"  API ID: {current_api_id}")
         print(f"  Папка сессий: {session_folder}")
-        if use_forward and forward_link:
-            print(f"  📨 Пересылка: {forward_link[:30]}...")
-        else:
-            print(f"  Сообщение: {message_to_send[:30]}...")
+        print(f"  Сообщение: {message_to_send[:30]}...")
         if notification_enabled:
             print(f"  🔔 Уведомления: ВКЛ")
+        if auto_subscribe_enabled:
+            print(f"  🤖 Автоподписка: ВКЛ")
 
         choice = input(f"\n{CLR_MAIN}Выберите раздел ➔ {RESET}").strip()
 
@@ -1861,15 +2884,8 @@ async def display_settings_menu():
                     f"{CLR_INFO}2. 🖼 Использовать медиа: {CLR_SUCCESS if use_media else CLR_ERR}{'ВКЛ' if use_media else 'ВЫКЛ'}")
                 if use_media:
                     print(f"{CLR_INFO}3. 📁 Путь к медиафайлу: {CLR_WARN}{media_path or 'Не указан'}")
-
-                # НОВЫЕ ПУНКТЫ ДЛЯ ПЕРЕСЫЛКИ
                 print(
-                    f"{CLR_INFO}4. 🔗 Пересылать сообщение: {CLR_SUCCESS if use_forward else CLR_ERR}{'ВКЛ' if use_forward else 'ВЫКЛ'}")
-                if use_forward:
-                    print(f"{CLR_INFO}5. 📎 Ссылка на сообщение: {CLR_WARN}{forward_link or 'Не указана'}")
-
-                print(
-                    f"{CLR_INFO}6. 🗑 Удаление у себя: {CLR_SUCCESS if delete_after_send else CLR_ERR}{'ВКЛ' if delete_after_send else 'ВЫКЛ'}")
+                    f"{CLR_INFO}4. 🗑 Удаление у себя: {CLR_SUCCESS if delete_after_send else CLR_ERR}{'ВКЛ' if delete_after_send else 'ВЫКЛ'}")
                 print(f"{CLR_ERR}0. 🔙 Назад")
 
                 sub_choice = input(f"\n{CLR_MAIN}Выберите пункт ➔ {RESET}").strip()
@@ -1896,8 +2912,6 @@ async def display_settings_menu():
                         print(f"{Fore.GREEN}✔ Сообщение обновлено.{Style.RESET_ALL}")
                 elif sub_choice == '2':
                     use_media = not use_media
-                    if use_media:
-                        use_forward = False  # Отключаем пересылку при включении медиа
                     print(
                         f"{Fore.GREEN}✔ Использование медиа {'включено' if use_media else 'выключено'}.{Style.RESET_ALL}")
                     if use_media and not media_path:
@@ -1910,26 +2924,7 @@ async def display_settings_menu():
                             print(f"{Fore.GREEN}✔ Путь к медиафайлу обновлен.{Style.RESET_ALL}")
                         else:
                             print(f"{Fore.RED}✘ Файл не найден!{Style.RESET_ALL}")
-
-                # НОВЫЕ ОБРАБОТЧИКИ
                 elif sub_choice == '4':
-                    use_forward = not use_forward
-                    if use_forward:
-                        use_media = False  # Отключаем медиа при включении пересылки
-                    print(
-                        f"{Fore.GREEN}✔ Пересылка сообщений {'включена' if use_forward else 'выключена'}.{Style.RESET_ALL}")
-
-                elif sub_choice == '5' and use_forward:
-                    new_link = input(f"Ссылка на сообщение (пример: https://t.me/username/123): ").strip()
-                    if new_link:
-                        if 't.me/' in new_link and len(new_link.split('/')) >= 4:
-                            forward_link = new_link
-                            print(f"{Fore.GREEN}✔ Ссылка для пересылки обновлена.{Style.RESET_ALL}")
-                        else:
-                            print(
-                                f"{Fore.RED}✘ Неверный формат ссылки! Пример: https://t.me/username/123{Style.RESET_ALL}")
-
-                elif sub_choice == '6':
                     delete_after_send = not delete_after_send
                     print(
                         f"{Fore.GREEN}✔ Удаление у себя {'включено' if delete_after_send else 'выключено'}.{Style.RESET_ALL}")
@@ -2061,7 +3056,10 @@ async def display_settings_menu():
                     break
                 await asyncio.sleep(1)
 
-        elif choice == '6':
+        elif choice == '6':  # Новый пункт - автоподписка
+            await display_auto_subscribe_menu()
+
+        elif choice == '7':
             if input(f"{Fore.YELLOW}⚠️ Сбросить ВСЕ настройки к умолчанию? (y/n): ").lower() == 'y':
                 globals().update({
                     'current_api_id': DEFAULT_API_ID,
@@ -2079,14 +3077,23 @@ async def display_settings_menu():
                     'media_path': DEFAULT_MEDIA_PATH,
                     'fast_mode': DEFAULT_FAST_MODE,
                     'fast_delay': DEFAULT_FAST_DELAY,
-                    'use_forward': DEFAULT_USE_FORWARD,  # НОВОЕ
-                    'forward_link': DEFAULT_FORWARD_LINK,  # НОВОЕ
                     'notification_enabled': DEFAULT_NOTIFICATION_ENABLED,
                     'notification_bot_token': DEFAULT_NOTIFICATION_BOT_TOKEN,
                     'notification_chat_id': DEFAULT_NOTIFICATION_CHAT_ID,
                     'notify_invalid_session': DEFAULT_NOTIFY_INVALID_SESSION,
                     'notify_cycle_results': DEFAULT_NOTIFY_CYCLE_RESULTS,
-                    'notify_full_logs': DEFAULT_NOTIFY_FULL_LOGS
+                    'notify_full_logs': DEFAULT_NOTIFY_FULL_LOGS,
+                    # Сброс настроек автоподписки
+                    'auto_subscribe_enabled': DEFAULT_AUTO_SUBSCRIBE_ENABLED,
+                    'auto_subscribe_on_mention': DEFAULT_AUTO_SUBSCRIBE_ON_MENTION,
+                    'auto_subscribe_delay': DEFAULT_AUTO_SUBSCRIBE_DELAY,
+                    'auto_subscribe_max_flood_wait': DEFAULT_AUTO_SUBSCRIBE_MAX_FLOOD_WAIT,
+                    'auto_subscribe_retry_after_flood': DEFAULT_AUTO_SUBSCRIBE_RETRY_AFTER_FLOOD,
+                    'auto_subscribe_check_interval': DEFAULT_AUTO_SUBSCRIBE_CHECK_INTERVAL,
+                    'auto_subscribe_wait_for_mention': DEFAULT_AUTO_SUBSCRIBE_WAIT_FOR_MENTION,
+                    'auto_subscribe_pause_between_channels': DEFAULT_AUTO_SUBSCRIBE_PAUSE_BETWEEN_CHANNELS,
+                    'auto_subscribe_forced_channels': DEFAULT_AUTO_SUBSCRIBE_FORCED_CHANNELS,
+                    'auto_subscribe_first_cycle_only': DEFAULT_AUTO_SUBSCRIBE_FIRST_CYCLE_ONLY
                 })
                 print(f"{Fore.GREEN}✔ Все настройки сброшены!{Style.RESET_ALL}")
                 await close_notification_client()
@@ -2176,9 +3183,17 @@ async def add_session_by_number():
 async def main_menu():
     """Главное меню программы."""
     global CURRENT_VERSION
+    global auto_subscribe_enabled, auto_subscribe_on_mention, auto_subscribe_delay
+    global auto_subscribe_max_flood_wait, auto_subscribe_retry_after_flood
+    global auto_subscribe_check_interval, auto_subscribe_wait_for_mention
+    global auto_subscribe_pause_between_channels, auto_subscribe_forced_channels, auto_subscribe_first_cycle_only
+    global flood_wait_occurred, total_flood_time
 
     load_config()
     os.makedirs(session_folder, exist_ok=True)
+
+    # Очищаем файл с неудачными подписками при запуске
+    clear_failed_subscriptions_file()
 
     # Проверяем реальную версию в файле
     file_version = update_manager.verify_version_in_file()
@@ -2214,6 +3229,7 @@ async def main_menu():
         print(f"{CLR_INFO}  [4] ➔  📂  МОИ СЕССИИ (ИНФО)")
         print(f"{CLR_ACCENT}  [5] ➔  ➕  ДОБАВИТЬ АККАУНТ")
         print(f"{CLR_ACCENT}  [6] ➔  🔄  ОБНОВЛЕНИЯ")
+        #print(f"{CLR_INFO}  [7] ➔  🤖  АВТОПОДПИСКА НА КАНАЛЫ")  # Новый пункт
         print(f"{CLR_ERR}  [7] ➔  🚪  ВЫЙТИ")
 
         print(f"\n{CLR_ACCENT}─────────────────────────────────────────────────────")
@@ -2222,13 +3238,12 @@ async def main_menu():
             print(f"{Fore.YELLOW}⚡ ТЕКУЩИЙ РЕЖИМ: БЫСТРЫЙ (задержка {fast_delay}с){Style.RESET_ALL}")
         if repeat_broadcast:
             print(f"{Fore.CYAN}🔄 ПОВТОР ВКЛЮЧЕН (интервал {repeat_interval}с){Style.RESET_ALL}")
-        if use_forward and forward_link:
-            print(f"{Fore.CYAN}📨 РЕЖИМ: ПЕРЕСЫЛКА СООБЩЕНИЯ{Style.RESET_ALL}")
-        if use_media and media_path:
-            print(f"{Fore.CYAN}🖼 МЕДИА РЕЖИМ: {os.path.basename(media_path)}{Style.RESET_ALL}")
         if notification_enabled:
             print(f"{Fore.GREEN}🔔 УВЕДОМЛЕНИЯ ВКЛЮЧЕНЫ{Style.RESET_ALL}")
-        print(f"{Fore.CYAN}📦Текущая версия(версия может лагать,и когда обновляете,может показывать старую,но на самом деле обновиться): {CURRENT_VERSION}{Style.RESET_ALL}")
+        if auto_subscribe_enabled:
+            mode = "ТОЛЬКО 1-Й ЦИКЛ" if auto_subscribe_first_cycle_only else "КАЖДЫЙ ЦИКЛ"
+            print(f"{Fore.MAGENTA}🤖 АВТОПОДПИСКА ВКЛЮЧЕНА ({mode}){Style.RESET_ALL}")
+        print(f"{Fore.CYAN}📦 Версия: {CURRENT_VERSION}{Style.RESET_ALL}")
 
         choice = input(f"{CLR_MAIN}Введите номер команды ➔ {RESET}").strip()
 
@@ -2333,10 +3348,7 @@ async def main_menu():
                     print(f"{Fore.CYAN}● Цели: {len(target_groups_file_data)} групп/ссылок из файла{Style.RESET_ALL}")
             else:
                 print(f"{Fore.CYAN}● Цели: {recipient_names[recipient_type]}")
-
-            if use_forward and forward_link:
-                print(f"{Fore.CYAN}📨 Пересылка: {forward_link}{Style.RESET_ALL}")
-            elif use_media and media_path and os.path.exists(media_path):
+            if use_media and media_path and os.path.exists(media_path):
                 print(f"{Fore.CYAN}🖼 Медиафайл: {os.path.basename(media_path)}")
             print(f"🔢 Макс./аккаунт: {max_messages_per_account}")
 
@@ -2352,14 +3364,18 @@ async def main_menu():
             print(f"🗑 Удаление у себя: {'ВКЛЮЧЕНО' if delete_after_send else 'ВЫКЛЮЧЕНО'}")
             if notification_enabled:
                 print(f"{Fore.GREEN}🔔 Уведомления: ВКЛЮЧЕНЫ{Style.RESET_ALL}")
+            if auto_subscribe_enabled:
+                print(
+                    f"{Fore.MAGENTA}🤖 Автоподписка: ВКЛЮЧЕНА (ожидание {auto_subscribe_wait_for_mention}с){Style.RESET_ALL}")
 
             if input("\n🚀 Запустить рассылку параллельно? (y/n): ").lower() == 'y':
                 print("\n" + Fore.MAGENTA + "🚀 Запуск рассылки..." + Style.RESET_ALL)
                 await run_broadcast(current_api_id, current_api_hash, selected_sessions, message_to_send,
                                     max_messages_per_account, repeat_broadcast, repeat_interval, delete_after_send,
                                     use_media, media_path, recipient_type,
-                                    fast_mode, fast_delay, use_forward, forward_link,
-                                    target_chats_ids=target_groups_file_data)
+                                    fast_mode, fast_delay,
+                                    target_chats_ids=target_groups_file_data,
+                                    cycle_number=1)
                 input("Нажмите Enter для продолжения...")
 
         elif choice == '2':
@@ -2454,13 +3470,90 @@ async def main_menu():
         elif choice == '6':
             await update_manager.show_update_menu()
             input("Нажмите Enter для продолжения...")
+        elif choice == '9':  # НОВЫЙ ПУНКТ - Автоподписка
+            if current_api_id == DEFAULT_API_ID or not current_api_hash or current_api_hash == "ЗАМЕНИТЕ НА ВАШ API HASH, ТАКЖЕ НАСТРОЙТЕ API ID ":
+                print(
+                    "\n" + Fore.YELLOW + "[!] ВНИМАНИЕ: Настройте API ID и API Hash в меню '3. Настройки'" + Style.RESET_ALL)
+                input("Нажмите Enter...")
+                continue
+
+            if not auto_subscribe_enabled:
+                print(f"\n{Fore.YELLOW}⚠️ Автоподписка отключена в настройках!{Style.RESET_ALL}")
+                if input("Включить сейчас? (y/n): ").lower() == 'y':
+                    auto_subscribe_enabled = True
+                    save_config()
+                else:
+                    continue
+
+            session_files = [f for f in os.listdir(session_folder) if f.endswith('.session')]
+            if not session_files:
+                print(f"\n{Fore.RED}✘ Не найдены .session файлы в '{session_folder}'")
+                print("1. Авторизуйтесь через TelegramClient (создаст файл)")
+                print("2. Поместите .session файлы в папку")
+                input("Нажмите Enter...")
+                continue
+
+            print(f"\n{Fore.GREEN}✔ Найдено {len(session_files)} сессий:")
+            for i, f in enumerate(session_files):
+                print(f"{i + 1}. {f}")
+
+            print(f"\n{Fore.CYAN}● Выберите сессии для автоподписки:")
+            print("1. 1️⃣ Одна сессия")
+            print("2. 🔢 Несколько сессий")
+            print("3. ♾️ Все сессии")
+            print("0. Назад")
+
+            sub_choice = input("Выберите: ").strip()
+            selected_sessions = []
+
+            if sub_choice == '1':
+                selected_sessions = session_files[:1]
+            elif sub_choice == '2':
+                indices_str = input("Сессии через запятую (1,3,5): ").strip()
+                try:
+                    nums = [int(x.strip()) - 1 for x in indices_str.split(',') if x.strip()]
+                    selected_sessions = [session_files[i] for i in nums if 0 <= i < len(session_files)]
+                    if not selected_sessions:
+                        print(
+                            f"{Fore.YELLOW}⚠️ Не выбрано ни одной сессии. Будет использована первая.{Style.RESET_ALL}")
+                        selected_sessions = session_files[:1]
+                except ValueError:
+                    print(f"{Fore.RED}✘ Некорректный ввод. Будет использована первая сессия.{Style.RESET_ALL}")
+                    selected_sessions = session_files[:1]
+            elif sub_choice == '3':
+                selected_sessions = session_files
+            else:
+                continue
+
+            if not selected_sessions:
+                print(f"{Fore.RED}✘ Ошибка выбора сессии. Возврат в меню.{Style.RESET_ALL}")
+                await asyncio.sleep(2)
+                continue
+
+            target_group = input(
+                f"\n{Fore.CYAN}Введите ссылку на группу для мониторинга (например, @group или https://t.me/group): {Style.RESET_ALL}").strip()
+            if not target_group:
+                print(f"{Fore.RED}✘ Ссылка на группу не введена.{Style.RESET_ALL}")
+                continue
+
+            print(f"\n{Fore.CYAN}ℹ Параметры автоподписки:")
+            print(f"📋 Сессий: {len(selected_sessions)}")
+            print(f"🎯 Целевая группа: {target_group}")
+            print(f"⏳ Задержка между подписками: {auto_subscribe_pause_between_channels}с")
+            print(f"⏰ Макс. ожидание упоминания: {auto_subscribe_wait_for_mention}с")
+
+            if input("\n🚀 Запустить автоподписку? (y/n): ").lower() == 'y':
+                print("\n" + Fore.MAGENTA + "🤖 Запуск автоподписки..." + Style.RESET_ALL)
+                await run_auto_subscribe(current_api_id, current_api_hash, selected_sessions, target_group)
+                input("Нажмите Enter для продолжения...")
+
         elif choice == '7':
             save_config()
             await close_notification_client()
             print(f"{Fore.CYAN}🚪 До свидания!{Style.RESET_ALL}")
             break
         else:
-            print(f"{Fore.RED}✘ Выберите 1-7{Style.RESET_ALL}")
+            print(f"{Fore.RED}✘ Выберите 1-8{Style.RESET_ALL}")
             await asyncio.sleep(1)
 
 
@@ -2479,5 +3572,3 @@ if __name__ == '__main__':
     except Exception as e:
         print(f"\n{Fore.RED}✘ Ошибка: {e}{Style.RESET_ALL}")
         traceback.print_exc()
-
-
