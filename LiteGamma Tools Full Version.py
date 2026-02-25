@@ -67,7 +67,7 @@ AUTO_SUBSCRIBE_FIRST_CYCLE_ONLY = True
 
 CHANNEL_PATTERNS = [r'@(\w+)', r'https://t\.me/(\w+)', r't\.me/(\w+)', r'telegram\.me/(\w+)', r'joinchat/([\w\-]+)',
                     r'\+([\w\-]+)']
-flood_wait_occurred = False
+flood_wait_occurred = False 
 total_flood_time = 0
 failed_subscriptions_file = "failed_subscriptions.txt"
 
@@ -5037,6 +5037,7 @@ if __name__ == '__main__':
         print(f"\n{Fore.RED}✘ Ошибка: {e}{Style.RESET_ALL}")
         traceback.print_exc()
         log_manager.stop_server()
+
 
 
 
