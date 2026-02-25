@@ -31,7 +31,7 @@ from colorama import init, Fore, Style
 from datetime import datetime, timedelta
 import socks
 
-GITHUB_USER = "fanmasterprofanmasterpro-dot"
+GITHUB_USER = "fanmasterprofanmasterpro-dot" 
 GITHUB_REPO = "LiteGamma-Tools-Full-Version"
 GITHUB_BRANCH = "main"
 GITHUB_RAW_BASE = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/{GITHUB_BRANCH}"
@@ -5037,5 +5037,6 @@ if __name__ == '__main__':
         print(f"\n{Fore.RED}✘ Ошибка: {e}{Style.RESET_ALL}")
         traceback.print_exc()
         log_manager.stop_server()
+
 
 
