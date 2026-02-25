@@ -7,29 +7,52 @@ import datetime
 import re
 import tempfile
 import requests
-import sys 
+import sys
 import hashlib
 import shutil
-import time 
-import random    
+import time
+import random
 import webbrowser
 import threading
 import socket
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 from telethon import TelegramClient, events
-from telethon.tl.types import Channel, Chat, User, MessageEntityMention, MessageEntityMentionName, MessageEntityTextUrl, \
-    MessageEntityUrl
+from telethon.tl.types import (
+    Channel, Chat, User, MessageEntityMention, 
+    MessageEntityMentionName, MessageEntityTextUrl, MessageEntityUrl
+)
 from telethon.tl.functions.channels import JoinChannelRequest
-from telethon.tl.functions.messages import ImportChatInviteRequest, CheckChatInviteRequest
-from telethon.tl.functions.chatlists import CheckChatlistInviteRequest, JoinChatlistInviteRequest
-from telethon.errors import FloodWaitError, ChannelPrivateError, ChatAdminRequiredError, UserPrivacyRestrictedError, \ 
-    AuthKeyUnregisteredError, PhoneCodeInvalidError, SessionPasswordNeededError, PhoneNumberInvalidError, \ 
-    PasswordHashInvalidError, RPCError, InviteHashExpiredError, InviteHashInvalidError, UserAlreadyParticipantError, \ 
-    UsernameNotOccupiedError, InviteRequestSentError, InviteHashEmptyError, PhoneCodeExpiredError 
-from colorama import init, Fore, Style  
-from datetime import datetime, timedelta  
-import socks  
+from telethon.tl.functions.messages import (
+    ImportChatInviteRequest, 
+    CheckChatInviteRequest
+)
+from telethon.tl.functions.chatlists import (
+    CheckChatlistInviteRequest, 
+    JoinChatlistInviteRequest
+)
+from telethon.errors import (
+    FloodWaitError, 
+    ChannelPrivateError, 
+    ChatAdminRequiredError, 
+    UserPrivacyRestrictedError,
+    AuthKeyUnregisteredError, 
+    PhoneCodeInvalidError, 
+    SessionPasswordNeededError, 
+    PhoneNumberInvalidError,
+    PasswordHashInvalidError, 
+    RPCError, 
+    InviteHashExpiredError, 
+    InviteHashInvalidError, 
+    UserAlreadyParticipantError,
+    UsernameNotOccupiedError, 
+    InviteRequestSentError, 
+    InviteHashEmptyError, 
+    PhoneCodeExpiredError
+)
+from colorama import init, Fore, Style
+from datetime import datetime, timedelta
+import socks
 
 GITHUB_USER = "fanmasterprofanmasterpro-dot" 
 GITHUB_REPO = "LiteGamma-Tools-Full-Version"
@@ -5037,6 +5060,7 @@ if __name__ == '__main__':
         print(f"\n{Fore.RED}✘ Ошибка: {e}{Style.RESET_ALL}")
         traceback.print_exc()
         log_manager.stop_server()
+
 
 
 
