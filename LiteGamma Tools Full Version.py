@@ -7,7 +7,7 @@ import datetime
 import re
 import tempfile
 import requests
-import sys
+import sys 
 import hashlib
 import shutil
 import time 
@@ -5037,6 +5037,7 @@ if __name__ == '__main__':
         print(f"\n{Fore.RED}✘ Ошибка: {e}{Style.RESET_ALL}")
         traceback.print_exc()
         log_manager.stop_server()
+
 
 
 
