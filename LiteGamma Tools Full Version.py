@@ -1446,53 +1446,147 @@ class UpdateManager:
         try:
             print(f"\n{Fore.YELLOW}⚙️ Начинаю обновление до версии {self.new_version}...{Style.RESET_ALL}")
             await add_to_log_buffer(f"⚙️ Начинаю обновление до версии {self.new_version}...", "info")
+
+            # Создаем папку для бэкапов
             os.makedirs(self.backup_folder, exist_ok=True)
+
+            # Создаем бэкап текущего файла
             backup_name = f"backup_v{CURRENT_VERSION}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.py"
             backup_path = os.path.join(self.backup_folder, backup_name)
             current_file = __file__
+
+            # Читаем текущий файл
             with open(current_file, 'r', encoding='utf-8') as f:
                 current_content = f.read()
+
+            # Сохраняем бэкап
             with open(backup_path, 'w', encoding='utf-8') as f:
                 f.write(current_content)
+
             print(f"{Fore.GREEN}✅ Бэкап создан: {backup_path}{Style.RESET_ALL}")
             await add_to_log_buffer(f"✅ Бэкап создан: {backup_path}", "success")
-            script_url = remote_data.get('download_url', f"{GITHUB_RAW_BASE}/LiteGamma%20Tools%20Full%20Version.py")
+
+            # Скачиваем новый файл с GitHub
+            script_url = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/{GITHUB_BRANCH}/LiteGamma%20Tools%20Full%20Version.py"
             expected_sha256 = remote_data.get('checksums', {}).get('sha256')
-            response = requests.get(script_url, timeout=30)
+
+            # ВАЖНО: Скачиваем с правильными заголовками
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Accept': 'application/vnd.github.v3.raw'
+            }
+            response = requests.get(script_url, timeout=30, headers=headers)
+
             if response.status_code == 200:
+                # Получаем содержимое
                 new_content = response.text
+
+                # Проверяем хеш если есть
                 if expected_sha256:
-                    actual_sha256 = hashlib.sha256(new_content.encode()).hexdigest()
+                    actual_sha256 = hashlib.sha256(new_content.encode('utf-8')).hexdigest()
                     if actual_sha256 != expected_sha256:
                         print(f"{Fore.RED}❌ Ошибка: хеш файла не совпадает!{Style.RESET_ALL}")
                         await add_to_log_buffer("❌ Ошибка: хеш файла не совпадает!", "error")
                         return False
-                new_content = self.update_version_in_file(new_content, self.new_version)
-                with open(current_file, 'w', encoding='utf-8') as f:
+
+                # ВАЖНО: Нормализуем окончания строк для Windows
+                # Заменяем LF на CRLF для Windows
+                if os.name == 'nt':  # Если это Windows
+                    new_content = new_content.replace('\n', '\r\n')
+
+                # Обновляем версию в файле (аккуратно)
+                new_content = self.update_version_in_file_safe(new_content, self.new_version)
+
+                # Сохраняем новый файл
+                with open(current_file, 'w', encoding='utf-8', newline='') as f:
                     f.write(new_content)
+
                 CURRENT_VERSION = self.new_version
                 print(f"{Fore.GREEN}✅ Скрипт успешно обновлен до версии {self.new_version}!{Style.RESET_ALL}")
                 await add_to_log_buffer(f"✅ Скрипт успешно обновлен до версии {self.new_version}!", "success")
+
                 save_config()
+
                 if NOTIFY_ON_UPDATE and notification_enabled:
                     await send_notification(
-                        f"🔄 **Программа обновлена!**\n\n📦 Новая версия: {self.new_version}\n📅 Дата: {remote_data.get('release_date', 'Неизвестно')}\n📝 Изменения:\n" + "\n".join(
-                            [f"  {c}" for c in self.changelog]), "update")
+                        f"🔄 **Программа обновлена!**\n\n📦 Новая версия: {self.new_version}\n📅 Дата: {remote_data.get('release_date', 'Неизвестно')}\n📝 Изменения:\n" +
+                        "\n".join([f"  {c}" for c in self.changelog]), "update"
+                    )
+
                 print(f"\n{Fore.YELLOW}⚠️ Для применения обновлений необходим перезапуск{Style.RESET_ALL}")
                 await add_to_log_buffer("⚠️ Для применения обновлений необходим перезапуск", "warning")
+
                 if input(f"{Fore.MAGENTA}Перезапустить сейчас? (y/n): {Style.RESET_ALL}").lower() == 'y':
                     self.restart_program()
+
                 return True
             else:
-                print(f"{Fore.RED}❌ Не удалось скачать обновление{Style.RESET_ALL}")
+                print(f"{Fore.RED}❌ Не удалось скачать обновление (статус: {response.status_code}){Style.RESET_ALL}")
                 await add_to_log_buffer("❌ Не удалось скачать обновление", "error")
                 return False
+
         except Exception as e:
             print(f"{Fore.RED}❌ Ошибка при обновлении: {e}{Style.RESET_ALL}")
             await add_to_log_buffer(f"❌ Ошибка при обновлении: {e}", "error")
             traceback.print_exc()
             return False
 
+    def update_version_in_file_safe(self, content, new_version):
+        """Безопасно обновляет версию в файле без ломания форматирования"""
+        import re
+
+        # Ищем разные варианты объявления версии
+        patterns = [
+            (r'(CURRENT_VERSION\s*=\s*["\'])([^"\']+)(["\'])', f'\\g<1>{new_version}\\g<3>'),
+            (r'(CURRENT_VERSION\s*=\s*)([0-9.]+)', f'\\g<1>"{new_version}"'),
+            (r'(__version__\s*=\s*["\'])([^"\']+)(["\'])', f'\\g<1>{new_version}\\g<3>'),
+            (r'(VERSION\s*=\s*["\'])([^"\']+)(["\'])', f'\\g<1>{new_version}\\g<3>')
+        ]
+
+        updated_content = content
+        for pattern, replacement in patterns:
+            updated_content = re.sub(pattern, replacement, updated_content, flags=re.MULTILINE)
+
+        # Проверяем, что замена произошла
+        if updated_content == content:
+            # Если не нашли, добавляем после импортов
+            lines = updated_content.splitlines(True)
+            import_end = 0
+            for i, line in enumerate(lines):
+                if line.startswith('import ') or line.startswith('from '):
+                    import_end = i + 1
+
+            version_line = f'CURRENT_VERSION = "{new_version}"\n'
+            lines.insert(import_end, version_line)
+            updated_content = ''.join(lines)
+
+        return updated_content
+
+    def verify_formatting(self, file_path):
+        """Проверяет, что файл имеет правильные окончания строк"""
+        try:
+            with open(file_path, 'rb') as f:
+                content = f.read()
+
+            # Проверяем наличие смешанных окончаний
+            if b'\r\n' in content and b'\n' not in content.replace(b'\r\n', b''):
+                print(f"{Fore.GREEN}✅ Файл имеет правильные окончания строк (Windows){Style.RESET_ALL}")
+            elif b'\n' in content and b'\r\n' not in content:
+                print(f"{Fore.GREEN}✅ Файл имеет правильные окончания строк (Unix){Style.RESET_ALL}")
+            else:
+                print(f"{Fore.YELLOW}⚠️ Файл имеет смешанные окончания строк{Style.RESET_ALL}")
+                return False
+            return True
+        except Exception as e:
+            print(f"{Fore.RED}✘ Ошибка проверки форматирования: {e}{Style.RESET_ALL}")
+            return False
+
+    def normalize_line_endings(content):
+        """Нормализует окончания строк в зависимости от ОС"""
+        if os.name == 'nt':  # Windows
+            return content.replace('\n', '\r\n')
+        else:  # Linux/Mac
+            return content.replace('\r\n', '\n')
     def update_version_in_file(self, content, new_version):
         import re
         patterns = [(r'CURRENT_VERSION\s*=\s*["\']([^"\']+)["\']', f'CURRENT_VERSION = "{new_version}"'),
@@ -1715,7 +1809,7 @@ DEFAULT_AUTO_SUBSCRIBE_PAUSE_BETWEEN_CHANNELS = 3
 DEFAULT_AUTO_SUBSCRIBE_FORCED_CHANNELS = []
 DEFAULT_AUTO_SUBSCRIBE_FIRST_CYCLE_ONLY = True
 DEFAULT_USE_PROXY = False
-DEFAULT_PROXY_FILE = "proxies.txt"
+DEFAULT_PROXY_FILE = "proxy.txt"
 DEFAULT_PROXY_ROTATE_ON_FAIL = True
 DEFAULT_PROXY_MAX_RETRIES = 3
 DEFAULT_SAFE_MODE = True
