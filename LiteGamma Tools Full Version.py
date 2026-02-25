@@ -10,7 +10,7 @@ import requests
 import sys
 import hashlib
 import shutil
-import time
+import time 
 import random
 import webbrowser
 import threading
@@ -5037,4 +5037,5 @@ if __name__ == '__main__':
         print(f"\n{Fore.RED}✘ Ошибка: {e}{Style.RESET_ALL}")
         traceback.print_exc()
         log_manager.stop_server()
+
 
