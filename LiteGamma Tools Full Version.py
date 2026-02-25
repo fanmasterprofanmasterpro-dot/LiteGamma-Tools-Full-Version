@@ -23,10 +23,10 @@ from telethon.tl.types import Channel, Chat, User, MessageEntityMention, Message
 from telethon.tl.functions.channels import JoinChannelRequest
 from telethon.tl.functions.messages import ImportChatInviteRequest, CheckChatInviteRequest
 from telethon.tl.functions.chatlists import CheckChatlistInviteRequest, JoinChatlistInviteRequest
-from telethon.errors import FloodWaitError, ChannelPrivateError, ChatAdminRequiredError, UserPrivacyRestrictedError, \
-    AuthKeyUnregisteredError, PhoneCodeInvalidError, SessionPasswordNeededError, PhoneNumberInvalidError, \
-    PasswordHashInvalidError, RPCError, InviteHashExpiredError, InviteHashInvalidError, UserAlreadyParticipantError, \
-    UsernameNotOccupiedError, InviteRequestSentError, InviteHashEmptyError, PhoneCodeExpiredError
+from telethon.errors import FloodWaitError, ChannelPrivateError, ChatAdminRequiredError, UserPrivacyRestrictedError, \ 
+    AuthKeyUnregisteredError, PhoneCodeInvalidError, SessionPasswordNeededError, PhoneNumberInvalidError, \ 
+    PasswordHashInvalidError, RPCError, InviteHashExpiredError, InviteHashInvalidError, UserAlreadyParticipantError, \ 
+    UsernameNotOccupiedError, InviteRequestSentError, InviteHashEmptyError, PhoneCodeExpiredError 
 from colorama import init, Fore, Style  
 from datetime import datetime, timedelta  
 import socks  
@@ -34,7 +34,7 @@ import socks
 GITHUB_USER = "fanmasterprofanmasterpro-dot" 
 GITHUB_REPO = "LiteGamma-Tools-Full-Version"
 GITHUB_BRANCH = "main"
-GITHUB_RAW_BASE = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/{GITHUB_BRANCH}"
+GITHUB_RAW_BASE = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/{GITHUB_BRANCH}" 
 GITHUB_API_BASE = f"https://api.github.com/repos/{GITHUB_USER}/{GITHUB_REPO}"
 CURRENT_VERSION = "1.8.2"
 UPDATE_CHECK_INTERVAL = 3600
@@ -5037,6 +5037,7 @@ if __name__ == '__main__':
         print(f"\n{Fore.RED}✘ Ошибка: {e}{Style.RESET_ALL}")
         traceback.print_exc()
         log_manager.stop_server()
+
 
 
 
