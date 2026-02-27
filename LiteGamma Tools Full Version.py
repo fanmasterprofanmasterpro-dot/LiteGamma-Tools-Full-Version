@@ -19,47 +19,48 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 from telethon import TelegramClient, events
 from telethon.tl.types import (
-    Channel, Chat, User, MessageEntityMention, 
+    Channel, Chat, User, MessageEntityMention,
     MessageEntityMentionName, MessageEntityTextUrl, MessageEntityUrl
 )
 from telethon.tl.functions.channels import JoinChannelRequest
 from telethon.tl.functions.messages import (
-    ImportChatInviteRequest, 
+    ImportChatInviteRequest,
     CheckChatInviteRequest
 )
 from telethon.tl.functions.chatlists import (
-    CheckChatlistInviteRequest, 
+    CheckChatlistInviteRequest,
     JoinChatlistInviteRequest
 )
 from telethon.errors import (
-    FloodWaitError, 
-    ChannelPrivateError, 
-    ChatAdminRequiredError, 
+    FloodWaitError,
+    ChannelPrivateError,
+    ChatAdminRequiredError,
     UserPrivacyRestrictedError,
-    AuthKeyUnregisteredError, 
-    PhoneCodeInvalidError, 
-    SessionPasswordNeededError, 
+    AuthKeyUnregisteredError,
+    PhoneCodeInvalidError,
+    SessionPasswordNeededError,
     PhoneNumberInvalidError,
-    PasswordHashInvalidError, 
-    RPCError, 
-    InviteHashExpiredError, 
-    InviteHashInvalidError, 
+    PasswordHashInvalidError,
+    RPCError,
+    InviteHashExpiredError,
+    InviteHashInvalidError,
     UserAlreadyParticipantError,
-    UsernameNotOccupiedError, 
-    InviteRequestSentError, 
-    InviteHashEmptyError, 
-    PhoneCodeExpiredError
+    UsernameNotOccupiedError,
+    InviteRequestSentError,
+    InviteHashEmptyError,
+    PhoneCodeExpiredError,
+    MessageIdInvalidError # Добавлено для обработки ошибок пересылки
 )
 from colorama import init, Fore, Style
 from datetime import datetime, timedelta
 import socks
 
-GITHUB_USER = "fanmasterprofanmasterpro-dot" 
+GITHUB_USER = "fanmasterprofanmasterpro-dot"
 GITHUB_REPO = "LiteGamma-Tools-Full-Version"
 GITHUB_BRANCH = "main"
-GITHUB_RAW_BASE = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/{GITHUB_BRANCH}" 
+GITHUB_RAW_BASE = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/{GITHUB_BRANCH}"
 GITHUB_API_BASE = f"https://api.github.com/repos/{GITHUB_USER}/{GITHUB_REPO}"
-CURRENT_VERSION = "1.8.3"
+CURRENT_VERSION = "2.5.0"
 UPDATE_CHECK_INTERVAL = 3600
 LAST_UPDATE_CHECK_FILE = "last_update_check.json"
 AUTO_UPDATE = True
@@ -90,7 +91,7 @@ AUTO_SUBSCRIBE_FIRST_CYCLE_ONLY = True
 
 CHANNEL_PATTERNS = [r'@(\w+)', r'https://t\.me/(\w+)', r't\.me/(\w+)', r'telegram\.me/(\w+)', r'joinchat/([\w\-]+)',
                     r'\+([\w\-]+)']
-flood_wait_occurred = False 
+flood_wait_occurred = False
 total_flood_time = 0
 failed_subscriptions_file = "failed_subscriptions.txt"
 
@@ -674,12 +675,12 @@ class LogManager:
     </a>
 </div>
 <div class="footer-copyright">
-    С уважением, <a href="https://t.me/BananaStorebot_bot" target="_blank">@BananaStorebot_bot</a> | 
+    С уважением, <a href="https://t.me/BananaStorebot_bot" target="_blank">@BananaStorebot_bot</a> |
     <a href="https://t.me/LiteGamma" target="_blank">@LiteGamma</a> |
     <a href="https://t.me/LiteGammaTools" target="_blank">@LiteGammaTools</a>
 </div>
 <div class="update-info" style="margin-top: 10px; font-size: 12px; color: rgba(255,255,255,0.6);">
-    Информацию об обновлениях можно узнать здесь: 
+    Информацию об обновлениях можно узнать здесь:
     <a href="https://t.me/LiteGammaTools" target="_blank" style="color: #ffd700; text-decoration: none;">
         https://t.me/LiteGammaTools
     </a>
@@ -775,7 +776,7 @@ class LogManager:
                     }
 
                     if (searchTerm) {
-                        filtered = filtered.filter(log => 
+                        filtered = filtered.filter(log =>
                             log.message.toLowerCase().includes(searchTerm) ||
                             log.time.toLowerCase().includes(searchTerm)
                         );
@@ -1579,7 +1580,7 @@ class UpdateManager:
                 if line.startswith('import ') or line.startswith('from '):
                     import_end = i + 1
 
-            version_line = f'CURRENT_VERSION = "{new_version}"\n'
+            version_line = f'CURRENT_VERSION = "1.8.3"\n'
             lines.insert(import_end, version_line)
             updated_content = ''.join(lines)
 
@@ -1612,15 +1613,15 @@ class UpdateManager:
             return content.replace('\r\n', '\n')
     def update_version_in_file(self, content, new_version):
         import re
-        patterns = [(r'CURRENT_VERSION\s*=\s*["\']([^"\']+)["\']', f'CURRENT_VERSION = "{new_version}"'),
-                    (r'CURRENT_VERSION\s*=\s*([0-9.]+)', f'CURRENT_VERSION = "{new_version}"'),
-                    (r'__version__\s*=\s*["\']([^"\']+)["\']', f'__version__ = "{new_version}"'),
-                    (r'VERSION\s*=\s*["\']([^"\']+)["\']', f'VERSION = "{new_version}"')]
+        patterns = [(r'CURRENT_VERSION\s*=\s*["\']([^"\']+)["\']', f'CURRENT_VERSION = "1.8.3"'),
+                    (r'CURRENT_VERSION\s*=\s*([0-9.]+)', f'CURRENT_VERSION = "1.8.3"'),
+                    (r'__version__\s*=\s*["\']([^"\']+)["\']', f'__version__ = "1.8.3"'),
+                    (r'VERSION\s*=\s*["\']([^"\']+)["\']', f'VERSION = "1.8.3"')]
         updated_content = content
         for pattern, replacement in patterns:
             updated_content = re.sub(pattern, replacement, updated_content)
         if updated_content == content:
-            version_line = f'\nCURRENT_VERSION = "{new_version}"\n'
+            version_line = f'\nCURRENT_VERSION = "1.8.3"\n'
             import_end = updated_content.find('\n\n')
             if import_end != -1:
                 updated_content = updated_content[:import_end] + version_line + updated_content[import_end:]
@@ -1800,6 +1801,7 @@ def print_stata(text):
     print(f"{CLR_ACCENT}╚" + "═" * (len(text) + 2) + "╝\n")
 
 
+# =============== НАСТРОЙКИ ПО УМОЛЧАНИЮ ===============
 DEFAULT_API_ID = 0
 DEFAULT_API_HASH = "ЗАМЕНИТЕ НА ВАШ API HASH"
 DEFAULT_SESSION_FOLDER = "session"
@@ -1815,6 +1817,8 @@ DEFAULT_USE_MEDIA = False
 DEFAULT_MEDIA_PATH = ""
 DEFAULT_FAST_MODE = False
 DEFAULT_FAST_DELAY = 0.3
+DEFAULT_USE_FORWARD = False          # НОВОЕ: пересылка сообщений
+DEFAULT_FORWARD_LINK = ""            # НОВОЕ: ссылка на сообщение
 DEFAULT_NOTIFICATION_ENABLED = False
 DEFAULT_NOTIFICATION_BOT_TOKEN = ""
 DEFAULT_NOTIFICATION_CHAT_ID = ""
@@ -1842,6 +1846,7 @@ DEFAULT_ANTI_BAN_ENABLED = True
 DEFAULT_HUMAN_LIKE_DELAYS = True
 DEFAULT_RANDOM_PAUSE_ENABLED = True
 
+# =============== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ===============
 current_api_id = DEFAULT_API_ID
 current_api_hash = DEFAULT_API_HASH
 session_folder = DEFAULT_SESSION_FOLDER
@@ -1857,6 +1862,8 @@ use_media = DEFAULT_USE_MEDIA
 media_path = DEFAULT_MEDIA_PATH
 fast_mode = DEFAULT_FAST_MODE
 fast_delay = DEFAULT_FAST_DELAY
+use_forward = DEFAULT_USE_FORWARD          # НОВОЕ
+forward_link = DEFAULT_FORWARD_LINK        # НОВОЕ
 notification_enabled = DEFAULT_NOTIFICATION_ENABLED
 notification_bot_token = DEFAULT_NOTIFICATION_BOT_TOKEN
 notification_chat_id = DEFAULT_NOTIFICATION_CHAT_ID
@@ -2024,6 +2031,7 @@ def save_config():
               "repeat_broadcast": repeat_broadcast, "repeat_interval": repeat_interval,
               "delete_after_send": delete_after_send, "recipient_type": recipient_type, "use_media": use_media,
               "media_path": media_path, "fast_mode": fast_mode, "fast_delay": fast_delay,
+              "use_forward": use_forward, "forward_link": forward_link, # НОВОЕ
               "notification_enabled": notification_enabled, "notification_bot_token": notification_bot_token,
               "notification_chat_id": notification_chat_id, "notify_invalid_session": notify_invalid_session,
               "notify_cycle_results": notify_cycle_results, "notify_full_logs": notify_full_logs,
@@ -2052,7 +2060,7 @@ def save_config():
 
 
 def load_config():
-    global current_api_id, current_api_hash, session_folder, message_to_send, delay_between_messages, delay_between_accounts, max_messages_per_account, repeat_broadcast, repeat_interval, delete_after_send, recipient_type, use_media, media_path, fast_mode, fast_delay, notification_enabled, notification_bot_token, notification_chat_id, notify_invalid_session, notify_cycle_results, notify_full_logs, CURRENT_VERSION
+    global current_api_id, current_api_hash, session_folder, message_to_send, delay_between_messages, delay_between_accounts, max_messages_per_account, repeat_broadcast, repeat_interval, delete_after_send, recipient_type, use_media, media_path, fast_mode, fast_delay, use_forward, forward_link, notification_enabled, notification_bot_token, notification_chat_id, notify_invalid_session, notify_cycle_results, notify_full_logs, CURRENT_VERSION
     global auto_subscribe_enabled, auto_subscribe_on_mention, auto_subscribe_delay, auto_subscribe_max_flood_wait, auto_subscribe_retry_after_flood, auto_subscribe_check_interval, auto_subscribe_wait_for_mention, auto_subscribe_pause_between_channels, auto_subscribe_forced_channels, auto_subscribe_first_cycle_only
     global use_proxy, proxy_file, proxy_rotate_on_fail, proxy_max_retries, safe_mode, max_daily_messages, max_daily_joins, anti_ban_enabled, human_like_delays, random_pause_enabled
     try:
@@ -2074,6 +2082,8 @@ def load_config():
                 media_path = config.get("media_path", DEFAULT_MEDIA_PATH)
                 fast_mode = config.get("fast_mode", DEFAULT_FAST_MODE)
                 fast_delay = config.get("fast_delay", DEFAULT_FAST_DELAY)
+                use_forward = config.get("use_forward", DEFAULT_USE_FORWARD)          # НОВОЕ
+                forward_link = config.get("forward_link", DEFAULT_FORWARD_LINK)        # НОВОЕ
                 notification_enabled = config.get("notification_enabled", DEFAULT_NOTIFICATION_ENABLED)
                 notification_bot_token = config.get("notification_bot_token", DEFAULT_NOTIFICATION_BOT_TOKEN)
                 notification_chat_id = config.get("notification_chat_id", DEFAULT_NOTIFICATION_CHAT_ID)
@@ -2223,6 +2233,61 @@ def extract_invite_hash(invite_link):
     elif 't.me/+' in invite_link:
         return invite_link.split('t.me/+')[-1]
     return None
+
+
+# =============== НОВАЯ ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ СООБЩЕНИЯ ПО ССЫЛКЕ ===============
+async def get_message_from_link(client, link, session_name=""):
+    """
+    Получает сообщение из Telegram по ссылке вида https://t.me/username/123
+    Возвращает (сообщение, ошибка)
+    """
+    try:
+        # Проверка формата ссылки
+        if 't.me/' not in link:
+            return None, "Неверный формат ссылки. Должно быть: https://t.me/username/123"
+
+        # Разбираем ссылку
+        path = link.split('t.me/')[-1]
+        parts = path.split('/')
+
+        if len(parts) < 2:
+            return None, "Ссылка должна содержать username и ID сообщения. Пример: https://t.me/username/123"
+
+        username = parts[0]
+        message_id_str = parts[1].split('?')[0]  # Отсекаем GET параметры если есть
+
+        try:
+            message_id = int(message_id_str)
+        except ValueError:
+            return None, f"ID сообщения должен быть числом, получено: {message_id_str}"
+
+        # Получаем сущность (чат/канал)
+        try:
+            entity = await client.get_entity(username)
+            chat_title = getattr(entity, 'title', username)
+            log_msg = f"📎 [{session_name}] Найден чат: {chat_title}"
+            print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
+            await add_to_log_buffer(log_msg, "info")
+        except Exception as e:
+            return None, f"Не удалось найти чат/канал '{username}': {e}"
+
+        # Получаем сообщение по ID
+        try:
+            messages = await client.get_messages(entity, ids=message_id)
+            if messages:
+                log_msg = f"✅ [{session_name}] Сообщение найдено (ID: {message_id})"
+                print(f"{Fore.GREEN}{log_msg}{Style.RESET_ALL}")
+                await add_to_log_buffer(log_msg, "success")
+                return messages, None
+            else:
+                return None, f"Сообщение с ID {message_id} не найдено в чате {username}"
+        except MessageIdInvalidError:
+            return None, f"Сообщение с ID {message_id} не существует или недоступно"
+        except Exception as e:
+            return None, f"Ошибка при получении сообщения: {e}"
+
+    except Exception as e:
+        return None, f"Ошибка при обработке ссылки: {e}"
 
 
 async def human_like_pause(base_delay, session_name=""):
@@ -2971,38 +3036,73 @@ async def get_user_chats(client, chat_type="all"):
         return []
 
 
+# =============== ОБНОВЛЕННАЯ ФУНКЦИЯ send_message_safely ===============
 async def send_message_safely(client, chat, message, delete_after=False, media_path=None, retry_count=0,
-                              session_name=""):
+                              session_name="", forward_link=None):
+    """
+    Отправляет сообщение с поддержкой:
+    - Обычного текста
+    - Медиа (фото/видео/файл)
+    - Пересылки сообщения по ссылке
+    """
     sent_message = None
     try:
-        if media_path and os.path.exists(media_path):
+        # Если включен режим пересылки и есть ссылка
+        if forward_link:
+            # Пробуем получить сообщение для пересылки
+            msg_to_forward, error = await get_message_from_link(client, forward_link, session_name)
+            if msg_to_forward:
+                # Пересылаем сообщение
+                sent_message = await client.forward_messages(chat, msg_to_forward)
+                log_msg = f"📨 [{session_name}] Сообщение переслано из: {forward_link}"
+                print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
+                await add_to_log_buffer(log_msg, "success")
+            else:
+                # Если не удалось получить сообщение, логируем ошибку
+                log_msg = f"❌ [{session_name}] Ошибка получения сообщения для пересылки: {error}"
+                print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
+                await add_to_log_buffer(log_msg, "error")
+                return False, None
+
+        # Если включен режим медиа и файл существует
+        elif media_path and os.path.exists(media_path):
             sent_message = await client.send_file(chat, media_path, caption=message)
         else:
+            # Обычная отправка текста
             sent_message = await client.send_message(chat, message)
+
+        # Если нужно удалить сообщение после отправки
         if delete_after and sent_message:
             await client.delete_messages(chat, [sent_message.id], revoke=False)
-            log_msg = "🗑 Сообщение удалено у отправителя"
+            log_msg = f"🗑 [{session_name}] Сообщение удалено у отправителя"
             print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg, "info")
+
+        # Отмечаем успех прокси, если используется
         if use_proxy and session_name:
             proxy_manager.mark_proxy_success(session_name)
+
         return True, sent_message
+
     except FloodWaitError as e:
-        log_msg = f"⏳ FloodWait {e.seconds} сек..."
+        log_msg = f"⏳ [{session_name}] FloodWait {e.seconds} сек..."
         print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
         await add_to_log_buffer(log_msg, "flood")
         await asyncio.sleep(e.seconds)
-        return await send_message_safely(client, chat, message, delete_after, media_path, retry_count, session_name)
+        # Повторяем попытку после флуда
+        return await send_message_safely(client, chat, message, delete_after, media_path, retry_count, session_name, forward_link)
+
     except (ChatAdminRequiredError, ChannelPrivateError, UserPrivacyRestrictedError):
         return False, None
+
     except (ConnectionError, TimeoutError, asyncio.TimeoutError, OSError) as e:
-        if use_proxy and proxy_manager.has_proxies() and session_name and retry_count < proxy_max_retries * len(
-                proxy_manager.proxies):
+        # Обработка ошибок подключения (особенно для прокси)
+        if use_proxy and proxy_manager.has_proxies() and session_name and retry_count < proxy_max_retries * len(proxy_manager.proxies):
             proxy_info = ""
             if session_name in proxy_manager.proxy_assignments:
                 proxy_str = proxy_manager.proxy_assignments[session_name]
                 proxy_info = f" (прокси #{proxy_manager.proxy_stats[proxy_str]['line_number']} {proxy_manager.proxy_stats[proxy_str]['host']})"
-            log_msg = f"🌐 Ошибка подключения{proxy_info}: {e}. Меняем прокси для {session_name} и пробуем снова ({retry_count + 1}/{proxy_max_retries * len(proxy_manager.proxies)})..."
+            log_msg = f"🌐 [{session_name}] Ошибка подключения{proxy_info}: {e}. Меняем прокси и пробуем снова ({retry_count + 1}/{proxy_max_retries * len(proxy_manager.proxies)})..."
             print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg, "proxy")
             proxy_manager.mark_proxy_failure(session_name)
@@ -3014,15 +3114,17 @@ async def send_message_safely(client, chat, message, delete_after=False, media_p
                     log_msg = f"🔄 [{session_name}] Назначен новый прокси: {new_proxy_info}"
                     print(f"{Fore.MAGENTA}{log_msg}{Style.RESET_ALL}")
                     await add_to_log_buffer(log_msg, "proxy")
+                # Переподключаемся с новым прокси
                 await client.disconnect()
                 client.set_proxy(new_proxy)
                 await asyncio.sleep(2)
                 await client.connect()
                 return await send_message_safely(client, chat, message, delete_after, media_path, retry_count + 1,
-                                                 session_name)
+                                                 session_name, forward_link)
         return False, None
+
     except Exception as e:
-        log_msg = f"✘ Другая ошибка: {e}"
+        log_msg = f"✘ [{session_name}] Другая ошибка: {e}"
         print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
         await add_to_log_buffer(log_msg, "error")
         return False, None
@@ -3086,8 +3188,7 @@ async def join_chat_safely(client, link, session_name="", retry_count=0):
         await add_to_log_buffer(log_msg, "info")
         return await join_chat_safely(client, link, session_name, retry_count)
     except (ConnectionError, TimeoutError, asyncio.TimeoutError, OSError) as e:
-        if use_proxy and proxy_manager.has_proxies() and session_name and retry_count < proxy_max_retries * len(
-                proxy_manager.proxies):
+        if use_proxy and proxy_manager.has_proxies() and session_name and retry_count < proxy_max_retries * len(proxy_manager.proxies):
             proxy_info = ""
             if session_name in proxy_manager.proxy_assignments:
                 proxy_str = proxy_manager.proxy_assignments[session_name]
@@ -3350,9 +3451,10 @@ async def run_join_broadcast(api_id, api_hash, session_files, join_links):
     await add_to_log_buffer("--- Вступление в группы завершено ---", "info")
 
 
+# =============== ОБНОВЛЕННАЯ ФУНКЦИЯ process_account ===============
 async def process_account(session_file, api_id, api_hash, message, max_messages, delete_after, use_media_flag,
                           media_file_path, recipient_filter, fast_mode_flag, fast_delay_val, target_chats_ids=None,
-                          cycle_number=1):
+                          cycle_number=1, use_forward_flag=False, forward_link_val=None): # Добавлены параметры пересылки
     client = await create_telegram_client(session_file, api_id, api_hash)
     sent_count = 0
     skipped_count = 0
@@ -3393,6 +3495,11 @@ async def process_account(session_file, api_id, api_hash, message, max_messages,
         if fast_mode_flag:
             log_msg = f"⚡ БЫСТРЫЙ РЕЖИМ: задержка {fast_delay_val}с"
             print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
+            await add_to_log_buffer(log_msg, "info")
+        # НОВОЕ: Информируем о режиме пересылки
+        if use_forward_flag and forward_link_val:
+            log_msg = f"📨 РЕЖИМ ПЕРЕСЫЛКИ: {forward_link_val}"
+            print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg, "info")
         if auto_subscribe_enabled and auto_subscribe_first_cycle_only and cycle_number == 1:
             log_msg = f"🤖 [{account_info}] Запускаем проверку автоподписки (цикл 1)..."
@@ -3506,8 +3613,10 @@ async def process_account(session_file, api_id, api_hash, message, max_messages,
             current_time = datetime.now().strftime("%H:%M:%S.%f")[:-3]
             media_to_use = media_file_path if use_media_flag and media_file_path and os.path.exists(
                 media_file_path) else None
+            # Передаём параметры пересылки в send_message_safely
+            forward_link_to_use = forward_link_val if use_forward_flag else None
             success, sent_message = await send_message_safely(client, chat, message, delete_after, media_to_use,
-                                                              session_name=session_file)
+                                                              session_name=session_file, forward_link=forward_link_to_use)
             if success:
                 sent_count += 1
                 log_msg = f"✔ ({current_time}) Отправлено!"
@@ -3600,14 +3709,25 @@ async def process_account(session_file, api_id, api_hash, message, max_messages,
     return sent_count, skipped_count, deleted_count, total_chats_processed, authorized
 
 
+# =============== ОБНОВЛЕННАЯ ФУНКЦИЯ run_broadcast ===============
 async def run_broadcast(api_id, api_hash, session_files, message, max_messages_per_account, repeat_broadcast_flag,
                         repeat_interval_val, delete_after, use_media_flag, media_file_path, recipient_filter,
-                        fast_mode_flag, fast_delay_val, target_chats_ids=None, cycle_number=1):
+                        fast_mode_flag, fast_delay_val, target_chats_ids=None, cycle_number=1,
+                        use_forward_flag=False, forward_link_val=None): # Добавлены параметры пересылки
     filter_names = {"all": "Все диалоги", "users": "Только личные чаты", "groups": "Только группы"}
     print("\n" + Fore.MAGENTA + "--- Запуск рассылки ---" + Style.RESET_ALL)
     await add_to_log_buffer("--- Запуск рассылки ---", "info")
-    print(f"Сообщение: '{message[:60]}...'")
-    await add_to_log_buffer(f"Сообщение: '{message[:60]}...'", "info")
+
+    # Отображаем режим отправки
+    if use_forward_flag and forward_link_val:
+        print(f"{Fore.CYAN}📨 РЕЖИМ: ПЕРЕСЫЛКА СООБЩЕНИЯ{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}📎 Ссылка: {forward_link_val}{Style.RESET_ALL}")
+        await add_to_log_buffer(f"📨 РЕЖИМ: ПЕРЕСЫЛКА СООБЩЕНИЯ", "info")
+        await add_to_log_buffer(f"📎 Ссылка: {forward_link_val}", "info")
+    else:
+        print(f"Сообщение: '{message[:60]}...'")
+        await add_to_log_buffer(f"Сообщение: '{message[:60]}...'", "info")
+
     if use_media_flag and media_file_path and os.path.exists(media_file_path):
         print(f"{Fore.CYAN}🖼 Медиафайл: {os.path.basename(media_file_path)}")
         await add_to_log_buffer(f"🖼 Медиафайл: {os.path.basename(media_file_path)}", "info")
@@ -3683,7 +3803,8 @@ async def run_broadcast(api_id, api_hash, session_files, message, max_messages_p
             task = asyncio.create_task(
                 process_account(session_file, api_id, api_hash, message, max_messages_per_account, delete_after,
                                 use_media_flag, media_file_path, recipient_filter, fast_mode_flag, fast_delay_val,
-                                target_chats_ids=target_chats_ids, cycle_number=cycle_number))
+                                target_chats_ids=target_chats_ids, cycle_number=cycle_number,
+                                use_forward_flag=use_forward_flag, forward_link_val=forward_link_val)) # Передаём параметры
             tasks.append(task)
             processed_session_files.append(session_file)
             if i < len(session_files) - 1:
@@ -4183,8 +4304,9 @@ async def display_auto_subscribe_menu():
         await asyncio.sleep(1)
 
 
+# =============== ОБНОВЛЕННОЕ МЕНЮ НАСТРОЕК ===============
 async def display_settings_menu():
-    global current_api_id, current_api_hash, session_folder, message_to_send, delay_between_messages, delay_between_accounts, max_messages_per_account, repeat_broadcast, repeat_interval, delete_after_send, recipient_type, use_media, media_path, fast_mode, fast_delay, notification_enabled, notification_bot_token, notification_chat_id, notify_invalid_session, notify_cycle_results, notify_full_logs
+    global current_api_id, current_api_hash, session_folder, message_to_send, delay_between_messages, delay_between_accounts, max_messages_per_account, repeat_broadcast, repeat_interval, delete_after_send, recipient_type, use_media, media_path, fast_mode, fast_delay, use_forward, forward_link, notification_enabled, notification_bot_token, notification_chat_id, notify_invalid_session, notify_cycle_results, notify_full_logs
     global proxy_manager
     while True:
         os.system('cls' if os.name == 'nt' else 'clear')
@@ -4202,7 +4324,10 @@ async def display_settings_menu():
         print(f"\n{CLR_WARN}Текущие значения:{Style.RESET_ALL}")
         print(f"  API ID: {current_api_id}")
         print(f"  Папка сессий: {session_folder}")
-        print(f"  Сообщение: {message_to_send[:30]}...")
+        if use_forward and forward_link:
+            print(f"  📨 Пересылка: {forward_link[:30]}...")
+        else:
+            print(f"  Сообщение: {message_to_send[:30]}...")
         if notification_enabled:
             print(f"  🔔 Уведомления: ВКЛ")
         if auto_subscribe_enabled:
@@ -4270,6 +4395,7 @@ async def display_settings_menu():
                 elif sub_choice == '0':
                     break
                 await asyncio.sleep(1)
+        # =============== ОБНОВЛЕННЫЙ РАЗДЕЛ 3: НАСТРОЙКИ СООБЩЕНИЙ ===============
         elif choice == '3':
             while True:
                 os.system('cls' if os.name == 'nt' else 'clear')
@@ -4279,8 +4405,13 @@ async def display_settings_menu():
                     f"{CLR_INFO}2. 🖼 Использовать медиа: {CLR_SUCCESS if use_media else CLR_ERR}{'ВКЛ' if use_media else 'ВЫКЛ'}")
                 if use_media:
                     print(f"{CLR_INFO}3. 📁 Путь к медиафайлу: {CLR_WARN}{media_path or 'Не указан'}")
+                # НОВЫЕ ПУНКТЫ ДЛЯ ПЕРЕСЫЛКИ
                 print(
-                    f"{CLR_INFO}4. 🗑 Удаление у себя: {CLR_SUCCESS if delete_after_send else CLR_ERR}{'ВКЛ' if delete_after_send else 'ВЫКЛ'}")
+                    f"{CLR_INFO}4. 📨 Пересылать сообщение: {CLR_SUCCESS if use_forward else CLR_ERR}{'ВКЛ' if use_forward else 'ВЫКЛ'}")
+                if use_forward:
+                    print(f"{CLR_INFO}5. 📎 Ссылка на сообщение: {CLR_WARN}{forward_link or 'Не указана'}")
+                print(
+                    f"{CLR_INFO}6. 🗑 Удаление у себя: {CLR_SUCCESS if delete_after_send else CLR_ERR}{'ВКЛ' if delete_after_send else 'ВЫКЛ'}")
                 print(f"{CLR_ERR}0. 🔙 Назад")
                 sub_choice = input(f"\n{CLR_MAIN}Выберите пункт ➔ {RESET}").strip()
                 if sub_choice == '1':
@@ -4305,6 +4436,8 @@ async def display_settings_menu():
                         print(f"{Fore.GREEN}✔ Сообщение обновлено.{Style.RESET_ALL}")
                 elif sub_choice == '2':
                     use_media = not use_media
+                    if use_media:
+                        use_forward = False  # Отключаем пересылку при включении медиа
                     print(
                         f"{Fore.GREEN}✔ Использование медиа {'включено' if use_media else 'выключено'}.{Style.RESET_ALL}")
                     if use_media and not media_path:
@@ -4317,7 +4450,24 @@ async def display_settings_menu():
                             print(f"{Fore.GREEN}✔ Путь к медиафайлу обновлен.{Style.RESET_ALL}")
                         else:
                             print(f"{Fore.RED}✘ Файл не найден!{Style.RESET_ALL}")
+                # НОВЫЕ ОБРАБОТЧИКИ
                 elif sub_choice == '4':
+                    use_forward = not use_forward
+                    if use_forward:
+                        use_media = False  # Отключаем медиа при включении пересылки
+                    print(
+                        f"{Fore.GREEN}✔ Пересылка сообщений {'включена' if use_forward else 'выключена'}.{Style.RESET_ALL}")
+                elif sub_choice == '5' and use_forward:
+                    new_link = input(f"Ссылка на сообщение (пример: https://t.me/username/123): ").strip()
+                    if new_link:
+                        # Простейшая проверка формата
+                        if 't.me/' in new_link and len(new_link.split('/')) >= 4:
+                            forward_link = new_link
+                            print(f"{Fore.GREEN}✔ Ссылка для пересылки обновлена.{Style.RESET_ALL}")
+                        else:
+                            print(
+                                f"{Fore.RED}✘ Неверный формат ссылки! Пример: https://t.me/username/123{Style.RESET_ALL}")
+                elif sub_choice == '6':
                     delete_after_send = not delete_after_send
                     print(
                         f"{Fore.GREEN}✔ Удаление у себя {'включено' if delete_after_send else 'выключено'}.{Style.RESET_ALL}")
@@ -4461,6 +4611,8 @@ async def display_settings_menu():
                                   'recipient_type': DEFAULT_RECIPIENT_TYPE, 'use_media': DEFAULT_USE_MEDIA,
                                   'media_path': DEFAULT_MEDIA_PATH, 'fast_mode': DEFAULT_FAST_MODE,
                                   'fast_delay': DEFAULT_FAST_DELAY,
+                                  'use_forward': DEFAULT_USE_FORWARD, # НОВОЕ
+                                  'forward_link': DEFAULT_FORWARD_LINK, # НОВОЕ
                                   'notification_enabled': DEFAULT_NOTIFICATION_ENABLED,
                                   'notification_bot_token': DEFAULT_NOTIFICATION_BOT_TOKEN,
                                   'notification_chat_id': DEFAULT_NOTIFICATION_CHAT_ID,
@@ -4811,6 +4963,9 @@ async def main_menu():
             print(f"{Fore.YELLOW}⚡ ТЕКУЩИЙ РЕЖИМ: БЫСТРЫЙ (задержка {fast_delay}с){Style.RESET_ALL}")
         if repeat_broadcast:
             print(f"{Fore.CYAN}🔄 ПОВТОР ВКЛЮЧЕН (интервал {repeat_interval}с){Style.RESET_ALL}")
+        # НОВОЕ: Отображаем режим пересылки в главном меню
+        if use_forward and forward_link:
+            print(f"{Fore.CYAN}📨 РЕЖИМ: ПЕРЕСЫЛКА СООБЩЕНИЯ{Style.RESET_ALL}")
         if notification_enabled:
             print(f"{Fore.GREEN}🔔 УВЕДОМЛЕНИЯ ВКЛЮЧЕНЫ{Style.RESET_ALL}")
         if auto_subscribe_enabled:
@@ -4915,7 +5070,10 @@ async def main_menu():
                     print(f"{Fore.CYAN}● Цели: {len(target_groups_file_data)} групп/ссылок из файла{Style.RESET_ALL}")
             else:
                 print(f"{Fore.CYAN}● Цели: {recipient_names[recipient_type]}")
-            if use_media and media_path and os.path.exists(media_path):
+            # НОВОЕ: Показываем режим пересылки
+            if use_forward and forward_link:
+                print(f"{Fore.CYAN}📨 Пересылка: {forward_link}{Style.RESET_ALL}")
+            elif use_media and media_path and os.path.exists(media_path):
                 print(f"{Fore.CYAN}🖼 Медиафайл: {os.path.basename(media_path)}")
             print(f"🔢 Макс./аккаунт: {max_messages_per_account}")
             if fast_mode:
@@ -4938,10 +5096,12 @@ async def main_menu():
                 print(f"{Fore.GREEN}🛡️ Анти-бан защита: ВКЛЮЧЕНА{Style.RESET_ALL}")
             if input("\n🚀 Запустить рассылку параллельно? (y/n): ").lower() == 'y':
                 print("\n" + Fore.MAGENTA + "🚀 Запуск рассылки..." + Style.RESET_ALL)
+                # Передаём параметры пересылки в run_broadcast
                 await run_broadcast(current_api_id, current_api_hash, selected_sessions, message_to_send,
                                     max_messages_per_account, repeat_broadcast, repeat_interval, delete_after_send,
                                     use_media, media_path, recipient_type, fast_mode, fast_delay,
-                                    target_chats_ids=target_groups_file_data, cycle_number=1)
+                                    target_chats_ids=target_groups_file_data, cycle_number=1,
+                                    use_forward_flag=use_forward, forward_link_val=forward_link)
                 input("Нажмите Enter для продолжения...")
         elif choice == '2':
             if current_api_id == DEFAULT_API_ID or not current_api_hash or current_api_hash == "ЗАМЕНИТЕ НА ВАШ API HASH":
@@ -5060,13 +5220,3 @@ if __name__ == '__main__':
         print(f"\n{Fore.RED}✘ Ошибка: {e}{Style.RESET_ALL}")
         traceback.print_exc()
         log_manager.stop_server()
-
-
-
-
-
-
-
-
-
-
