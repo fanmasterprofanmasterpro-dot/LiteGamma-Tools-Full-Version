@@ -60,7 +60,7 @@ GITHUB_REPO = "LiteGamma-Tools-Full-Version"
 GITHUB_BRANCH = "main"
 GITHUB_RAW_BASE = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/{GITHUB_BRANCH}"
 GITHUB_API_BASE = f"https://api.github.com/repos/{GITHUB_USER}/{GITHUB_REPO}"
-CURRENT_VERSION = "2.0.0"
+CURRENT_VERSION = "2.5.1"
 UPDATE_CHECK_INTERVAL = 3600
 LAST_UPDATE_CHECK_FILE = "last_update_check.json"
 AUTO_UPDATE = True
@@ -3454,7 +3454,7 @@ async def run_join_broadcast(api_id, api_hash, session_files, join_links):
 # =============== ОБНОВЛЕННАЯ ФУНКЦИЯ process_account ===============
 async def process_account(session_file, api_id, api_hash, message, max_messages, delete_after, use_media_flag,
                           media_file_path, recipient_filter, fast_mode_flag, fast_delay_val, target_chats_ids=None,
-                          cycle_number=1, use_forward_flag=False, forward_link_val=None): # Добавлены параметры пересылки
+                          cycle_number=1, use_forward_flag=False, forward_link_val=None):
     client = await create_telegram_client(session_file, api_id, api_hash)
     sent_count = 0
     skipped_count = 0
@@ -3462,6 +3462,10 @@ async def process_account(session_file, api_id, api_hash, message, max_messages,
     total_chats_processed = 0
     authorized = False
     account_info = "неавторизована"
+
+    # Флаг для отслеживания, была ли уже выполнена подписка в этом цикле
+    subscription_done = False
+
     try:
         await client.connect()
         if not await client.is_user_authorized():
@@ -3470,6 +3474,7 @@ async def process_account(session_file, api_id, api_hash, message, max_messages,
             await add_to_log_buffer(log_msg, "error")
             log_invalid_session(session_file)
             return 0, 0, 0, 0, False
+
         try:
             me = await client.get_me()
             authorized = True
@@ -3480,85 +3485,61 @@ async def process_account(session_file, api_id, api_hash, message, max_messages,
             await add_to_log_buffer(log_msg, "error")
             log_invalid_session(session_file)
             return 0, 0, 0, 0, False
+
         proxy_info = ""
         if session_file in proxy_manager.proxy_assignments:
             proxy_str = proxy_manager.proxy_assignments[session_file]
             proxy_info = f" [прокси #{proxy_manager.proxy_stats[proxy_str]['line_number']} {proxy_manager.proxy_stats[proxy_str]['host']}]"
+
         log_msg = f"\n⚙ Обработка сессии: {session_file} ({account_info}){proxy_info}"
         print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
         await add_to_log_buffer(log_msg, "info")
+
         if fast_mode_flag and safe_mode:
             log_msg = f"⚠️ Быстрый режим отключен в безопасном режиме"
             print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg, "warning")
             fast_mode_flag = False
+
         if fast_mode_flag:
             log_msg = f"⚡ БЫСТРЫЙ РЕЖИМ: задержка {fast_delay_val}с"
             print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg, "info")
-        # НОВОЕ: Информируем о режиме пересылки
+
         if use_forward_flag and forward_link_val:
             log_msg = f"📨 РЕЖИМ ПЕРЕСЫЛКИ: {forward_link_val}"
             print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg, "info")
-        if auto_subscribe_enabled and auto_subscribe_first_cycle_only and cycle_number == 1:
-            log_msg = f"🤖 [{account_info}] Запускаем проверку автоподписки (цикл 1)..."
-            print(f"{Fore.MAGENTA}{log_msg}{Style.RESET_ALL}")
-            await add_to_log_buffer(log_msg, "info")
-            groups_to_monitor = []
-            if target_chats_ids:
-                for target in target_chats_ids:
-                    if isinstance(target, str) and ('t.me' in target or '@' in target):
-                        try:
-                            entity = await client.get_entity(target)
-                            if isinstance(entity, (Channel, Chat)) and not isinstance(entity, User):
-                                groups_to_monitor.append(entity)
-                        except:
-                            pass
-            else:
-                all_chats = await get_user_chats(client, "groups")
-                groups_to_monitor.extend(all_chats)
-            if groups_to_monitor:
-                log_msg = f"🔍 [{account_info}] Проверяем {len(groups_to_monitor)} групп на необходимость подписки..."
-                print(log_msg)
-                await add_to_log_buffer(log_msg, "info")
-                for group in groups_to_monitor[:5]:
-                    if stop_event.is_set():
-                        break
-                    try:
-                        await monitor_and_subscribe(client, account_info, group)
-                    except Exception as e:
-                        log_msg = f"⚠️ [{account_info}] Ошибка при проверке группы: {e}"
-                        print(log_msg)
-                        await add_to_log_buffer(log_msg, "warning")
-                log_msg = f"✅ [{account_info}] Проверка автоподписки завершена"
-                print(log_msg)
-                await add_to_log_buffer(log_msg, "success")
-            else:
-                log_msg = f"ℹ️ [{account_info}] Нет групп для проверки автоподписки"
-                print(log_msg)
-                await add_to_log_buffer(log_msg, "info")
+
+        # Получаем чаты для обработки
         chats_to_process = []
+
         if target_chats_ids:
             log_msg = f"ℹ Рассылка по целям из файла ({len(target_chats_ids)} шт.)"
             print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg, "info")
+
             for target in target_chats_ids:
                 if stop_event.is_set():
                     break
+
                 if isinstance(target, str):
                     result, result_type = await get_chat_from_link(client, target, account_info)
+
                     if result_type == "folder" and isinstance(result, list):
                         log_msg = f"✔ [{account_info}] Получено {len(result)} чатов из папки"
                         print(f"{Fore.GREEN}{log_msg}{Style.RESET_ALL}")
                         await add_to_log_buffer(log_msg, "success")
+
                         for chat in result:
                             if chat not in chats_to_process:
                                 chats_to_process.append(chat)
+
                     elif result_type == "folder_empty":
                         log_msg = f"⚠️ [{account_info}] Папка обработана, но чаты не получены"
                         print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
                         await add_to_log_buffer(log_msg, "warning")
+
                     elif result_type == "chat" and result:
                         if result not in chats_to_process:
                             chats_to_process.append(result)
@@ -3575,6 +3556,7 @@ async def process_account(session_file, api_id, api_hash, message, max_messages,
                         log_msg = f"✘ Ошибка при получении группы {target}: {e}"
                         print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
                         await add_to_log_buffer(log_msg, "error")
+
             if not chats_to_process:
                 log_msg = f"⚠️ [{account_info}] Не найдены доступные чаты для рассылки по списку!"
                 print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
@@ -3588,15 +3570,19 @@ async def process_account(session_file, api_id, api_hash, message, max_messages,
                 print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
                 await add_to_log_buffer(log_msg, "warning")
                 return 0, 0, 0, 0, True
+
         total_chats_processed = len(chats_to_process)
         log_msg = f"ℹ [{account_info}] Всего чатов для обработки: {total_chats_processed}"
         print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
         await add_to_log_buffer(log_msg, "info")
+
+        # ОСНОВНОЙ ЦИКЛ РАССЫЛКИ
         for i, chat in enumerate(chats_to_process, 1):
             if stop_event.is_set():
                 print("\n" + Fore.YELLOW + "🛑 Остановлено пользователем" + Style.RESET_ALL)
                 await add_to_log_buffer("🛑 Остановлено пользователем", "warning")
                 break
+
             if anti_ban_enabled:
                 can_send, remaining = account_protector.can_send_message(session_file)
                 if not can_send:
@@ -3604,43 +3590,69 @@ async def process_account(session_file, api_id, api_hash, message, max_messages,
                     print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
                     await add_to_log_buffer(log_msg, "warning")
                     break
+
             chat_title = getattr(chat, 'title', f"чат ID {chat.id}")
             if isinstance(chat, User):
                 chat_title = f"{chat.first_name or ''} {chat.last_name or ''}".strip() or f"пользователь {chat.id}"
+
             log_msg = f"[{account_info}] [{i}/{len(chats_to_process)}] '{chat_title[:30].strip()}...'"
             print(log_msg)
             await add_to_log_buffer(log_msg, "info")
+
+            # ОТПРАВКА СООБЩЕНИЯ
             current_time = datetime.now().strftime("%H:%M:%S.%f")[:-3]
             media_to_use = media_file_path if use_media_flag and media_file_path and os.path.exists(
                 media_file_path) else None
-            # Передаём параметры пересылки в send_message_safely
             forward_link_to_use = forward_link_val if use_forward_flag else None
+
             success, sent_message = await send_message_safely(client, chat, message, delete_after, media_to_use,
-                                                              session_name=session_file, forward_link=forward_link_to_use)
+                                                              session_name=session_file,
+                                                              forward_link=forward_link_to_use)
+
             if success:
                 sent_count += 1
                 log_msg = f"✔ ({current_time}) Отправлено!"
                 print(f"{Fore.GREEN}{log_msg}{Style.RESET_ALL}")
                 await add_to_log_buffer(log_msg, "success")
+
                 if delete_after:
                     deleted_count += 1
+
                 if anti_ban_enabled:
                     account_protector.record_message_sent(session_file)
+
+                # *** ИСПРАВЛЕНИЕ: ЗАПУСКАЕМ АВТОПОДПИСКУ ПОСЛЕ УСПЕШНОЙ ОТПРАВКИ ***
+                if (auto_subscribe_enabled and
+                        (
+                                auto_subscribe_first_cycle_only and cycle_number == 1 or not auto_subscribe_first_cycle_only) and
+                        not subscription_done):
+                    log_msg = f"🤖 [{account_info}] Запускаем автоподписку после отправки сообщения..."
+                    print(f"{Fore.MAGENTA}{log_msg}{Style.RESET_ALL}")
+                    await add_to_log_buffer(log_msg, "info")
+
+                    # Запускаем мониторинг упоминаний
+                    await monitor_and_subscribe(client, account_info, chat)
+                    subscription_done = True
+
             else:
                 skipped_count += 1
                 log_msg = f"✘ ({current_time}) Пропущено (нет доступа)"
                 print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
                 await add_to_log_buffer(log_msg, "error")
+
             if sent_count >= max_messages:
                 log_msg = f"✔ Достигнут лимит: {max_messages} сообщений"
                 print(f"{Fore.GREEN}{log_msg}{Style.RESET_ALL}")
                 await add_to_log_buffer(log_msg, "success")
                 break
+
+            # Задержка перед следующим сообщением
             if i < len(chats_to_process):
                 if fast_mode_flag:
                     delay = fast_delay_val
                 else:
                     delay = delay_between_messages
+
                 if anti_ban_enabled:
                     delay = account_protector.get_safe_delay(session_file, delay)
                     should_pause, pause_time = account_protector.should_pause(session_file)
@@ -3649,8 +3661,10 @@ async def process_account(session_file, api_id, api_hash, message, max_messages,
                         print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
                         await add_to_log_buffer(log_msg, "warning")
                         await asyncio.sleep(pause_time)
+
                 delay = await human_like_pause(delay, session_file)
                 await asyncio.sleep(delay)
+
     except asyncio.TimeoutError:
         log_msg = f"⏳ [{session_file}] Тайм-аут подключения"
         print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
@@ -3683,10 +3697,12 @@ async def process_account(session_file, api_id, api_hash, message, max_messages,
                 await client.disconnect()
         except:
             pass
+
     proxy_info = ""
     if session_file in proxy_manager.proxy_assignments:
         proxy_str = proxy_manager.proxy_assignments[session_file]
         proxy_info = f" [прокси #{proxy_manager.proxy_stats[proxy_str]['line_number']} {proxy_manager.proxy_stats[proxy_str]['host']}]"
+
     log_msg = f"\n--- ИТОГ {session_file} ({account_info}){proxy_info} ---"
     print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
     await add_to_log_buffer(log_msg, "info")
@@ -3703,12 +3719,15 @@ async def process_account(session_file, api_id, api_hash, message, max_messages,
     log_msg = f"ℹ Всего обработано: {total_chats_processed}"
     print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
     await add_to_log_buffer(log_msg, "info")
+    if subscription_done:
+        log_msg = f"🤖 Автоподписка выполнена"
+        print(f"{Fore.MAGENTA}{log_msg}{Style.RESET_ALL}")
+        await add_to_log_buffer(log_msg, "success")
     log_msg = "-------------------------------------"
     print(log_msg)
     await add_to_log_buffer(log_msg, "info")
+
     return sent_count, skipped_count, deleted_count, total_chats_processed, authorized
-
-
 # =============== ОБНОВЛЕННАЯ ФУНКЦИЯ run_broadcast ===============
 async def run_broadcast(api_id, api_hash, session_files, message, max_messages_per_account, repeat_broadcast_flag,
                         repeat_interval_val, delete_after, use_media_flag, media_file_path, recipient_filter,
@@ -5220,5 +5239,3 @@ if __name__ == '__main__':
         print(f"\n{Fore.RED}✘ Ошибка: {e}{Style.RESET_ALL}")
         traceback.print_exc()
         log_manager.stop_server()
-
-
