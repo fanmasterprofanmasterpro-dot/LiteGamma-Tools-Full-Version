@@ -58,85 +58,36 @@ import socks
 from langdetect import detect, DetectorFactory
 from collections import Counter
 
-# Для стабильности определения языка
 DetectorFactory.seed = 0
 
-# GitHub информация для обновлений
 GITHUB_USER = "fanmasterprofanmasterpro-dot"
 GITHUB_REPO = "LiteGamma-Tools-Full-Version"
 GITHUB_BRANCH = "main"
 GITHUB_RAW_BASE = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/{GITHUB_BRANCH}"
 GITHUB_API_BASE = f"https://api.github.com/repos/{GITHUB_USER}/{GITHUB_REPO}"
-CURRENT_VERSION = "2.6.0"  # Новая версия с парсером
+CURRENT_VERSION = "2.8.0"
 UPDATE_CHECK_INTERVAL = 3600
 LAST_UPDATE_CHECK_FILE = "last_update_check.json"
 AUTO_UPDATE = True
 NOTIFY_ON_UPDATE = True
 
-# Карта языков для определения
 LANGUAGE_MAP = {
-    'ru': 'Русские',
-    'uk': 'Украинские',
-    'be': 'Белорусские',
-    'en': 'Английские',
-    'de': 'Немецкие',
-    'fr': 'Французские',
-    'es': 'Испанские',
-    'it': 'Итальянские',
-    'pt': 'Португальские',
-    'nl': 'Голландские',
-    'pl': 'Польские',
-    'cs': 'Чешские',
-    'sk': 'Словацкие',
-    'bg': 'Болгарские',
-    'sr': 'Сербские',
-    'hr': 'Хорватские',
-    'ro': 'Румынские',
-    'hu': 'Венгерские',
-    'tr': 'Турецкие',
-    'ar': 'Арабские',
-    'fa': 'Персидские',
-    'hi': 'Хинди',
-    'bn': 'Бенгальские',
-    'ta': 'Тамильские',
-    'te': 'Телугу',
-    'mr': 'Маратхи',
-    'ur': 'Урду',
-    'gu': 'Гуджарати',
-    'kn': 'Каннада',
-    'ml': 'Малаялам',
-    'or': 'Ория',
-    'pa': 'Панджаби',
-    'as': 'Ассамские',
-    'mai': 'Майтхили',
-    'sat': 'Сантали',
-    'ks': 'Кашмирские',
-    'sd': 'Синдхи',
-    'kok': 'Конкани',
-    'doi': 'Догри',
-    'mni': 'Манипури',
-    'bodo': 'Бодо',
-    'ne': 'Непальские',
-    'si': 'Сингальские',
-    'th': 'Тайские',
-    'lo': 'Лаосские',
-    'my': 'Бирманские',
-    'km': 'Кхмерские',
-    'vi': 'Вьетнамские',
-    'id': 'Индонезийские',
-    'ms': 'Малайские',
-    'tl': 'Тагальские',
-    'jv': 'Яванские',
-    'su': 'Сунданские',
-    'mn': 'Монгольские',
-    'ka': 'Грузинские',
-    'hy': 'Армянские',
-    'az': 'Азербайджанские',
-    'kk': 'Казахские',
-    'ky': 'Киргизские',
-    'tg': 'Таджикские',
-    'tk': 'Туркменские',
-    'uz': 'Узбекские'
+    'ru': 'Русские', 'uk': 'Украинские', 'be': 'Белорусские', 'en': 'Английские',
+    'de': 'Немецкие', 'fr': 'Французские', 'es': 'Испанские', 'it': 'Итальянские',
+    'pt': 'Португальские', 'nl': 'Голландские', 'pl': 'Польские', 'cs': 'Чешские',
+    'sk': 'Словацкие', 'bg': 'Болгарские', 'sr': 'Сербские', 'hr': 'Хорватские',
+    'ro': 'Румынские', 'hu': 'Венгерские', 'tr': 'Турецкие', 'ar': 'Арабские',
+    'fa': 'Персидские', 'hi': 'Хинди', 'bn': 'Бенгальские', 'ta': 'Тамильские',
+    'te': 'Телугу', 'mr': 'Маратхи', 'ur': 'Урду', 'gu': 'Гуджарати',
+    'kn': 'Каннада', 'ml': 'Малаялам', 'or': 'Ория', 'pa': 'Панджаби',
+    'as': 'Ассамские', 'mai': 'Майтхили', 'sat': 'Сантали', 'ks': 'Кашмирские',
+    'sd': 'Синдхи', 'kok': 'Конкани', 'doi': 'Догри', 'mni': 'Манипури',
+    'bodo': 'Бодо', 'ne': 'Непальские', 'si': 'Сингальские', 'th': 'Тайские',
+    'lo': 'Лаосские', 'my': 'Бирманские', 'km': 'Кхмерские', 'vi': 'Вьетнамские',
+    'id': 'Индонезийские', 'ms': 'Малайские', 'tl': 'Тагальские', 'jv': 'Яванские',
+    'su': 'Сунданские', 'mn': 'Монгольские', 'ka': 'Грузинские', 'hy': 'Армянские',
+    'az': 'Азербайджанские', 'kk': 'Казахские', 'ky': 'Киргизские', 'tg': 'Таджикские',
+    'tk': 'Туркменские', 'uz': 'Узбекские'
 }
 
 init(autoreset=True)
@@ -161,29 +112,25 @@ AUTO_SUBSCRIBE_WAIT_FOR_MENTION = 15
 AUTO_SUBSCRIBE_PAUSE_BETWEEN_CHANNELS = 3
 AUTO_SUBSCRIBE_FORCED_CHANNELS = []
 AUTO_SUBSCRIBE_FIRST_CYCLE_ONLY = True
-AUTO_SUBSCRIBE_CYCLES = 2  # Количество циклов проверки
+AUTO_SUBSCRIBE_CYCLES = 2
 
-CHANNEL_PATTERNS = [r'@(\w+)', r'https://t\.me/(\w+)', r't\.me/(\w+)', r'telegram\.me/(\w+)', r'joinchat/([\w\-]+)',
-                    r'\+([\w\-]+)']
+CHANNEL_PATTERNS = [r'@(\w+)', r'https://t\.me/(\w+)', r't\.me/(\w+)', r'telegram\.me/(\w+)', r'joinchat/([\w\-]+)', r'\+([\w\-]+)']
 flood_wait_occurred = False
 total_flood_time = 0
 failed_subscriptions_file = "failed_subscriptions.txt"
 
-
 class DistributionConfig:
-    """Класс для хранения конфигурации распределенной рассылки"""
-
     def __init__(self):
-        self.tasks = []  # Список задач рассылки
+        self.tasks = []
         self.enabled = False
         self.tasks_file = "distribution_tasks.json"
+        self.session_tasks = {}
 
     def add_task(self, name, targets, message_text=None, forward_link=None, use_media=False, media_path=None):
-        """Добавляет задачу рассылки"""
         task = {
             'id': len(self.tasks) + 1,
             'name': name,
-            'targets': targets,  # список ссылок на папки/чаты
+            'targets': targets,
             'message_text': message_text,
             'forward_link': forward_link,
             'use_media': use_media,
@@ -194,47 +141,64 @@ class DistributionConfig:
         return task
 
     def remove_task(self, task_id):
-        """Удаляет задачу"""
         self.tasks = [t for t in self.tasks if t['id'] != task_id]
+        for session in list(self.session_tasks.keys()):
+            if self.session_tasks[session] == task_id:
+                del self.session_tasks[session]
+
+    def assign_task_to_session(self, session_name, task_id):
+        if any(t['id'] == task_id for t in self.tasks):
+            self.session_tasks[session_name] = task_id
+            return True
+        return False
+
+    def remove_session_assignment(self, session_name):
+        if session_name in self.session_tasks:
+            del self.session_tasks[session_name]
+
+    def get_task_for_session(self, session_name):
+        task_id = self.session_tasks.get(session_name)
+        if task_id:
+            for task in self.tasks:
+                if task['id'] == task_id and task.get('enabled', True):
+                    return task
+        return None
+
+    def get_all_assignments(self):
+        return self.session_tasks
 
     def save_to_file(self):
-        """Сохраняет конфигурацию в файл"""
         try:
             with open(self.tasks_file, 'w', encoding='utf-8') as f:
                 json.dump({
                     'enabled': self.enabled,
-                    'tasks': self.tasks
+                    'tasks': self.tasks,
+                    'session_tasks': self.session_tasks
                 }, f, ensure_ascii=False, indent=2)
             return True
         except Exception as e:
-            print(f"{Fore.RED}✘ Ошибка сохранения конфигурации: {e}{Style.RESET_ALL}")
+            print(f"{Fore.RED}✘ Ошибка сохранения: {e}{Style.RESET_ALL}")
             return False
 
     def load_from_file(self):
-        """Загружает конфигурацию из файла"""
         try:
             if os.path.exists(self.tasks_file):
                 with open(self.tasks_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                     self.enabled = data.get('enabled', False)
                     self.tasks = data.get('tasks', [])
+                    self.session_tasks = data.get('session_tasks', {})
                 return True
         except Exception as e:
-            print(f"{Fore.YELLOW}⚠️ Ошибка загрузки конфигурации: {e}{Style.RESET_ALL}")
+            print(f"{Fore.YELLOW}⚠️ Ошибка загрузки: {e}{Style.RESET_ALL}")
         return False
-
 
 class LogManager:
     def __init__(self):
         self.logs = []
         self.logs_by_category = {
-            'success': [],
-            'error': [],
-            'warning': [],
-            'info': [],
-            'proxy': [],
-            'flood': [],
-            'system': []
+            'success': [], 'error': [], 'warning': [],
+            'info': [], 'proxy': [], 'flood': [], 'system': []
         }
         self.lock = asyncio.Lock()
         self.html_file = None
@@ -253,13 +217,11 @@ class LogManager:
         return 8080
 
     def cleanup_old_logs(self):
-        """Удаляет старые HTML файлы логов"""
         try:
             for file in Path('.').glob('logs_*.html'):
                 try:
                     if self.html_file and file.name != os.path.basename(self.html_file):
                         os.remove(file)
-                        print(f"{Fore.CYAN}🧹 Удален старый лог-файл: {file}{Style.RESET_ALL}")
                 except:
                     pass
         except Exception as e:
@@ -269,10 +231,7 @@ class LogManager:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         random_suffix = ''.join(random.choices('abcdefghijklmnopqrstuvwxyz0123456789', k=6))
         self.html_file = f"logs_{timestamp}_{random_suffix}.html"
-
-        # Сначала удаляем старые файлы, кроме текущего
         self.cleanup_old_logs()
-
         html_template = """<!DOCTYPE html>
         <html lang="ru">
         <head>
@@ -280,318 +239,118 @@ class LogManager:
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>LiteGamma Tools - Логи мониторинга</title>
             <style>
-                * {
-                    margin: 0;
-                    padding: 0;
-                    box-sizing: border-box;
-                }
-
+                * { margin: 0; padding: 0; box-sizing: border-box; }
                 body {
                     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    min-height: 100vh;
-                    padding: 20px;
+                    min-height: 100vh; padding: 20px;
                 }
-
-                .container {
-                    max-width: 1400px;
-                    margin: 0 auto;
-                }
-
+                .container { max-width: 1400px; margin: 0 auto; }
                 .header {
-                    background: rgba(255, 255, 255, 0.95);
-                    border-radius: 15px;
-                    padding: 25px;
-                    margin-bottom: 25px;
-                    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+                    background: rgba(255, 255, 255, 0.95); border-radius: 15px; padding: 25px;
+                    margin-bottom: 25px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);
                     backdrop-filter: blur(10px);
                 }
-
-                .header h1 {
-                    color: #333;
-                    font-size: 28px;
-                    margin-bottom: 10px;
-                }
-
+                .header h1 { color: #333; font-size: 28px; margin-bottom: 10px; }
                 .header h1 span {
                     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    -webkit-background-clip: text;
-                    -webkit-text-fill-color: transparent;
+                    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
                 }
-
                 .stats-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                    gap: 20px;
-                    margin-top: 20px;
+                    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 20px; margin-top: 20px;
                 }
-
                 .stat-card {
-                    background: white;
-                    border-radius: 12px;
-                    padding: 20px;
-                    text-align: center;
-                    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-                    transition: transform 0.3s;
+                    background: white; border-radius: 12px; padding: 20px; text-align: center;
+                    box-shadow: 0 5px 20px rgba(0,0,0,0.1); transition: transform 0.3s;
                 }
-
-                .stat-card:hover {
-                    transform: translateY(-5px);
-                }
-
-                .stat-card .value {
-                    font-size: 36px;
-                    font-weight: bold;
-                    margin-bottom: 5px;
-                }
-
-                .stat-card .label {
-                    color: #666;
-                    font-size: 14px;
-                    text-transform: uppercase;
-                    letter-spacing: 1px;
-                }
-
+                .stat-card:hover { transform: translateY(-5px); }
+                .stat-card .value { font-size: 36px; font-weight: bold; margin-bottom: 5px; }
+                .stat-card .label { color: #666; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
                 .stat-card.success .value { color: #10b981; }
                 .stat-card.error .value { color: #ef4444; }
                 .stat-card.warning .value { color: #f59e0b; }
                 .stat-card.info .value { color: #3b82f6; }
                 .stat-card.proxy .value { color: #8b5cf6; }
-
-                .controls {
-                    display: flex;
-                    gap: 10px;
-                    margin-bottom: 20px;
-                }
-
+                .controls { display: flex; gap: 10px; margin-bottom: 20px; }
                 .refresh-btn {
-                    padding: 12px 25px;
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                    border: none;
-                    border-radius: 8px;
-                    font-size: 16px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: all 0.3s;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
+                    padding: 12px 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600;
+                    cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 8px;
                     box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
                 }
-
-                .refresh-btn:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.6);
-                }
-
-                .refresh-btn:active {
-                    transform: translateY(0);
-                }
-
-                .refresh-btn svg {
-                    width: 20px;
-                    height: 20px;
-                    transition: transform 0.5s;
-                }
-
-                .refresh-btn:hover svg {
-                    transform: rotate(180deg);
-                }
-
+                .refresh-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102, 126, 234, 0.6); }
+                .refresh-btn:active { transform: translateY(0); }
+                .refresh-btn svg { width: 20px; height: 20px; transition: transform 0.5s; }
+                .refresh-btn:hover svg { transform: rotate(180deg); }
                 .filters {
-                    background: white;
-                    border-radius: 12px;
-                    padding: 20px;
-                    margin-bottom: 20px;
-                    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-                    flex: 1;
+                    background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px;
+                    box-shadow: 0 5px 20px rgba(0,0,0,0.1); flex: 1;
                 }
-
                 .filter-buttons {
-                    display: flex;
-                    flex-wrap: wrap;
-                    gap: 10px;
-                    margin-bottom: 15px;
+                    display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;
                 }
-
                 .filter-btn {
-                    padding: 10px 20px;
-                    border: none;
-                    border-radius: 8px;
-                    font-size: 14px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: all 0.3s;
-                    background: #f3f4f6;
-                    color: #4b5563;
+                    padding: 10px 20px; border: none; border-radius: 8px; font-size: 14px;
+                    font-weight: 600; cursor: pointer; transition: all 0.3s;
+                    background: #f3f4f6; color: #4b5563;
                 }
-
-                .filter-btn:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-                }
-
-                .filter-btn.active {
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                }
-
+                .filter-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+                .filter-btn.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
                 .filter-btn.success.active { background: #10b981; }
                 .filter-btn.error.active { background: #ef4444; }
                 .filter-btn.warning.active { background: #f59e0b; }
                 .filter-btn.info.active { background: #3b82f6; }
                 .filter-btn.proxy.active { background: #8b5cf6; }
                 .filter-btn.flood.active { background: #ec4899; }
-
                 .search-box {
-                    width: 100%;
-                    padding: 12px 20px;
-                    border: 2px solid #e5e7eb;
-                    border-radius: 8px;
-                    font-size: 14px;
-                    transition: border-color 0.3s;
+                    width: 100%; padding: 12px 20px; border: 2px solid #e5e7eb;
+                    border-radius: 8px; font-size: 14px; transition: border-color 0.3s;
                 }
-
-                .search-box:focus {
-                    outline: none;
-                    border-color: #667eea;
-                }
-
+                .search-box:focus { outline: none; border-color: #667eea; }
                 .logs-container {
-                    background: white;
-                    border-radius: 12px;
-                    padding: 20px;
+                    background: white; border-radius: 12px; padding: 20px;
                     box-shadow: 0 5px 20px rgba(0,0,0,0.1);
                 }
-
                 .logs-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 20px;
-                    padding-bottom: 15px;
-                    border-bottom: 2px solid #f3f4f6;
+                    display: flex; justify-content: space-between; align-items: center;
+                    margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f3f4f6;
                 }
-
-                .logs-title {
-                    font-size: 18px;
-                    font-weight: 600;
-                    color: #333;
-                }
-
-                .log-actions {
-                    display: flex;
-                    gap: 10px;
-                }
-
+                .logs-title { font-size: 18px; font-weight: 600; color: #333; }
+                .log-actions { display: flex; gap: 10px; }
                 .clear-btn, .top-btn {
-                    padding: 8px 16px;
-                    background: #f3f4f6;
-                    border: none;
-                    border-radius: 6px;
-                    color: #4b5563;
-                    cursor: pointer;
-                    transition: all 0.3s;
-                    display: flex;
-                    align-items: center;
-                    gap: 5px;
+                    padding: 8px 16px; background: #f3f4f6; border: none; border-radius: 6px;
+                    color: #4b5563; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 5px;
                 }
-
-                .clear-btn:hover, .top-btn:hover {
-                    background: #e5e7eb;
-                }
-
-                .top-btn.active {
-                    background: #667eea;
-                    color: white;
-                }
-
-                .logs-list {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 8px;
-                }
-
+                .clear-btn:hover, .top-btn:hover { background: #e5e7eb; }
+                .top-btn.active { background: #667eea; color: white; }
+                .logs-list { display: flex; flex-direction: column; gap: 8px; }
                 .log-entry {
-                    padding: 12px 15px;
-                    border-radius: 8px;
-                    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-                    font-size: 13px;
-                    line-height: 1.5;
-                    animation: slideIn 0.3s;
-                    position: relative;
-                    overflow: hidden;
+                    padding: 12px 15px; border-radius: 8px; font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+                    font-size: 13px; line-height: 1.5; animation: slideIn 0.3s; position: relative; overflow: hidden;
                 }
-
                 .log-entry::before {
-                    content: '';
-                    position: absolute;
-                    left: 0;
-                    top: 0;
-                    bottom: 0;
-                    width: 4px;
+                    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
                 }
-
-                .log-entry.success {
-                    background: #d1fae5;
-                    border-left: 4px solid #10b981;
-                }
+                .log-entry.success { background: #d1fae5; border-left: 4px solid #10b981; }
                 .log-entry.success::before { background: #10b981; }
-
-                .log-entry.error {
-                    background: #fee2e2;
-                    border-left: 4px solid #ef4444;
-                }
+                .log-entry.error { background: #fee2e2; border-left: 4px solid #ef4444; }
                 .log-entry.error::before { background: #ef4444; }
-
-                .log-entry.warning {
-                    background: #ffedd5;
-                    border-left: 4px solid #f59e0b;
-                }
+                .log-entry.warning { background: #ffedd5; border-left: 4px solid #f59e0b; }
                 .log-entry.warning::before { background: #f59e0b; }
-
-                .log-entry.info {
-                    background: #dbeafe;
-                    border-left: 4px solid #3b82f6;
-                }
+                .log-entry.info { background: #dbeafe; border-left: 4px solid #3b82f6; }
                 .log-entry.info::before { background: #3b82f6; }
-
-                .log-entry.proxy {
-                    background: #ede9fe;
-                    border-left: 4px solid #8b5cf6;
-                }
+                .log-entry.proxy { background: #ede9fe; border-left: 4px solid #8b5cf6; }
                 .log-entry.proxy::before { background: #8b5cf6; }
-
-                .log-entry.flood {
-                    background: #fce7f3;
-                    border-left: 4px solid #ec4899;
-                }
+                .log-entry.flood { background: #fce7f3; border-left: 4px solid #ec4899; }
                 .log-entry.flood::before { background: #ec4899; }
-
-                .log-entry.system {
-                    background: #f3f4f6;
-                    border-left: 4px solid #6b7280;
-                }
+                .log-entry.system { background: #f3f4f6; border-left: 4px solid #6b7280; }
                 .log-entry.system::before { background: #6b7280; }
-
-                .log-time {
-                    color: #6b7280;
-                    font-size: 12px;
-                    margin-right: 15px;
-                    display: inline-block;
-                }
-
+                .log-time { color: #6b7280; font-size: 12px; margin-right: 15px; display: inline-block; }
                 .log-category {
-                    display: inline-block;
-                    padding: 2px 8px;
-                    border-radius: 4px;
-                    font-size: 11px;
-                    font-weight: 600;
-                    text-transform: uppercase;
-                    margin-right: 10px;
+                    display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px;
+                    font-weight: 600; text-transform: uppercase; margin-right: 10px;
                 }
-
                 .log-category.success { background: #10b981; color: white; }
                 .log-category.error { background: #ef4444; color: white; }
                 .log-category.warning { background: #f59e0b; color: white; }
@@ -599,149 +358,41 @@ class LogManager:
                 .log-category.proxy { background: #8b5cf6; color: white; }
                 .log-category.flood { background: #ec4899; color: white; }
                 .log-category.system { background: #6b7280; color: white; }
-
-                .log-message {
-                    color: #1f2937;
-                }
-
-                .stats-summary {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-                    gap: 15px;
-                    margin-bottom: 20px;
-                }
-
-                .stat-item {
-                    background: #f9fafb;
-                    border-radius: 8px;
-                    padding: 15px;
-                    text-align: center;
-                }
-
-                .stat-label {
-                    color: #6b7280;
-                    font-size: 12px;
-                    margin-bottom: 5px;
-                }
-
-                .stat-number {
-                    font-size: 24px;
-                    font-weight: bold;
-                }
-
+                .log-message { color: #1f2937; }
                 @keyframes slideIn {
-                    from {
-                        opacity: 0;
-                        transform: translateY(-20px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
+                    from { opacity: 0; transform: translateY(-20px); }
+                    to { opacity: 1; transform: translateY(0); }
                 }
-
                 .proxy-info {
                     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                    padding: 15px;
-                    border-radius: 10px;
-                    margin-bottom: 20px;
+                    color: white; padding: 15px; border-radius: 10px; margin-bottom: 20px;
                 }
-
-                .proxy-stats {
-                    display: grid;
-                    grid-template-columns: repeat(3, 1fr);
-                    gap: 10px;
-                    margin-top: 10px;
-                }
-
-                .proxy-stat {
-                    background: rgba(255,255,255,0.2);
-                    padding: 10px;
-                    border-radius: 8px;
-                    text-align: center;
-                }
-
+                .proxy-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+                .proxy-stat { background: rgba(255,255,255,0.2); padding: 10px; border-radius: 8px; text-align: center; }
                 .footer {
-                    text-align: center;
-                    margin-top: 20px;
-                    padding: 20px;
-                    background: rgba(255, 255, 255, 0.1);
-                    border-radius: 10px;
-                    backdrop-filter: blur(5px);
+                    text-align: center; margin-top: 20px; padding: 20px;
+                    background: rgba(255, 255, 255, 0.1); border-radius: 10px; backdrop-filter: blur(5px);
                 }
-
-                .footer-content {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 10px;
-                }
-
-                .footer-links {
-                    display: flex;
-                    justify-content: center;
-                    gap: 20px;
-                    flex-wrap: wrap;
-                }
-
+                .footer-links { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
                 .footer-link {
-                    color: white;
-                    text-decoration: none;
-                    padding: 8px 16px;
-                    background: rgba(255, 255, 255, 0.2);
-                    border-radius: 20px;
-                    transition: all 0.3s;
-                    font-size: 14px;
+                    color: white; text-decoration: none; padding: 8px 16px;
+                    background: rgba(255, 255, 255, 0.2); border-radius: 20px;
+                    transition: all 0.3s; font-size: 14px;
                 }
-
-                .footer-link:hover {
-                    background: rgba(255, 255, 255, 0.3);
-                    transform: translateY(-2px);
-                }
-
-                .footer-link i {
-                    margin-right: 5px;
-                }
-
-                .footer-copyright {
-                    color: rgba(255, 255, 255, 0.8);
-                    font-size: 12px;
-                }
-
-                .footer-copyright a {
-                    color: white;
-                    text-decoration: none;
-                    font-weight: 600;
-                }
-
-                .footer-copyright a:hover {
-                    text-decoration: underline;
-                }
-
+                .footer-link:hover { background: rgba(255, 255, 255, 0.3); transform: translateY(-2px); }
+                .footer-copyright { color: rgba(255, 255, 255, 0.8); font-size: 12px; }
+                .footer-copyright a { color: white; text-decoration: none; font-weight: 600; }
                 .version-badge {
-                    display: inline-block;
-                    padding: 4px 12px;
+                    display: inline-block; padding: 4px 12px;
                     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                    border-radius: 20px;
-                    font-size: 12px;
-                    font-weight: 600;
-                    margin-left: 10px;
+                    color: white; border-radius: 20px; font-size: 12px; font-weight: 600; margin-left: 10px;
                 }
-
                 .loading {
-                    display: inline-block;
-                    width: 20px;
-                    height: 20px;
-                    border: 3px solid rgba(255,255,255,.3);
-                    border-radius: 50%;
-                    border-top-color: white;
-                    animation: spin 1s ease-in-out infinite;
+                    display: inline-block; width: 20px; height: 20px;
+                    border: 3px solid rgba(255,255,255,.3); border-radius: 50%;
+                    border-top-color: white; animation: spin 1s ease-in-out infinite;
                 }
-
-                @keyframes spin {
-                    to { transform: rotate(360deg); }
-                }
+                @keyframes spin { to { transform: rotate(360deg); } }
             </style>
         </head>
         <body>
@@ -751,16 +402,13 @@ class LogManager:
                     <p>Мониторинг логов в реальном времени</p>
                     <div class="stats-grid" id="statsGrid"></div>
                 </div>
-
                 <div class="controls">
                     <button class="refresh-btn" onclick="refreshLogs()">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M1 4v6h6"></path>
-                            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                            <path d="M1 4v6h6"></path><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
                         </svg>
                         Обновить логи
                     </button>
-
                     <div class="filters">
                         <div class="filter-buttons">
                             <button class="filter-btn active" onclick="filterLogs('all')">📋 Все</button>
@@ -774,55 +422,32 @@ class LogManager:
                         <input type="text" class="search-box" id="searchInput" placeholder="🔍 Поиск по логам..." onkeyup="filterLogs()">
                     </div>
                 </div>
-
                 <div class="proxy-info" id="proxyInfo"></div>
-
                 <div class="logs-container">
                     <div class="logs-header">
                         <span class="logs-title" id="logsTitle">📋 Все логи</span>
                         <div class="log-actions">
-                            <button class="top-btn" id="topBtn" onclick="toggleTop()" title="Новые логи сверху">
-                                ⬆️ Сверху
-                            </button>
+                            <button class="top-btn" id="topBtn" onclick="toggleTop()" title="Новые логи сверху">⬆️ Сверху</button>
                             <button class="clear-btn" onclick="clearLogs()">🗑 Очистить</button>
                         </div>
                     </div>
                     <div class="logs-list" id="logs"></div>
                 </div>
-
                 <div class="footer">
-<div class="footer-links">
-    <a href="https://t.me/BananaStorebot_bot" target="_blank" class="footer-link">
-        🤖 Магазин @BananaStorebot_bot
-    </a>
-    <a href="https://t.me/LiteGamma" target="_blank" class="footer-link">
-        👨‍💻 Связь с разработчиком @LiteGamma
-    </a>
-    <a href="https://t.me/LiteGammaTools" target="_blank" class="footer-link">
-        📢 Канал обновлений @LiteGammaTools
-    </a>
-</div>
-<div class="footer-copyright">
-    С уважением, <a href="https://t.me/BananaStorebot_bot" target="_blank">@BananaStorebot_bot</a> |
-    <a href="https://t.me/LiteGamma" target="_blank">@LiteGamma</a> |
-    <a href="https://t.me/LiteGammaTools" target="_blank">@LiteGammaTools</a>
-</div>
-<div class="update-info" style="margin-top: 10px; font-size: 12px; color: rgba(255,255,255,0.6);">
-    Информацию об обновлениях можно узнать здесь:
-    <a href="https://t.me/LiteGammaTools" target="_blank" style="color: #ffd700; text-decoration: none;">
-        https://t.me/LiteGammaTools
-    </a>
-</div>
+                    <div class="footer-links">
+                        <a href="https://t.me/BananaStorebot_bot" target="_blank" class="footer-link">🤖 Магазин @BananaStorebot_bot</a>
+                        <a href="https://t.me/LiteGamma" target="_blank" class="footer-link">👨‍💻 Связь с разработчиком @LiteGamma</a>
+                        <a href="https://t.me/LiteGammaTools" target="_blank" class="footer-link">📢 Канал обновлений @LiteGammaTools</a>
+                    </div>
+                    <div class="footer-copyright">
+                        С уважением, <a href="https://t.me/BananaStorebot_bot" target="_blank">@BananaStorebot_bot</a> |
+                        <a href="https://t.me/LiteGamma" target="_blank">@LiteGamma</a> |
+                        <a href="https://t.me/LiteGammaTools" target="_blank">@LiteGammaTools</a>
                     </div>
                 </div>
             </div>
-
             <script>
-                let allLogs = [];
-                let currentFilter = 'all';
-                let searchTerm = '';
-                let newOnTop = true;
-
+                let allLogs = []; let currentFilter = 'all'; let searchTerm = ''; let newOnTop = true;
                 function updateStats() {
                     const stats = {
                         success: allLogs.filter(l => l.category === 'success').length,
@@ -832,87 +457,40 @@ class LogManager:
                         proxy: allLogs.filter(l => l.category === 'proxy').length,
                         flood: allLogs.filter(l => l.category === 'flood').length
                     };
-
                     document.getElementById('statsGrid').innerHTML = `
-                        <div class="stat-card success">
-                            <div class="value">${stats.success}</div>
-                            <div class="label">✅ Успешно</div>
-                        </div>
-                        <div class="stat-card error">
-                            <div class="value">${stats.error}</div>
-                            <div class="label">❌ Ошибки</div>
-                        </div>
-                        <div class="stat-card warning">
-                            <div class="value">${stats.warning}</div>
-                            <div class="label">⚠️ Предупреждения</div>
-                        </div>
-                        <div class="stat-card info">
-                            <div class="value">${stats.info}</div>
-                            <div class="label">ℹ️ Информация</div>
-                        </div>
-                        <div class="stat-card proxy">
-                            <div class="value">${stats.proxy}</div>
-                            <div class="label">🌐 Прокси</div>
-                        </div>
-                        <div class="stat-card flood">
-                            <div class="value">${stats.flood}</div>
-                            <div class="label">🚫 Флуд</div>
-                        </div>
+                        <div class="stat-card success"><div class="value">${stats.success}</div><div class="label">✅ Успешно</div></div>
+                        <div class="stat-card error"><div class="value">${stats.error}</div><div class="label">❌ Ошибки</div></div>
+                        <div class="stat-card warning"><div class="value">${stats.warning}</div><div class="label">⚠️ Предупреждения</div></div>
+                        <div class="stat-card info"><div class="value">${stats.info}</div><div class="label">ℹ️ Информация</div></div>
+                        <div class="stat-card proxy"><div class="value">${stats.proxy}</div><div class="label">🌐 Прокси</div></div>
+                        <div class="stat-card flood"><div class="value">${stats.flood}</div><div class="label">🚫 Флуд</div></div>
                     `;
                 }
-
                 function toggleTop() {
-                    newOnTop = !newOnTop;
-                    const btn = document.getElementById('topBtn');
-                    if (newOnTop) {
-                        btn.innerHTML = '⬆️ Сверху';
-                        btn.classList.add('active');
-                    } else {
-                        btn.innerHTML = '⬇️ Снизу';
-                        btn.classList.remove('active');
-                    }
+                    newOnTop = !newOnTop; const btn = document.getElementById('topBtn');
+                    if (newOnTop) { btn.innerHTML = '⬆️ Сверху'; btn.classList.add('active'); }
+                    else { btn.innerHTML = '⬇️ Снизу'; btn.classList.remove('active'); }
                     displayLogs();
                 }
-
                 function filterLogs(category) {
                     if (category) {
                         currentFilter = category;
                         document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
                         event.target.classList.add('active');
-
                         const titles = {
-                            'all': '📋 Все логи',
-                            'success': '✅ Успешные операции',
-                            'error': '❌ Ошибки',
-                            'warning': '⚠️ Предупреждения',
-                            'info': 'ℹ️ Информация',
-                            'proxy': '🌐 Прокси',
-                            'flood': '🚫 Флуд'
+                            'all': '📋 Все логи', 'success': '✅ Успешные операции', 'error': '❌ Ошибки',
+                            'warning': '⚠️ Предупреждения', 'info': 'ℹ️ Информация', 'proxy': '🌐 Прокси', 'flood': '🚫 Флуд'
                         };
                         document.getElementById('logsTitle').textContent = titles[category] || '📋 Все логи';
                     }
-
                     searchTerm = document.getElementById('searchInput').value.toLowerCase();
                     displayLogs();
                 }
-
                 function displayLogs() {
                     let filtered = allLogs;
-
-                    if (currentFilter !== 'all') {
-                        filtered = filtered.filter(log => log.category === currentFilter);
-                    }
-
-                    if (searchTerm) {
-                        filtered = filtered.filter(log => 
-                            log.message.toLowerCase().includes(searchTerm) ||
-                            log.time.toLowerCase().includes(searchTerm)
-                        );
-                    }
-
-                    // Сортируем логи: новые сверху или снизу
+                    if (currentFilter !== 'all') filtered = filtered.filter(log => log.category === currentFilter);
+                    if (searchTerm) filtered = filtered.filter(log => log.message.toLowerCase().includes(searchTerm) || log.time.toLowerCase().includes(searchTerm));
                     const sortedLogs = newOnTop ? [...filtered].reverse() : filtered;
-
                     const logsHtml = sortedLogs.map(log => `
                         <div class="log-entry ${log.category}">
                             <span class="log-time">${log.time}</span>
@@ -920,66 +498,35 @@ class LogManager:
                             <span class="log-message">${log.message}</span>
                         </div>
                     `).join('');
-
                     document.getElementById('logs').innerHTML = logsHtml || '<div style="text-align: center; padding: 30px; color: #999;">Нет логов для отображения</div>';
                 }
-
-                function updateProxyInfo(info) {
-                    document.getElementById('proxyInfo').innerHTML = info;
-                }
-
+                function updateProxyInfo(info) { document.getElementById('proxyInfo').innerHTML = info; }
                 function clearLogs() {
-                    fetch('/clear_logs', { method: 'POST' })
-                        .then(() => {
-                            allLogs = [];
-                            displayLogs();
-                            updateStats();
-                        });
+                    fetch('/clear_logs', { method: 'POST' }).then(() => { allLogs = []; displayLogs(); updateStats(); });
                 }
-
                 function refreshLogs() {
                     const btn = document.querySelector('.refresh-btn');
-                    btn.innerHTML = '<span class="loading"></span> Загрузка...';
-                    btn.disabled = true;
-
-                    fetch('/logs')
-                        .then(response => response.json())
-                        .then(data => {
-                            allLogs = data.logs;
-                            displayLogs();
-                            updateStats();
-                            if (data.proxy_info) {
-                                updateProxyInfo(data.proxy_info);
-                            }
-                        })
-                        .finally(() => {
-                            btn.innerHTML = `
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M1 4v6h6"></path>
-                                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
-                                </svg>
-                                Обновить логи
-                            `;
-                            btn.disabled = false;
-                        });
+                    btn.innerHTML = '<span class="loading"></span> Загрузка...'; btn.disabled = true;
+                    fetch('/logs').then(response => response.json()).then(data => {
+                        allLogs = data.logs; displayLogs(); updateStats();
+                        if (data.proxy_info) updateProxyInfo(data.proxy_info);
+                    }).finally(() => {
+                        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6"></path><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg> Обновить логи`;
+                        btn.disabled = false;
+                    });
                 }
-
-                // Первая загрузка
                 refreshLogs();
             </script>
         </body>
         </html>"""
-
         with open(self.html_file, 'w', encoding='utf-8') as f:
             f.write(html_template)
-
         print(f"{Fore.GREEN}📊 Веб-интерфейс создан: {self.html_file}{Style.RESET_ALL}")
         print(f"{Fore.CYAN}🌐 Откройте в браузере: http://localhost:{self.port}{Style.RESET_ALL}")
 
     def start_server(self):
         class LogHandler(BaseHTTPRequestHandler):
             log_manager = self
-
             def do_GET(self):
                 try:
                     if self.path == '/':
@@ -999,46 +546,29 @@ class LogManager:
                         self.send_response(200)
                         self.send_header('Content-type', 'application/json')
                         self.end_headers()
-
                         logs_data = []
-
                         async def get_logs():
                             async with self.log_manager.lock:
                                 for log in self.log_manager.logs[-500:]:
-                                    logs_data.append({
-                                        'time': log['time'],
-                                        'category': log['category'],
-                                        'message': log['message']
-                                    })
-
+                                    logs_data.append({'time': log['time'], 'category': log['category'], 'message': log['message']})
                         asyncio.run(get_logs())
-
                         proxy_info = ""
                         if use_proxy and proxy_manager.has_proxies():
                             proxy_info = f"""
                             <div class="proxy-stats">
                                 <div class="proxy-stat">📊 Всего прокси: {proxy_manager.get_proxy_count()}</div>
-                                <div class="proxy-stat">✅ Активных прокси : {proxy_manager.get_proxy_count() - len(proxy_manager.bad_proxies)}</div>
+                                <div class="proxy-stat">✅ Активных прокси: {proxy_manager.get_proxy_count() - len(proxy_manager.bad_proxies)}</div>
                                 <div class="proxy-stat">❌ Плохих прокси: {len(proxy_manager.bad_proxies)}</div>
-                            </div>
-                            """
-
-                        response = {
-                            'logs': logs_data,
-                            'proxy_info': proxy_info
-                        }
+                            </div>"""
+                        response = {'logs': logs_data, 'proxy_info': proxy_info}
                         self.wfile.write(json.dumps(response, ensure_ascii=False).encode('utf-8'))
                     else:
                         self.send_response(404)
                         self.end_headers()
                 except Exception as e:
                     print(f"{Fore.RED}✘ Ошибка в HTTP сервере: {e}{Style.RESET_ALL}")
-                    try:
-                        self.send_response(500)
-                        self.end_headers()
-                    except:
-                        pass
-
+                    try: self.send_response(500); self.end_headers()
+                    except: pass
             def do_POST(self):
                 try:
                     if self.path == '/clear_logs':
@@ -1047,7 +577,6 @@ class LogManager:
                                 self.log_manager.logs.clear()
                                 for cat in self.log_manager.logs_by_category:
                                     self.log_manager.logs_by_category[cat].clear()
-
                         asyncio.run(clear())
                         self.send_response(200)
                         self.end_headers()
@@ -1056,20 +585,13 @@ class LogManager:
                         self.end_headers()
                 except Exception as e:
                     print(f"{Fore.RED}✘ Ошибка в HTTP сервере: {e}{Style.RESET_ALL}")
-                    try:
-                        self.send_response(500)
-                        self.end_headers()
-                    except:
-                        pass
-
-            def log_message(self, format, *args):
-                pass
-
+                    try: self.send_response(500); self.end_headers()
+                    except: pass
+            def log_message(self, format, *args): pass
         self.server = HTTPServer(('localhost', self.port), LogHandler)
         self.server_thread = threading.Thread(target=self.server.serve_forever)
         self.server_thread.daemon = True
         self.server_thread.start()
-
         webbrowser.open(f'http://localhost:{self.port}/logs.html')
 
     def stop_server(self):
@@ -1080,20 +602,14 @@ class LogManager:
     async def add_log(self, message, category='info'):
         async with self.lock:
             timestamp = datetime.now().strftime("%H:%M:%S")
-            log_entry = {
-                'time': timestamp,
-                'category': category,
-                'message': message
-            }
+            log_entry = {'time': timestamp, 'category': category, 'message': message}
             self.logs.append(log_entry)
             self.logs_by_category[category].append(log_entry)
-
             if len(self.logs) > 2000:
                 self.logs = self.logs[-2000:]
                 for cat in self.logs_by_category:
                     if len(self.logs_by_category[cat]) > 500:
                         self.logs_by_category[cat] = self.logs_by_category[cat][-500:]
-
 
 class AccountProtector:
     def __init__(self):
@@ -1107,12 +623,8 @@ class AccountProtector:
     def register_account(self, session_name, account_age_days=0):
         if session_name not in self.account_actions:
             self.account_actions[session_name] = {
-                'messages_sent': 0,
-                'channels_joined': 0,
-                'groups_joined': 0,
-                'last_message_time': None,
-                'daily_message_count': 0,
-                'daily_join_count': 0,
+                'messages_sent': 0, 'channels_joined': 0, 'groups_joined': 0,
+                'last_message_time': None, 'daily_message_count': 0, 'daily_join_count': 0,
                 'last_reset_date': datetime.now().date()
             }
             self.account_age[session_name] = account_age_days
@@ -1129,43 +641,29 @@ class AccountProtector:
                 self.account_actions[session_name]['last_reset_date'] = today
 
     def can_send_message(self, session_name):
-        if session_name not in self.account_actions:
-            return True, 0
+        if session_name not in self.account_actions: return True, 0
         self.check_daily_reset(session_name)
         age_days = self.account_age.get(session_name, 0)
-        if age_days < 1:
-            limit = 20
-        elif age_days < 3:
-            limit = 50
-        elif age_days < 7:
-            limit = 100
-        elif age_days < 30:
-            limit = 200
-        else:
-            limit = 500
+        if age_days < 1: limit = 20
+        elif age_days < 3: limit = 50
+        elif age_days < 7: limit = 100
+        elif age_days < 30: limit = 200
+        else: limit = 500
         current = self.account_actions[session_name]['daily_message_count']
-        if current >= limit:
-            return False, limit
+        if current >= limit: return False, limit
         return True, limit - current
 
     def can_join_channel(self, session_name):
-        if session_name not in self.account_actions:
-            return True, 0
+        if session_name not in self.account_actions: return True, 0
         self.check_daily_reset(session_name)
         age_days = self.account_age.get(session_name, 0)
-        if age_days < 1:
-            limit = 10
-        elif age_days < 3:
-            limit = 25
-        elif age_days < 7:
-            limit = 50
-        elif age_days < 30:
-            limit = 100
-        else:
-            limit = 200
+        if age_days < 1: limit = 10
+        elif age_days < 3: limit = 25
+        elif age_days < 7: limit = 50
+        elif age_days < 30: limit = 100
+        else: limit = 200
         current = self.account_actions[session_name]['daily_join_count']
-        if current >= limit:
-            return False, limit
+        if current >= limit: return False, limit
         return True, limit - current
 
     def record_message_sent(self, session_name):
@@ -1180,10 +678,8 @@ class AccountProtector:
 
     def record_join(self, session_name, is_channel=True):
         if session_name in self.account_actions:
-            if is_channel:
-                self.account_actions[session_name]['channels_joined'] += 1
-            else:
-                self.account_actions[session_name]['groups_joined'] += 1
+            if is_channel: self.account_actions[session_name]['channels_joined'] += 1
+            else: self.account_actions[session_name]['groups_joined'] += 1
             self.account_actions[session_name]['daily_join_count'] += 1
             self.last_action_time[session_name] = time.time()
             self.action_history[session_name].append(('join', time.time()))
@@ -1191,57 +687,39 @@ class AccountProtector:
                 self.action_history[session_name] = self.action_history[session_name][-100:]
 
     def get_safe_delay(self, session_name, base_delay):
-        if session_name not in self.last_action_time:
-            return base_delay
+        if session_name not in self.last_action_time: return base_delay
         time_since_last = time.time() - self.last_action_time[session_name]
-        if time_since_last < 5:
-            return max(base_delay, 10 - time_since_last)
+        if time_since_last < 5: return max(base_delay, 10 - time_since_last)
         recent_actions = sum(1 for _, t in self.action_history.get(session_name, []) if time.time() - t < 60)
-        if recent_actions > 10:
-            return base_delay * 2
-        elif recent_actions > 20:
-            return base_delay * 3
-        elif recent_actions > 30:
-            return base_delay * 5
+        if recent_actions > 10: return base_delay * 2
+        elif recent_actions > 20: return base_delay * 3
+        elif recent_actions > 30: return base_delay * 5
         return base_delay
 
     def should_pause(self, session_name):
-        if session_name not in self.action_history:
-            return False, 0
+        if session_name not in self.action_history: return False, 0
         recent_actions = self.action_history.get(session_name, [])
-        if len(recent_actions) < 5:
-            return False, 0
+        if len(recent_actions) < 5: return False, 0
         times = [t for _, t in recent_actions[-10:]]
-        if len(times) < 2:
-            return False, 0
-        intervals = [times[i + 1] - times[i] for i in range(len(times) - 1)]
+        if len(times) < 2: return False, 0
+        intervals = [times[i+1] - times[i] for i in range(len(times)-1)]
         avg_interval = sum(intervals) / len(intervals)
-        if avg_interval < 2:
-            pause_time = 60
-            return True, pause_time
-        elif avg_interval < 3:
-            pause_time = 30
-            return True, pause_time
-        elif avg_interval < 5:
-            pause_time = 15
-            return True, pause_time
+        if avg_interval < 2: return True, 60
+        elif avg_interval < 3: return True, 30
+        elif avg_interval < 5: return True, 15
         return False, 0
 
     def add_warning(self, session_name, warning_type):
-        if session_name not in self.warnings:
-            self.warnings[session_name] = []
+        if session_name not in self.warnings: self.warnings[session_name] = []
         self.warnings[session_name].append((warning_type, time.time()))
         if len(self.warnings[session_name]) > 3:
             warnings_recent = [w for w, t in self.warnings[session_name] if time.time() - t < 3600]
-            if len(warnings_recent) > 5:
-                return 300
+            if len(warnings_recent) > 5: return 300
         return 0
 
     def get_account_stats(self, session_name):
-        if session_name not in self.account_actions:
-            return {}
+        if session_name not in self.account_actions: return {}
         return self.account_actions[session_name]
-
 
 class ProxyManager:
     def __init__(self, proxy_file="proxies.txt"):
@@ -1265,11 +743,8 @@ class ProxyManager:
                         if proxy and not proxy.startswith('#'):
                             self.proxies.append(proxy)
                             self.proxy_stats[proxy] = {
-                                'success': 0,
-                                'fail': 0,
-                                'last_used': 0,
-                                'consecutive_fails': 0,
-                                'line_number': i,
+                                'success': 0, 'fail': 0, 'last_used': 0,
+                                'consecutive_fails': 0, 'line_number': i,
                                 'host': self.extract_host(proxy)
                             }
                             self.proxy_usage_count[proxy] = 0
@@ -1287,14 +762,10 @@ class ProxyManager:
                 return proxy_str.split('@')[1].split(':')[0]
             elif '://' in proxy_str:
                 parts = proxy_str.split('://')[1]
-                if '@' in parts:
-                    return parts.split('@')[1].split(':')[0]
-                else:
-                    return parts.split(':')[0]
-            else:
-                return proxy_str.split(':')[0]
-        except:
-            return "unknown"
+                if '@' in parts: return parts.split('@')[1].split(':')[0]
+                else: return parts.split(':')[0]
+            else: return proxy_str.split(':')[0]
+        except: return "unknown"
 
     def get_proxy_info(self, proxy_str):
         if proxy_str in self.proxy_stats:
@@ -1303,8 +774,7 @@ class ProxyManager:
         return "unknown"
 
     def get_proxy_for_session(self, session_name):
-        if not self.proxies:
-            return None
+        if not self.proxies: return None
         if session_name in self.proxy_assignments:
             proxy_str = self.proxy_assignments[session_name]
             if proxy_str not in self.bad_proxies:
@@ -1337,8 +807,7 @@ class ProxyManager:
                 self.proxy_stats[proxy_str]['fail'] += 1
                 self.proxy_stats[proxy_str]['consecutive_fails'] += 1
                 if self.proxy_stats[proxy_str]['consecutive_fails'] >= 3:
-                    print(
-                        f"{Fore.YELLOW}⚠️ Прокси #{self.proxy_stats[proxy_str]['line_number']} {self.proxy_stats[proxy_str]['host']} не работает 3 раза подряд, временно исключаем{Style.RESET_ALL}")
+                    print(f"{Fore.YELLOW}⚠️ Прокси #{self.proxy_stats[proxy_str]['line_number']} {self.proxy_stats[proxy_str]['host']} не работает 3 раза подряд, временно исключаем{Style.RESET_ALL}")
                     self.bad_proxies.add(proxy_str)
                     self.proxy_usage_count[proxy_str] = max(0, self.proxy_usage_count.get(proxy_str, 1) - 1)
             del self.proxy_assignments[session_name]
@@ -1351,8 +820,7 @@ class ProxyManager:
         return self.get_proxy_for_session(session_name)
 
     def get_any_valid_proxy(self):
-        if not self.proxies:
-            return None
+        if not self.proxies: return None
         available = [p for p in self.proxies if p not in self.bad_proxies]
         if not available:
             self.bad_proxies.clear()
@@ -1362,28 +830,23 @@ class ProxyManager:
         return self.parse_proxy_string(proxy_str)
 
     def get_best_proxy(self):
-        if not self.proxies:
-            return None
+        if not self.proxies: return None
         available = [p for p in self.proxies if p not in self.bad_proxies]
         if not available:
             self.bad_proxies.clear()
             available = self.proxies
-
         def get_score(proxy):
             stats = self.proxy_stats.get(proxy, {'success': 0, 'fail': 0})
             total = stats['success'] + stats['fail']
-            if total == 0:
-                return 0
+            if total == 0: return 0
             return stats['success'] / total - stats['fail'] * 0.1
-
         available.sort(key=get_score, reverse=True)
         proxy_str = available[0]
         self.proxy_stats[proxy_str]['last_used'] = time.time()
         return self.parse_proxy_string(proxy_str)
 
     def get_next_proxy(self):
-        if not self.proxies:
-            return None
+        if not self.proxies: return None
         attempts = 0
         while attempts < len(self.proxies) * 2:
             proxy_str = self.proxies[self.current_proxy_index]
@@ -1399,12 +862,10 @@ class ProxyManager:
         self.current_proxy = self.parse_proxy_string(proxy_str)
         return self.current_proxy
 
-    def get_current_proxy(self):
-        return self.current_proxy
+    def get_current_proxy(self): return self.current_proxy
 
     def get_random_proxy(self):
-        if not self.proxies:
-            return None
+        if not self.proxies: return None
         available = [p for p in self.proxies if p not in self.bad_proxies]
         if not available:
             self.bad_proxies.clear()
@@ -1425,36 +886,26 @@ class ProxyManager:
                 rest = proxy_str
             if '@' in rest:
                 auth, addr = rest.split('@')
-                if ':' in auth:
-                    username, password = auth.split(':', 1)
-                else:
-                    username, password = auth, ''
-                if ':' in addr:
-                    host, port = addr.split(':')
-                else:
-                    host, port = addr, '1080'
+                if ':' in auth: username, password = auth.split(':', 1)
+                else: username, password = auth, ''
+                if ':' in addr: host, port = addr.split(':')
+                else: host, port = addr, '1080'
             else:
                 username, password = None, None
-                if ':' in rest:
-                    host, port = rest.split(':')
-                else:
-                    host, port = rest, '1080'
+                if ':' in rest: host, port = rest.split(':')
+                else: host, port = rest, '1080'
             port = int(port)
             proxy_type_map = {'socks5': socks.SOCKS5, 'socks4': socks.SOCKS4, 'http': socks.HTTP, 'https': socks.HTTP}
             proxy_type_num = proxy_type_map.get(proxy_type, socks.SOCKS5)
             if username and password:
                 return (proxy_type_num, host, port, True, username, password)
-            else:
-                return (proxy_type_num, host, port)
+            else: return (proxy_type_num, host, port)
         except Exception as e:
             print(f"{Fore.RED}✘ Ошибка парсинга прокси {proxy_str}: {e}{Style.RESET_ALL}")
             return None
 
-    def get_proxy_count(self):
-        return len(self.proxies)
-
-    def has_proxies(self):
-        return len(self.proxies) > 0
+    def get_proxy_count(self): return len(self.proxies)
+    def has_proxies(self): return len(self.proxies) > 0
 
     def rotate_proxy(self):
         if self.proxies:
@@ -1482,8 +933,7 @@ class ProxyManager:
                 self.proxy_stats[proxy_str]['consecutive_fails'] = 0
 
     def get_proxy_string_from_tuple(self, proxy_tuple):
-        if not proxy_tuple:
-            return None
+        if not proxy_tuple: return None
         for proxy_str, stats in self.proxy_stats.items():
             parsed = self.parse_proxy_string(proxy_str)
             if parsed and len(parsed) >= 3:
@@ -1499,21 +949,16 @@ class ProxyManager:
             status = "✅" if proxy not in self.bad_proxies else "❌"
             usage = self.proxy_usage_count.get(proxy, 0)
             stats.append({
-                'line': data['line_number'],
-                'host': data['host'],
+                'line': data['line_number'], 'host': data['host'],
                 'proxy': proxy[:50] + '...' if len(proxy) > 50 else proxy,
-                'success': data['success'],
-                'fail': data['fail'],
-                'rate': f"{success_rate:.1f}%",
-                'status': status,
-                'usage': usage
+                'success': data['success'], 'fail': data['fail'],
+                'rate': f"{success_rate:.1f}%", 'status': status, 'usage': usage
             })
         return stats
 
     def clear_bad_proxies(self):
         self.bad_proxies.clear()
         print(f"{Fore.GREEN}✔ Список плохих прокси очищен{Style.RESET_ALL}")
-
 
 class UpdateManager:
     def __init__(self):
@@ -1525,8 +970,7 @@ class UpdateManager:
 
     async def check_for_updates(self, force=False):
         try:
-            if not force and not self.should_check_update():
-                return False
+            if not force and not self.should_check_update(): return False
             print(f"{Fore.CYAN}🔍 Проверка обновлений...{Style.RESET_ALL}")
             await add_to_log_buffer("🔍 Проверка обновлений...", "info")
             version_url = f"{GITHUB_RAW_BASE}/version.json"
@@ -1546,11 +990,9 @@ class UpdateManager:
                 await add_to_log_buffer(f"📦 Доступна новая версия: {remote_version}", "info")
                 if self.changelog:
                     print(f"\n{Fore.MAGENTA}Что нового:{Style.RESET_ALL}")
-                    for change in self.changelog:
-                        print(f"  {change}")
+                    for change in self.changelog: print(f"  {change}")
                 self.save_last_check()
-                if AUTO_UPDATE:
-                    return await self.perform_update(remote_data)
+                if AUTO_UPDATE: return await self.perform_update(remote_data)
                 return True
             else:
                 print(f"{Fore.GREEN}✅ У вас актуальная версия ({CURRENT_VERSION}){Style.RESET_ALL}")
@@ -1565,15 +1007,11 @@ class UpdateManager:
     def compare_versions(self, version1, version2):
         v1_parts = [int(x) for x in version1.split('.')]
         v2_parts = [int(x) for x in version2.split('.')]
-        while len(v1_parts) < len(v2_parts):
-            v1_parts.append(0)
-        while len(v2_parts) < len(v1_parts):
-            v2_parts.append(0)
+        while len(v1_parts) < len(v2_parts): v1_parts.append(0)
+        while len(v2_parts) < len(v1_parts): v2_parts.append(0)
         for i in range(len(v1_parts)):
-            if v1_parts[i] > v2_parts[i]:
-                return 1
-            elif v1_parts[i] < v2_parts[i]:
-                return -1
+            if v1_parts[i] > v2_parts[i]: return 1
+            elif v1_parts[i] < v2_parts[i]: return -1
         return 0
 
     def should_check_update(self):
@@ -1584,100 +1022,67 @@ class UpdateManager:
                     last_check = data.get('last_check', 0)
                     return time.time() - last_check > UPDATE_CHECK_INTERVAL
             return True
-        except:
-            return True
+        except: return True
 
     def save_last_check(self):
         try:
             with open(LAST_UPDATE_CHECK_FILE, 'w') as f:
                 json.dump({'last_check': time.time()}, f)
-        except:
-            pass
+        except: pass
 
     async def perform_update(self, remote_data):
         global CURRENT_VERSION
         try:
             print(f"\n{Fore.YELLOW}⚙️ Начинаю обновление до версии {self.new_version}...{Style.RESET_ALL}")
             await add_to_log_buffer(f"⚙️ Начинаю обновление до версии {self.new_version}...", "info")
-
-            # Создаем папку для бэкапов
             os.makedirs(self.backup_folder, exist_ok=True)
-
-            # Создаем бэкап текущего файла
             backup_name = f"backup_v{CURRENT_VERSION}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.py"
             backup_path = os.path.join(self.backup_folder, backup_name)
             current_file = __file__
-
-            # Читаем текущий файл
             with open(current_file, 'r', encoding='utf-8') as f:
                 current_content = f.read()
-
-            # Сохраняем бэкап
             with open(backup_path, 'w', encoding='utf-8') as f:
                 f.write(current_content)
-
             print(f"{Fore.GREEN}✅ Бэкап создан: {backup_path}{Style.RESET_ALL}")
             await add_to_log_buffer(f"✅ Бэкап создан: {backup_path}", "success")
-
-            # Скачиваем новый файл с GitHub
             script_url = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/{GITHUB_BRANCH}/LiteGamma%20Tools%20Full%20Version.py"
             expected_sha256 = remote_data.get('checksums', {}).get('sha256')
-
-            # ВАЖНО: Скачиваем с правильными заголовками
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
                 'Accept': 'application/vnd.github.v3.raw'
             }
             response = requests.get(script_url, timeout=30, headers=headers)
-
             if response.status_code == 200:
-                # Получаем содержимое
                 new_content = response.text
-
-                # Проверяем хеш если есть
                 if expected_sha256:
                     actual_sha256 = hashlib.sha256(new_content.encode('utf-8')).hexdigest()
                     if actual_sha256 != expected_sha256:
                         print(f"{Fore.RED}❌ Ошибка: хеш файла не совпадает!{Style.RESET_ALL}")
                         await add_to_log_buffer("❌ Ошибка: хеш файла не совпадает!", "error")
                         return False
-
-                # ВАЖНО: Нормализуем окончания строк для Windows
-                # Заменяем LF на CRLF для Windows
-                if os.name == 'nt':  # Если это Windows
+                if os.name == 'nt':
                     new_content = new_content.replace('\n', '\r\n')
-
-                # Обновляем версию в файле (аккуратно)
                 new_content = self.update_version_in_file_safe(new_content, self.new_version)
-
-                # Сохраняем новый файл
                 with open(current_file, 'w', encoding='utf-8', newline='') as f:
                     f.write(new_content)
-
                 CURRENT_VERSION = self.new_version
                 print(f"{Fore.GREEN}✅ Скрипт успешно обновлен до версии {self.new_version}!{Style.RESET_ALL}")
                 await add_to_log_buffer(f"✅ Скрипт успешно обновлен до версии {self.new_version}!", "success")
-
                 save_config()
-
                 if NOTIFY_ON_UPDATE and notification_enabled:
                     await send_notification(
                         f"🔄 **Программа обновлена!**\n\n📦 Новая версия: {self.new_version}\n📅 Дата: {remote_data.get('release_date', 'Неизвестно')}\n📝 Изменения:\n" +
                         "\n".join([f"  {c}" for c in self.changelog]), "update"
                     )
-
                 print(f"\n{Fore.YELLOW}⚠️ Для применения обновлений необходим перезапуск{Style.RESET_ALL}")
                 await add_to_log_buffer("⚠️ Для применения обновлений необходим перезапуск", "warning")
-
                 if input(f"{Fore.MAGENTA}Перезапустить сейчас? (y/n): {Style.RESET_ALL}").lower() == 'y':
                     self.restart_program()
-
                 return True
             else:
                 print(f"{Fore.RED}❌ Не удалось скачать обновление (статус: {response.status_code}){Style.RESET_ALL}")
                 await add_to_log_buffer("❌ Не удалось скачать обновление", "error")
                 return False
-
         except Exception as e:
             print(f"{Fore.RED}❌ Ошибка при обновлении: {e}{Style.RESET_ALL}")
             await add_to_log_buffer(f"❌ Ошибка при обновлении: {e}", "error")
@@ -1685,43 +1090,31 @@ class UpdateManager:
             return False
 
     def update_version_in_file_safe(self, content, new_version):
-        """Безопасно обновляет версию в файле без ломания форматирования"""
         import re
-
-        # Ищем разные варианты объявления версии
         patterns = [
             (r'(CURRENT_VERSION\s*=\s*["\'])([^"\']+)(["\'])', f'\\g<1>{new_version}\\g<3>'),
             (r'(CURRENT_VERSION\s*=\s*)([0-9.]+)', f'\\g<1>"{new_version}"'),
             (r'(__version__\s*=\s*["\'])([^"\']+)(["\'])', f'\\g<1>{new_version}\\g<3>'),
             (r'(VERSION\s*=\s*["\'])([^"\']+)(["\'])', f'\\g<1>{new_version}\\g<3>')
         ]
-
         updated_content = content
         for pattern, replacement in patterns:
             updated_content = re.sub(pattern, replacement, updated_content, flags=re.MULTILINE)
-
-        # Проверяем, что замена произошла
         if updated_content == content:
-            # Если не нашли, добавляем после импортов
             lines = updated_content.splitlines(True)
             import_end = 0
             for i, line in enumerate(lines):
                 if line.startswith('import ') or line.startswith('from '):
                     import_end = i + 1
-
-            version_line = f'CURRENT_VERSION = "4.1.0"\n'
+            version_line = f'CURRENT_VERSION = "2.7.0"\n'
             lines.insert(import_end, version_line)
             updated_content = ''.join(lines)
-
         return updated_content
 
     def verify_formatting(self, file_path):
-        """Проверяет, что файл имеет правильные окончания строк"""
         try:
             with open(file_path, 'rb') as f:
                 content = f.read()
-
-            # Проверяем наличие смешанных окончаний
             if b'\r\n' in content and b'\n' not in content.replace(b'\r\n', b''):
                 print(f"{Fore.GREEN}✅ Файл имеет правильные окончания строк (Windows){Style.RESET_ALL}")
             elif b'\n' in content and b'\r\n' not in content:
@@ -1733,29 +1126,6 @@ class UpdateManager:
         except Exception as e:
             print(f"{Fore.RED}✘ Ошибка проверки форматирования: {e}{Style.RESET_ALL}")
             return False
-
-    def normalize_line_endings(content):
-        """Нормализует окончания строк в зависимости от ОС"""
-        if os.name == 'nt':  # Windows
-            return content.replace('\n', '\r\n')
-        else:  # Linux/Mac
-            return content.replace('\r\n', '\n')
-
-    def update_version_in_file(self, content, new_version):
-        import re
-        patterns = [(r'CURRENT_VERSION\s*=\s*["\']([^"\']+)["\']', f'CURRENT_VERSION = "4.1.0"'),
-                    (r'CURRENT_VERSION\s*=\s*([0-9.]+)', f'CURRENT_VERSION = "4.1.0"'),
-                    (r'__version__\s*=\s*["\']([^"\']+)["\']', f'__version__ = "4.1.0"'),
-                    (r'VERSION\s*=\s*["\']([^"\']+)["\']', f'VERSION = "4.1.0"')]
-        updated_content = content
-        for pattern, replacement in patterns:
-            updated_content = re.sub(pattern, replacement, updated_content)
-        if updated_content == content:
-            version_line = f'\nCURRENT_VERSION = "4.1.0"\n'
-            import_end = updated_content.find('\n\n')
-            if import_end != -1:
-                updated_content = updated_content[:import_end] + version_line + updated_content[import_end:]
-        return updated_content
 
     def verify_version_in_file(self):
         try:
@@ -1784,8 +1154,7 @@ class UpdateManager:
             if self.update_available:
                 print(f"{CLR_WARN}Доступна новая версия: {self.new_version}{Style.RESET_ALL}")
                 print(f"\n{CLR_MAIN}📝 Что нового:")
-                for change in self.changelog:
-                    print(f"  {change}")
+                for change in self.changelog: print(f"  {change}")
             else:
                 print(f"{CLR_SUCCESS}✅ Обновлений не найдено{Style.RESET_ALL}")
             print(f"\n{CLR_INFO}1. 🔍 Проверить обновления")
@@ -1813,8 +1182,7 @@ class UpdateManager:
             elif choice == '6':
                 await self.diagnose_version()
                 input("\nНажмите Enter...")
-            elif choice == '0':
-                break
+            elif choice == '0': break
 
     async def diagnose_version(self):
         print(f"{Fore.CYAN}🔍 Диагностика версии:{Style.RESET_ALL}")
@@ -1827,23 +1195,19 @@ class UpdateManager:
                     config = json.load(f)
                     config_version = config.get('current_version', 'не найдено')
                     print(f"  Версия в config.json: {config_version}")
-        except:
-            print(f"  Версия в config.json: ошибка чтения")
+        except: print(f"  Версия в config.json: ошибка чтения")
         try:
             response = requests.get(f"{GITHUB_RAW_BASE}/version.json", timeout=5)
             if response.status_code == 200:
                 remote = response.json()
                 print(f"  Версия на GitHub: {remote.get('version', 'не найдено')}")
                 print(f"  Что нового: {remote.get('changelog', [])}")
-        except:
-            print(f"  Версия на GitHub: ошибка проверки")
+        except: print(f"  Версия на GitHub: ошибка проверки")
 
     def show_update_history(self):
         print(f"\n{Fore.CYAN}📋 История обновлений:{Style.RESET_ALL}")
         backups = sorted(Path(self.backup_folder).glob("backup_*.py"), reverse=True)
-        if not backups:
-            print("  Нет сохраненных бэкапов")
-            return
+        if not backups: print("  Нет сохраненных бэкапов"); return
         for i, backup in enumerate(backups[:10], 1):
             version_match = re.search(r'v([\d.]+)', backup.name)
             version = version_match.group(1) if version_match else "неизвестно"
@@ -1854,12 +1218,9 @@ class UpdateManager:
 
     def restore_from_backup(self):
         backups = sorted(Path(self.backup_folder).glob("backup_*.py"), reverse=True)
-        if not backups:
-            print(f"{Fore.RED}❌ Нет доступных бэкапов{Style.RESET_ALL}")
-            return
+        if not backups: print(f"{Fore.RED}❌ Нет доступных бэкапов{Style.RESET_ALL}"); return
         print(f"\n{Fore.CYAN}Доступные бэкапы:{Style.RESET_ALL}")
-        for i, backup in enumerate(backups[:10], 1):
-            print(f"  {i}. {backup.name}")
+        for i, backup in enumerate(backups[:10], 1): print(f"  {i}. {backup.name}")
         try:
             choice = int(input(f"\n{Fore.MAGENTA}Выберите номер бэкапа: {Style.RESET_ALL}")) - 1
             if 0 <= choice < len(backups):
@@ -1870,70 +1231,46 @@ class UpdateManager:
                 print(f"{Fore.GREEN}✅ Восстановлено из бэкапа!{Style.RESET_ALL}")
                 if input(f"{Fore.MAGENTA}Перезапустить сейчас? (y/n): {Style.RESET_ALL}").lower() == 'y':
                     self.restart_program()
-        except ValueError:
-            print(f"{Fore.RED}❌ Неверный выбор{Style.RESET_ALL}")
+        except ValueError: print(f"{Fore.RED}❌ Неверный выбор{Style.RESET_ALL}")
 
     def show_update_settings(self):
         global AUTO_UPDATE, NOTIFY_ON_UPDATE, UPDATE_CHECK_INTERVAL
         while True:
             os.system('cls' if os.name == 'nt' else 'clear')
             print_header("⚙️ НАСТРОЙКИ ОБНОВЛЕНИЙ")
-            print(
-                f"{CLR_INFO}1. Автоматическое обновление: {CLR_SUCCESS if AUTO_UPDATE else CLR_ERR}{'ВКЛ' if AUTO_UPDATE else 'ВЫКЛ'}")
-            print(
-                f"{CLR_INFO}2. Уведомления об обновлениях: {CLR_SUCCESS if NOTIFY_ON_UPDATE else CLR_ERR}{'ВКЛ' if NOTIFY_ON_UPDATE else 'ВЫКЛ'}")
+            print(f"{CLR_INFO}1. Автоматическое обновление: {CLR_SUCCESS if AUTO_UPDATE else CLR_ERR}{'ВКЛ' if AUTO_UPDATE else 'ВЫКЛ'}")
+            print(f"{CLR_INFO}2. Уведомления об обновлениях: {CLR_SUCCESS if NOTIFY_ON_UPDATE else CLR_ERR}{'ВКЛ' if NOTIFY_ON_UPDATE else 'ВЫКЛ'}")
             print(f"{CLR_INFO}3. Интервал проверки: {CLR_WARN}{UPDATE_CHECK_INTERVAL // 60} минут")
             print(f"{CLR_INFO}4. GitHub репозиторий: {CLR_WARN}{GITHUB_USER}/{GITHUB_REPO}")
             print(f"{CLR_ERR}0. 🔙 Назад")
             choice = input(f"\n{CLR_MAIN}Выберите пункт ➔ {RESET}").strip()
-            if choice == '1':
-                AUTO_UPDATE = not AUTO_UPDATE
-            elif choice == '2':
-                NOTIFY_ON_UPDATE = not NOTIFY_ON_UPDATE
+            if choice == '1': AUTO_UPDATE = not AUTO_UPDATE
+            elif choice == '2': NOTIFY_ON_UPDATE = not NOTIFY_ON_UPDATE
             elif choice == '3':
                 try:
                     new_interval = input(f"Интервал в минутах (текущий: {UPDATE_CHECK_INTERVAL // 60}): ")
                     UPDATE_CHECK_INTERVAL = int(new_interval) * 60
-                except:
-                    pass
-            elif choice == '0':
-                break
-
+                except: pass
+            elif choice == '0': break
 
 def cleanup_old_logs():
-    """Удаляет старые HTML файлы логов"""
     try:
         for file in Path('.').glob('logs_*.html'):
-            try:
-                os.remove(file)
-                print(f"{Fore.CYAN}🧹 Удален старый лог-файл: {file}{Style.RESET_ALL}")
-            except:
-                pass
-    except Exception as e:
-        print(f"{Fore.YELLOW}⚠️ Ошибка при очистке старых логов: {e}{Style.RESET_ALL}")
+            try: os.remove(file); print(f"{Fore.CYAN}🧹 Удален старый лог-файл: {file}{Style.RESET_ALL}")
+            except: pass
+    except Exception as e: print(f"{Fore.YELLOW}⚠️ Ошибка при очистке старых логов: {e}{Style.RESET_ALL}")
 
-
-# Инициализация глобальных менеджеров
 update_manager = UpdateManager()
 account_protector = AccountProtector()
 proxy_manager = ProxyManager()
 log_manager = LogManager()
 distribution_config = DistributionConfig()
 
-
 def print_header(text):
     print(f"\n{CLR_ACCENT}╔" + "═" * (len(text) + 2) + "╗")
     print(f"{CLR_ACCENT}║ {CLR_MAIN}{text}{CLR_ACCENT} ║")
     print(f"{CLR_ACCENT}╚" + "═" * (len(text) + 2) + "╝\n")
 
-
-def print_stata(text):
-    print(f"\n{CLR_ACCENT}╔" + "═" * (len(text) + 2) + "╗")
-    print(f"{CLR_ACCENT}║ {CLR_MAIN}{text}{CLR_ACCENT} ║")
-    print(f"{CLR_ACCENT}╚" + "═" * (len(text) + 2) + "╝\n")
-
-
-# =============== НАСТРОЙКИ ПО УМОЛЧАНИЮ ===============
 DEFAULT_API_ID = 0
 DEFAULT_API_HASH = "ЗАМЕНИТЕ НА ВАШ API HASH"
 DEFAULT_SESSION_FOLDER = "session"
@@ -1967,7 +1304,7 @@ DEFAULT_AUTO_SUBSCRIBE_WAIT_FOR_MENTION = 15
 DEFAULT_AUTO_SUBSCRIBE_PAUSE_BETWEEN_CHANNELS = 3
 DEFAULT_AUTO_SUBSCRIBE_FORCED_CHANNELS = []
 DEFAULT_AUTO_SUBSCRIBE_FIRST_CYCLE_ONLY = True
-DEFAULT_AUTO_SUBSCRIBE_CYCLES = 2  # Количество циклов проверки
+DEFAULT_AUTO_SUBSCRIBE_CYCLES = 2
 DEFAULT_USE_PROXY = False
 DEFAULT_PROXY_FILE = "proxy.txt"
 DEFAULT_PROXY_ROTATE_ON_FAIL = True
@@ -1979,7 +1316,6 @@ DEFAULT_ANTI_BAN_ENABLED = True
 DEFAULT_HUMAN_LIKE_DELAYS = True
 DEFAULT_RANDOM_PAUSE_ENABLED = True
 
-# =============== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ===============
 current_api_id = DEFAULT_API_ID
 current_api_hash = DEFAULT_API_HASH
 session_folder = DEFAULT_SESSION_FOLDER
@@ -2034,7 +1370,6 @@ notification_client = None
 log_buffer = []
 log_buffer_lock = asyncio.Lock()
 
-
 def clear_failed_subscriptions_file():
     try:
         if os.path.exists(failed_subscriptions_file):
@@ -2043,9 +1378,7 @@ def clear_failed_subscriptions_file():
             asyncio.create_task(log_manager.add_log(f"✔ Файл '{failed_subscriptions_file}' очищен", "success"))
     except Exception as e:
         print(f"{Fore.YELLOW}⚠️ Не удалось очистить файл '{failed_subscriptions_file}': {e}{Style.RESET_ALL}")
-        asyncio.create_task(
-            log_manager.add_log(f"⚠️ Не удалось очистить файл '{failed_subscriptions_file}': {e}", "warning"))
-
+        asyncio.create_task(log_manager.add_log(f"⚠️ Не удалось очистить файл '{failed_subscriptions_file}': {e}", "warning"))
 
 def log_failed_subscription(session_name, channel_link, reason):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -2053,8 +1386,7 @@ def log_failed_subscription(session_name, channel_link, reason):
         if os.path.exists(failed_subscriptions_file):
             with open(failed_subscriptions_file, 'r', encoding='utf-8') as f:
                 existing = f.read()
-                if channel_link in existing and session_name in existing:
-                    return
+                if channel_link in existing and session_name in existing: return
         with open(failed_subscriptions_file, 'a', encoding='utf-8') as f:
             f.write(f"[{timestamp}] {session_name} | {channel_link} | {reason}\n")
         asyncio.create_task(log_manager.add_log(f"❌ {session_name} | {channel_link} | {reason}", "error"))
@@ -2062,16 +1394,13 @@ def log_failed_subscription(session_name, channel_link, reason):
         print(f"{Fore.RED}✘ Ошибка записи в файл неудачных подписок: {e}{Style.RESET_ALL}")
         asyncio.create_task(log_manager.add_log(f"✘ Ошибка записи в файл неудачных подписок: {e}", "error"))
 
-
 async def init_notification_client():
     global notification_client
     if notification_enabled and notification_bot_token and notification_chat_id:
         try:
-            if notification_client:
-                await notification_client.disconnect()
+            if notification_client: await notification_client.disconnect()
             proxy = proxy_manager.get_best_proxy() if use_proxy and proxy_manager.has_proxies() else None
-            notification_client = TelegramClient('notification_bot_session', api_id=current_api_id,
-                                                 api_hash=current_api_hash, proxy=proxy)
+            notification_client = TelegramClient('notification_bot_session', api_id=current_api_id, api_hash=current_api_hash, proxy=proxy)
             await notification_client.start(bot_token=notification_bot_token)
             me = await notification_client.get_me()
             print(f"{Fore.GREEN}✔ Бот для уведомлений инициализирован: @{me.username}{Style.RESET_ALL}")
@@ -2085,7 +1414,6 @@ async def init_notification_client():
             return False
     return False
 
-
 async def close_notification_client():
     global notification_client
     if notification_client:
@@ -2094,60 +1422,46 @@ async def close_notification_client():
         print(f"{Fore.CYAN}📱 Клиент уведомлений закрыт{Style.RESET_ALL}")
         await log_manager.add_log("📱 Клиент уведомлений закрыт", "info")
 
-
 async def add_to_log_buffer(message, category="info"):
     global log_buffer
     async with log_buffer_lock:
         timestamp = datetime.now().strftime("%H:%M:%S")
         log_buffer.append(f"[{timestamp}] {message}")
-        if len(log_buffer) > 2000:
-            log_buffer = log_buffer[-2000:]
+        if len(log_buffer) > 2000: log_buffer = log_buffer[-2000:]
     await log_manager.add_log(message, category)
 
-
 async def save_logs_to_file():
-    if not log_buffer:
-        return None
+    if not log_buffer: return None
     async with log_buffer_lock:
         try:
             fd, temp_path = tempfile.mkstemp(suffix='.txt', prefix='telegram_log_', text=True)
             with os.fdopen(fd, 'w', encoding='utf-8') as f:
                 f.write(f"Лог рассылки от {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
                 f.write("=" * 50 + "\n\n")
-                for line in log_buffer:
-                    f.write(line + "\n")
+                for line in log_buffer: f.write(line + "\n")
             return temp_path
         except Exception as e:
             print(f"{Fore.RED}✘ Ошибка сохранения логов в файл: {e}{Style.RESET_ALL}")
             await log_manager.add_log(f"✘ Ошибка сохранения логов в файл: {e}", "error")
             return None
 
-
 async def send_notification(message, notification_type="info"):
-    if not notification_enabled or not notification_client or not notification_chat_id:
-        return
-    if notification_type == "invalid_session" and not notify_invalid_session:
-        return
-    if notification_type == "cycle_result" and not notify_cycle_results:
-        return
-    if notification_type == "full_log" and not notify_full_logs:
-        return
+    if not notification_enabled or not notification_client or not notification_chat_id: return
+    if notification_type == "invalid_session" and not notify_invalid_session: return
+    if notification_type == "cycle_result" and not notify_cycle_results: return
+    if notification_type == "full_log" and not notify_full_logs: return
     try:
         if notification_type == "full_log" and log_buffer:
             log_file_path = await save_logs_to_file()
             if log_file_path and os.path.exists(log_file_path):
                 await notification_client.send_file(int(notification_chat_id), log_file_path,
-                                                    caption=f"📋 **Полный лог рассылки**\nВремя: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\nВсего записей: {len(log_buffer)}")
-                try:
-                    os.unlink(log_file_path)
-                except:
-                    pass
+                    caption=f"📋 **Полный лог рассылки**\nВремя: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\nВсего записей: {len(log_buffer)}")
+                try: os.unlink(log_file_path)
+                except: pass
             else:
                 full_log = "\n".join(log_buffer[-50:])
-                if len(full_log) > 3500:
-                    full_log = full_log[-3500:]
-                await notification_client.send_message(int(notification_chat_id),
-                                                       f"📋 **Полный лог (последние 50 строк)**\n\n{full_log}")
+                if len(full_log) > 3500: full_log = full_log[-3500:]
+                await notification_client.send_message(int(notification_chat_id), f"📋 **Полный лог (последние 50 строк)**\n\n{full_log}")
         else:
             await notification_client.send_message(int(notification_chat_id), message)
         print(f"{Fore.GREEN}📱 Уведомление отправлено ({notification_type}){Style.RESET_ALL}")
@@ -2156,33 +1470,33 @@ async def send_notification(message, notification_type="info"):
         print(f"{Fore.RED}✘ Ошибка отправки уведомления: {e}{Style.RESET_ALL}")
         await log_manager.add_log(f"✘ Ошибка отправки уведомления: {e}", "error")
 
-
 def save_config():
-    config = {"api_id": current_api_id, "api_hash": current_api_hash, "session_folder": session_folder,
-              "message": message_to_send, "delay_messages": delay_between_messages,
-              "delay_accounts": delay_between_accounts, "max_messages_per_account": max_messages_per_account,
-              "repeat_broadcast": repeat_broadcast, "repeat_interval": repeat_interval,
-              "delete_after_send": delete_after_send, "recipient_type": recipient_type, "use_media": use_media,
-              "media_path": media_path, "fast_mode": fast_mode, "fast_delay": fast_delay,
-              "use_forward": use_forward, "forward_link": forward_link,
-              "notification_enabled": notification_enabled, "notification_bot_token": notification_bot_token,
-              "notification_chat_id": notification_chat_id, "notify_invalid_session": notify_invalid_session,
-              "notify_cycle_results": notify_cycle_results, "notify_full_logs": notify_full_logs,
-              "auto_subscribe_enabled": auto_subscribe_enabled, "auto_subscribe_on_mention": auto_subscribe_on_mention,
-              "auto_subscribe_delay": auto_subscribe_delay,
-              "auto_subscribe_max_flood_wait": auto_subscribe_max_flood_wait,
-              "auto_subscribe_retry_after_flood": auto_subscribe_retry_after_flood,
-              "auto_subscribe_check_interval": auto_subscribe_check_interval,
-              "auto_subscribe_wait_for_mention": auto_subscribe_wait_for_mention,
-              "auto_subscribe_pause_between_channels": auto_subscribe_pause_between_channels,
-              "auto_subscribe_forced_channels": auto_subscribe_forced_channels,
-              "auto_subscribe_first_cycle_only": auto_subscribe_first_cycle_only,
-              "auto_subscribe_cycles": auto_subscribe_cycles, "use_proxy": use_proxy,
-              "proxy_file": proxy_file, "proxy_rotate_on_fail": proxy_rotate_on_fail,
-              "proxy_max_retries": proxy_max_retries, "safe_mode": safe_mode, "max_daily_messages": max_daily_messages,
-              "max_daily_joins": max_daily_joins, "anti_ban_enabled": anti_ban_enabled,
-              "human_like_delays": human_like_delays, "random_pause_enabled": random_pause_enabled,
-              "current_version": CURRENT_VERSION}
+    config = {
+        "api_id": current_api_id, "api_hash": current_api_hash, "session_folder": session_folder,
+        "message": message_to_send, "delay_messages": delay_between_messages,
+        "delay_accounts": delay_between_accounts, "max_messages_per_account": max_messages_per_account,
+        "repeat_broadcast": repeat_broadcast, "repeat_interval": repeat_interval,
+        "delete_after_send": delete_after_send, "recipient_type": recipient_type, "use_media": use_media,
+        "media_path": media_path, "fast_mode": fast_mode, "fast_delay": fast_delay,
+        "use_forward": use_forward, "forward_link": forward_link,
+        "notification_enabled": notification_enabled, "notification_bot_token": notification_bot_token,
+        "notification_chat_id": notification_chat_id, "notify_invalid_session": notify_invalid_session,
+        "notify_cycle_results": notify_cycle_results, "notify_full_logs": notify_full_logs,
+        "auto_subscribe_enabled": auto_subscribe_enabled, "auto_subscribe_on_mention": auto_subscribe_on_mention,
+        "auto_subscribe_delay": auto_subscribe_delay, "auto_subscribe_max_flood_wait": auto_subscribe_max_flood_wait,
+        "auto_subscribe_retry_after_flood": auto_subscribe_retry_after_flood,
+        "auto_subscribe_check_interval": auto_subscribe_check_interval,
+        "auto_subscribe_wait_for_mention": auto_subscribe_wait_for_mention,
+        "auto_subscribe_pause_between_channels": auto_subscribe_pause_between_channels,
+        "auto_subscribe_forced_channels": auto_subscribe_forced_channels,
+        "auto_subscribe_first_cycle_only": auto_subscribe_first_cycle_only,
+        "auto_subscribe_cycles": auto_subscribe_cycles, "use_proxy": use_proxy,
+        "proxy_file": proxy_file, "proxy_rotate_on_fail": proxy_rotate_on_fail,
+        "proxy_max_retries": proxy_max_retries, "safe_mode": safe_mode, "max_daily_messages": max_daily_messages,
+        "max_daily_joins": max_daily_joins, "anti_ban_enabled": anti_ban_enabled,
+        "human_like_delays": human_like_delays, "random_pause_enabled": random_pause_enabled,
+        "current_version": CURRENT_VERSION
+    }
     try:
         with open(config_file, 'w', encoding='utf-8') as f:
             json.dump(config, f, ensure_ascii=False, indent=2)
@@ -2191,7 +1505,6 @@ def save_config():
     except Exception as e:
         print(f"{Fore.RED}✘ Ошибка сохранения: {e}{Style.RESET_ALL}")
         asyncio.create_task(log_manager.add_log(f"✘ Ошибка сохранения: {e}", "error"))
-
 
 def load_config():
     global current_api_id, current_api_hash, session_folder, message_to_send, delay_between_messages, delay_between_accounts, max_messages_per_account, repeat_broadcast, repeat_interval, delete_after_send, recipient_type, use_media, media_path, fast_mode, fast_delay, use_forward, forward_link, notification_enabled, notification_bot_token, notification_chat_id, notify_invalid_session, notify_cycle_results, notify_full_logs, CURRENT_VERSION
@@ -2227,20 +1540,13 @@ def load_config():
                 auto_subscribe_enabled = config.get("auto_subscribe_enabled", DEFAULT_AUTO_SUBSCRIBE_ENABLED)
                 auto_subscribe_on_mention = config.get("auto_subscribe_on_mention", DEFAULT_AUTO_SUBSCRIBE_ON_MENTION)
                 auto_subscribe_delay = config.get("auto_subscribe_delay", DEFAULT_AUTO_SUBSCRIBE_DELAY)
-                auto_subscribe_max_flood_wait = config.get("auto_subscribe_max_flood_wait",
-                                                           DEFAULT_AUTO_SUBSCRIBE_MAX_FLOOD_WAIT)
-                auto_subscribe_retry_after_flood = config.get("auto_subscribe_retry_after_flood",
-                                                              DEFAULT_AUTO_SUBSCRIBE_RETRY_AFTER_FLOOD)
-                auto_subscribe_check_interval = config.get("auto_subscribe_check_interval",
-                                                           DEFAULT_AUTO_SUBSCRIBE_CHECK_INTERVAL)
-                auto_subscribe_wait_for_mention = config.get("auto_subscribe_wait_for_mention",
-                                                             DEFAULT_AUTO_SUBSCRIBE_WAIT_FOR_MENTION)
-                auto_subscribe_pause_between_channels = config.get("auto_subscribe_pause_between_channels",
-                                                                   DEFAULT_AUTO_SUBSCRIBE_PAUSE_BETWEEN_CHANNELS)
-                auto_subscribe_forced_channels = config.get("auto_subscribe_forced_channels",
-                                                            DEFAULT_AUTO_SUBSCRIBE_FORCED_CHANNELS)
-                auto_subscribe_first_cycle_only = config.get("auto_subscribe_first_cycle_only",
-                                                             DEFAULT_AUTO_SUBSCRIBE_FIRST_CYCLE_ONLY)
+                auto_subscribe_max_flood_wait = config.get("auto_subscribe_max_flood_wait", DEFAULT_AUTO_SUBSCRIBE_MAX_FLOOD_WAIT)
+                auto_subscribe_retry_after_flood = config.get("auto_subscribe_retry_after_flood", DEFAULT_AUTO_SUBSCRIBE_RETRY_AFTER_FLOOD)
+                auto_subscribe_check_interval = config.get("auto_subscribe_check_interval", DEFAULT_AUTO_SUBSCRIBE_CHECK_INTERVAL)
+                auto_subscribe_wait_for_mention = config.get("auto_subscribe_wait_for_mention", DEFAULT_AUTO_SUBSCRIBE_WAIT_FOR_MENTION)
+                auto_subscribe_pause_between_channels = config.get("auto_subscribe_pause_between_channels", DEFAULT_AUTO_SUBSCRIBE_PAUSE_BETWEEN_CHANNELS)
+                auto_subscribe_forced_channels = config.get("auto_subscribe_forced_channels", DEFAULT_AUTO_SUBSCRIBE_FORCED_CHANNELS)
+                auto_subscribe_first_cycle_only = config.get("auto_subscribe_first_cycle_only", DEFAULT_AUTO_SUBSCRIBE_FIRST_CYCLE_ONLY)
                 auto_subscribe_cycles = config.get("auto_subscribe_cycles", DEFAULT_AUTO_SUBSCRIBE_CYCLES)
                 use_proxy = config.get("use_proxy", DEFAULT_USE_PROXY)
                 proxy_file = config.get("proxy_file", DEFAULT_PROXY_FILE)
@@ -2259,7 +1565,6 @@ def load_config():
         print(f"{Fore.YELLOW}⚠️ Ошибка загрузки конфигурации: {e}{Style.RESET_ALL}")
         asyncio.create_task(log_manager.add_log(f"⚠️ Ошибка загрузки конфигурации: {e}", "warning"))
 
-
 def log_invalid_session(session_file):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     log_entry = f"{session_file} не рабочая ({timestamp})"
@@ -2267,19 +1572,15 @@ def log_invalid_session(session_file):
         with open(invalid_session_log_file, 'a', encoding='utf-8') as f:
             f.write(log_entry + "\n")
         print(f"{Fore.CYAN}✉ Сессия '{session_file}' добавлена в '{invalid_session_log_file}'{Style.RESET_ALL}")
-        asyncio.create_task(
-            log_manager.add_log(f"✉ Сессия '{session_file}' добавлена в '{invalid_session_log_file}'", "warning"))
-        asyncio.create_task(
-            send_notification(f"⚠️ Невалидная сессия: {session_file}\nВремя: {timestamp}", "invalid_session"))
+        asyncio.create_task(log_manager.add_log(f"✉ Сессия '{session_file}' добавлена в '{invalid_session_log_file}'", "warning"))
+        asyncio.create_task(send_notification(f"⚠️ Невалидная сессия: {session_file}\nВремя: {timestamp}", "invalid_session"))
     except Exception as e:
         print(f"{Fore.RED}✘ Ошибка записи в лог '{invalid_session_log_file}': {e}{Style.RESET_ALL}")
         asyncio.create_task(log_manager.add_log(f"✘ Ошибка записи в лог '{invalid_session_log_file}': {e}", "error"))
 
-
 def extract_links_from_text(text):
     url_pattern = r'https?://[^\s<>"]+|www\.[^\s<>"]+'
     return re.findall(url_pattern, text)
-
 
 def load_target_groups(filename=group_list_file):
     target_groups = []
@@ -2290,8 +1591,7 @@ def load_target_groups(filename=group_list_file):
     try:
         with open(filename, 'r', encoding='utf-8') as f:
             data = json.load(f)
-            if isinstance(data, list):
-                target_groups = data
+            if isinstance(data, list): target_groups = data
             else:
                 print(f"{Fore.RED}✘ Файл '{filename}' должен содержать JSON-массив.{Style.RESET_ALL}")
                 asyncio.create_task(log_manager.add_log(f"✘ Файл '{filename}' должен содержать JSON-массив", "error"))
@@ -2309,10 +1609,8 @@ def load_target_groups(filename=group_list_file):
         asyncio.create_task(log_manager.add_log(f"⚠️ Файл '{filename}' пуст", "warning"))
         return []
     print(f"{Fore.GREEN}✔ Успешно загружено {len(target_groups)} целей из '{filename}'.{Style.RESET_ALL}")
-    asyncio.create_task(
-        log_manager.add_log(f"✔ Успешно загружено {len(target_groups)} целей из '{filename}'", "success"))
+    asyncio.create_task(log_manager.add_log(f"✔ Успешно загружено {len(target_groups)} целей из '{filename}'", "success"))
     return target_groups
-
 
 def load_enter_links(filename=enter_links_file):
     enter_links = []
@@ -2323,8 +1621,7 @@ def load_enter_links(filename=enter_links_file):
     try:
         with open(filename, 'r', encoding='utf-8') as f:
             data = json.load(f)
-            if isinstance(data, list):
-                enter_links = data
+            if isinstance(data, list): enter_links = data
             else:
                 print(f"{Fore.RED}✘ Файл '{filename}' должен содержать JSON-массив.{Style.RESET_ALL}")
                 asyncio.create_task(log_manager.add_log(f"✘ Файл '{filename}' должен содержать JSON-массив", "error"))
@@ -2342,71 +1639,37 @@ def load_enter_links(filename=enter_links_file):
         asyncio.create_task(log_manager.add_log(f"⚠️ Файл '{filename}' пуст", "warning"))
         return []
     print(f"{Fore.GREEN}✔ Успешно загружено {len(enter_links)} ссылок для входа из '{filename}'.{Style.RESET_ALL}")
-    asyncio.create_task(
-        log_manager.add_log(f"✔ Успешно загружено {len(enter_links)} ссылок для входа из '{filename}'", "success"))
+    asyncio.create_task(log_manager.add_log(f"✔ Успешно загружено {len(enter_links)} ссылок для входа из '{filename}'", "success"))
     return enter_links
 
-
 def format_time(seconds):
-    if seconds < 60:
-        return f"{seconds} сек"
-    elif seconds < 3600:
-        minutes = seconds // 60
-        seconds_remain = seconds % 60
-        return f"{minutes} мин {seconds_remain} сек"
-    else:
-        hours = seconds // 3600
-        minutes = (seconds % 3600) // 60
-        return f"{hours} ч {minutes} мин"
-
+    if seconds < 60: return f"{seconds} сек"
+    elif seconds < 3600: return f"{seconds // 60} мин {seconds % 60} сек"
+    else: return f"{seconds // 3600} ч {(seconds % 3600) // 60} мин"
 
 def extract_invite_hash(invite_link):
-    if '/joinchat/' in invite_link:
-        return invite_link.split('/joinchat/')[-1]
-    elif '/+' in invite_link:
-        return invite_link.split('/+')[-1]
-    elif 't.me/+' in invite_link:
-        return invite_link.split('t.me/+')[-1]
+    if '/joinchat/' in invite_link: return invite_link.split('/joinchat/')[-1]
+    elif '/+' in invite_link: return invite_link.split('/+')[-1]
+    elif 't.me/+' in invite_link: return invite_link.split('t.me/+')[-1]
     return None
 
-
-# =============== ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ СООБЩЕНИЯ ПО ССЫЛКЕ ===============
 async def get_message_from_link(client, link, session_name=""):
-    """
-    Получает сообщение из Telegram по ссылке вида https://t.me/username/123
-    Возвращает (сообщение, ошибка)
-    """
     try:
-        # Проверка формата ссылки
-        if 't.me/' not in link:
-            return None, "Неверный формат ссылки. Должно быть: https://t.me/username/123"
-
-        # Разбираем ссылку
+        if 't.me/' not in link: return None, "Неверный формат ссылки. Должно быть: https://t.me/username/123"
         path = link.split('t.me/')[-1]
         parts = path.split('/')
-
-        if len(parts) < 2:
-            return None, "Ссылка должна содержать username и ID сообщения. Пример: https://t.me/username/123"
-
+        if len(parts) < 2: return None, "Ссылка должна содержать username и ID сообщения. Пример: https://t.me/username/123"
         username = parts[0]
-        message_id_str = parts[1].split('?')[0]  # Отсекаем GET параметры если есть
-
-        try:
-            message_id = int(message_id_str)
-        except ValueError:
-            return None, f"ID сообщения должен быть числом, получено: {message_id_str}"
-
-        # Получаем сущность (чат/канал)
+        message_id_str = parts[1].split('?')[0]
+        try: message_id = int(message_id_str)
+        except ValueError: return None, f"ID сообщения должен быть числом, получено: {message_id_str}"
         try:
             entity = await client.get_entity(username)
             chat_title = getattr(entity, 'title', username)
             log_msg = f"📎 [{session_name}] Найден чат: {chat_title}"
             print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg, "info")
-        except Exception as e:
-            return None, f"Не удалось найти чат/канал '{username}': {e}"
-
-        # Получаем сообщение по ID
+        except Exception as e: return None, f"Не удалось найти чат/канал '{username}': {e}"
         try:
             messages = await client.get_messages(entity, ids=message_id)
             if messages:
@@ -2414,16 +1677,10 @@ async def get_message_from_link(client, link, session_name=""):
                 print(f"{Fore.GREEN}{log_msg}{Style.RESET_ALL}")
                 await add_to_log_buffer(log_msg, "success")
                 return messages, None
-            else:
-                return None, f"Сообщение с ID {message_id} не найдено в чате {username}"
-        except MessageIdInvalidError:
-            return None, f"Сообщение с ID {message_id} не существует или недоступно"
-        except Exception as e:
-            return None, f"Ошибка при получении сообщения: {e}"
-
-    except Exception as e:
-        return None, f"Ошибка при обработке ссылки: {e}"
-
+            else: return None, f"Сообщение с ID {message_id} не найдено в чате {username}"
+        except MessageIdInvalidError: return None, f"Сообщение с ID {message_id} не существует или недоступно"
+        except Exception as e: return None, f"Ошибка при получении сообщения: {e}"
+    except Exception as e: return None, f"Ошибка при обработке ссылки: {e}"
 
 async def human_like_pause(base_delay, session_name=""):
     if human_like_delays:
@@ -2438,7 +1695,6 @@ async def human_like_pause(base_delay, session_name=""):
         return delay
     return base_delay
 
-
 async def handle_flood_wait(e, operation_name="операция", session_name=""):
     global flood_wait_occurred, total_flood_time
     wait_seconds = e.seconds
@@ -2447,43 +1703,32 @@ async def handle_flood_wait(e, operation_name="операция", session_name="
     current_time = datetime.now()
     end_time = current_time + timedelta(seconds=wait_seconds)
     log_msg = f"\n{'=' * 60}"
-    print(log_msg)
-    await add_to_log_buffer(log_msg, "flood")
+    print(log_msg); await add_to_log_buffer(log_msg, "flood")
     log_msg = f"🚫 [{session_name}] ОБНАРУЖЕН ФЛУД-КОНТРОЛЬ!"
-    print(log_msg)
-    await add_to_log_buffer(log_msg, "flood")
+    print(log_msg); await add_to_log_buffer(log_msg, "flood")
     log_msg = f"{'=' * 60}"
-    print(log_msg)
-    await add_to_log_buffer(log_msg, "flood")
+    print(log_msg); await add_to_log_buffer(log_msg, "flood")
     log_msg = f"📌 Операция: {operation_name}"
-    print(log_msg)
-    await add_to_log_buffer(log_msg, "flood")
+    print(log_msg); await add_to_log_buffer(log_msg, "flood")
     log_msg = f"⏱️ Время ожидания: {format_time(wait_seconds)}"
-    print(log_msg)
-    await add_to_log_buffer(log_msg, "flood")
+    print(log_msg); await add_to_log_buffer(log_msg, "flood")
     log_msg = f"🕐 Начало: {current_time.strftime('%H:%M:%S')}"
-    print(log_msg)
-    await add_to_log_buffer(log_msg, "flood")
+    print(log_msg); await add_to_log_buffer(log_msg, "flood")
     log_msg = f"🕐 Окончание: {end_time.strftime('%H:%M:%S')}"
-    print(log_msg)
-    await add_to_log_buffer(log_msg, "flood")
+    print(log_msg); await add_to_log_buffer(log_msg, "flood")
     if wait_seconds > auto_subscribe_max_flood_wait:
         log_msg = f"⚠️ Внимание! Время ожидания превышает лимит в {format_time(auto_subscribe_max_flood_wait)}"
-        print(log_msg)
-        await add_to_log_buffer(log_msg, "warning")
+        print(log_msg); await add_to_log_buffer(log_msg, "warning")
         log_msg = f"❌ Пропускаем эту операцию"
-        print(log_msg)
-        await add_to_log_buffer(log_msg, "error")
+        print(log_msg); await add_to_log_buffer(log_msg, "error")
         return False
     log_msg = f"\n⏳ Ожидание... (проверка каждые {auto_subscribe_check_interval} сек)"
-    print(log_msg)
-    await add_to_log_buffer(log_msg, "flood")
+    print(log_msg); await add_to_log_buffer(log_msg, "flood")
     elapsed = 0
     while elapsed < wait_seconds:
         if stop_event.is_set():
             log_msg = f"\n{Fore.YELLOW}🛑 Остановлено пользователем во время ожидания{Style.RESET_ALL}"
-            print(log_msg)
-            await add_to_log_buffer(log_msg, "warning")
+            print(log_msg); await add_to_log_buffer(log_msg, "warning")
             return False
         await asyncio.sleep(min(auto_subscribe_check_interval, wait_seconds - elapsed))
         elapsed += auto_subscribe_check_interval
@@ -2491,44 +1736,35 @@ async def handle_flood_wait(e, operation_name="операция", session_name="
         if remaining > 0:
             progress = (elapsed / wait_seconds) * 100
             log_msg = f"   Прогресс: {progress:.1f}% | Осталось: {format_time(remaining)}"
-            print(log_msg)
-            await add_to_log_buffer(log_msg, "flood")
+            print(log_msg); await add_to_log_buffer(log_msg, "flood")
     log_msg = f"✅ Ожидание завершено! Продолжаем..."
-    print(log_msg)
-    await add_to_log_buffer(log_msg, "success")
+    print(log_msg); await add_to_log_buffer(log_msg, "success")
     log_msg = f"{'=' * 60}\n"
-    print(log_msg)
-    await add_to_log_buffer(log_msg, "flood")
+    print(log_msg); await add_to_log_buffer(log_msg, "flood")
     return True
-
 
 async def extract_channels_from_entities(message):
     channels = []
-    if not message.entities:
-        return channels
+    if not message.entities: return channels
     for entity in message.entities:
         if isinstance(entity, MessageEntityTextUrl) and entity.url:
             if any(pattern in entity.url for pattern in ['t.me', 'telegram.me']):
                 channels.append(entity.url)
                 log_msg = f"🔗 Найдена ссылка в entity: {entity.url}"
-                print(log_msg)
-                await add_to_log_buffer(log_msg, "info")
+                print(log_msg); await add_to_log_buffer(log_msg, "info")
         elif isinstance(entity, MessageEntityUrl):
             url = message.text[entity.offset:entity.offset + entity.length]
             if any(pattern in url for pattern in ['t.me', 'telegram.me']):
                 channels.append(url)
                 log_msg = f"🔗 Найден URL в entity: {url}"
-                print(log_msg)
-                await add_to_log_buffer(log_msg, "info")
+                print(log_msg); await add_to_log_buffer(log_msg, "info")
         elif isinstance(entity, MessageEntityMention):
             mention = message.text[entity.offset:entity.offset + entity.length]
             if mention.startswith('@'):
                 channels.append(mention)
                 log_msg = f"🔗 Найдено упоминание: {mention}"
-                print(log_msg)
-                await add_to_log_buffer(log_msg, "info")
+                print(log_msg); await add_to_log_buffer(log_msg, "info")
     return channels
-
 
 async def extract_channels_from_buttons(client, message):
     channels = []
@@ -2540,28 +1776,21 @@ async def extract_channels_from_buttons(client, message):
                         if any(pattern in button.url for pattern in ['t.me', 'telegram.me']):
                             channels.append(button.url)
                             log_msg = f"🔘 Найдена кнопка-ссылка: {button.url}"
-                            print(log_msg)
-                            await add_to_log_buffer(log_msg, "info")
+                            print(log_msg); await add_to_log_buffer(log_msg, "info")
     except Exception as e:
         log_msg = f"⚠️ Ошибка при анализе кнопок: {e}"
-        print(log_msg)
-        await add_to_log_buffer(log_msg, "warning")
+        print(log_msg); await add_to_log_buffer(log_msg, "warning")
     return channels
-
 
 async def find_channels_in_message(client, message):
     channels = []
     log_msg = "\n🔍 АНАЛИЗИРУЕМ СООБЩЕНИЕ НА НАЛИЧИЕ КАНАЛОВ..."
     print(f"{Fore.MAGENTA}{log_msg}{Style.RESET_ALL}")
     await add_to_log_buffer(log_msg, "info")
-
-    # Проверяем текст сообщения
     if message.text:
         log_msg = f"📝 Текст сообщения:\n{message.text[:200]}..."
         print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
         await add_to_log_buffer(log_msg, "info")
-
-    # Ищем каналы в entities
     entity_channels = await extract_channels_from_entities(message)
     if entity_channels:
         log_msg = f"🔗 Найдено каналов в entities: {len(entity_channels)}"
@@ -2572,8 +1801,6 @@ async def find_channels_in_message(client, message):
             print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg, "info")
     channels.extend(entity_channels)
-
-    # Ищем каналы в кнопках
     button_channels = await extract_channels_from_buttons(client, message)
     if button_channels:
         log_msg = f"🔘 Найдено каналов в кнопках: {len(button_channels)}"
@@ -2584,51 +1811,34 @@ async def find_channels_in_message(client, message):
             print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg, "info")
     channels.extend(button_channels)
-
-    # Ищем каналы по паттернам в тексте
     text = message.text or ''
     for pattern in CHANNEL_PATTERNS:
         matches = re.findall(pattern, text, re.IGNORECASE)
         for match in matches:
-            if isinstance(match, tuple):
-                match = next((m for m in match if m), None)
+            if isinstance(match, tuple): match = next((m for m in match if m), None)
             if match and len(match) > 3:
-                if pattern == r'@(\w+)':
-                    channel = f"@{match}"
-                elif 'joinchat' in pattern or '+' in pattern:
-                    channel = f"https://t.me/joinchat/{match}"
-                else:
-                    channel = f"https://t.me/{match}"
+                if pattern == r'@(\w+)': channel = f"@{match}"
+                elif 'joinchat' in pattern or '+' in pattern: channel = f"https://t.me/joinchat/{match}"
+                else: channel = f"https://t.me/{match}"
                 channels.append(channel)
-
-    # Добавляем принудительные каналы
     if auto_subscribe_forced_channels:
         channels.extend(auto_subscribe_forced_channels)
         log_msg = f"📋 Добавлено принудительных каналов: {len(auto_subscribe_forced_channels)}"
         print(f"{Fore.MAGENTA}{log_msg}{Style.RESET_ALL}")
         await add_to_log_buffer(log_msg, "info")
-
-    # Убираем дубликаты
     unique_channels = []
     seen = set()
     for channel in channels:
-        if 't.me/+' in channel or 'joinchat' in channel:
-            normalized = channel
-        elif channel.startswith('@'):
-            normalized = channel
-        elif 't.me' in channel:
-            normalized = channel
-        else:
-            normalized = f"@{channel}" if not channel.startswith(('http', '@')) else channel
-
+        if 't.me/+' in channel or 'joinchat' in channel: normalized = channel
+        elif channel.startswith('@'): normalized = channel
+        elif 't.me' in channel: normalized = channel
+        else: normalized = f"@{channel}" if not channel.startswith(('http', '@')) else channel
         if normalized not in seen and normalized:
             seen.add(normalized)
             unique_channels.append(normalized)
-
     log_msg = f"\n📊 ИТОГО НАЙДЕНО УНИКАЛЬНЫХ КАНАЛОВ: {len(unique_channels)}"
     print(f"{Fore.MAGENTA}{log_msg}{Style.RESET_ALL}")
     await add_to_log_buffer(log_msg, "info")
-
     if unique_channels:
         for i, ch in enumerate(unique_channels, 1):
             log_msg = f"  {i}. {ch}"
@@ -2638,76 +1848,62 @@ async def find_channels_in_message(client, message):
         log_msg = "  ❌ Каналы не найдены!"
         print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
         await add_to_log_buffer(log_msg, "error")
-
     return unique_channels
-
 
 async def join_invite_link(client, invite_link, session_name=""):
     try:
         invite_hash = extract_invite_hash(invite_link)
         if not invite_hash:
             log_msg = f"❌ [{session_name}] Не удалось извлечь хеш из ссылки: {invite_link}"
-            print(log_msg)
-            await add_to_log_buffer(log_msg, "error")
+            print(log_msg); await add_to_log_buffer(log_msg, "error")
             return False, "invalid_invite_link"
         log_msg = f"🔑 [{session_name}] Извлечен хеш приглашения: {invite_hash}"
-        print(log_msg)
-        await add_to_log_buffer(log_msg, "info")
+        print(log_msg); await add_to_log_buffer(log_msg, "info")
         try:
             await client(ImportChatInviteRequest(invite_hash))
             log_msg = f"✅ [{session_name}] Успешно присоединились по ссылке-приглашению!"
-            print(log_msg)
-            await add_to_log_buffer(log_msg, "success")
+            print(log_msg); await add_to_log_buffer(log_msg, "success")
             return True, "joined_by_invite"
         except FloodWaitError as e:
             log_msg = f"🚫 [{session_name}] Флуд-контроль при присоединении по приглашению!"
-            print(log_msg)
-            await add_to_log_buffer(log_msg, "flood")
+            print(log_msg); await add_to_log_buffer(log_msg, "flood")
             if await handle_flood_wait(e, f"присоединение к {invite_link}", session_name):
                 return await join_invite_link(client, invite_link, session_name)
             return False, "flood_wait"
         except InviteHashExpiredError:
             log_msg = f"❌ [{session_name}] Срок действия приглашения истек"
-            print(log_msg)
-            await add_to_log_buffer(log_msg, "error")
+            print(log_msg); await add_to_log_buffer(log_msg, "error")
             log_failed_subscription(session_name, invite_link, "Срок действия приглашения истек")
             return False, "invite_expired"
         except InviteHashInvalidError:
             log_msg = f"❌ [{session_name}] Недействительное приглашение"
-            print(log_msg)
-            await add_to_log_buffer(log_msg, "error")
+            print(log_msg); await add_to_log_buffer(log_msg, "error")
             log_failed_subscription(session_name, invite_link, "Недействительное приглашение")
             return False, "invite_invalid"
         except InviteHashEmptyError:
             log_msg = f"❌ [{session_name}] Пустой хеш приглашения"
-            print(log_msg)
-            await add_to_log_buffer(log_msg, "error")
+            print(log_msg); await add_to_log_buffer(log_msg, "error")
             log_failed_subscription(session_name, invite_link, "Пустой хеш приглашения")
             return False, "invite_empty"
         except Exception as e:
             log_msg = f"❌ [{session_name}] Ошибка при присоединении по приглашению: {e}"
-            print(log_msg)
-            await add_to_log_buffer(log_msg, "error")
+            print(log_msg); await add_to_log_buffer(log_msg, "error")
             log_failed_subscription(session_name, invite_link, str(e)[:100])
             return False, f"invite_error: {str(e)[:50]}"
     except Exception as e:
         log_msg = f"❌ [{session_name}] Ошибка при обработке ссылки-приглашения: {e}"
-        print(log_msg)
-        await add_to_log_buffer(log_msg, "error")
+        print(log_msg); await add_to_log_buffer(log_msg, "error")
         log_failed_subscription(session_name, invite_link, str(e)[:100])
         return False, "invite_processing_error"
-
 
 async def subscribe_to_channel(client, channel_ref, session_name="", retry_count=0):
     max_retries = 3
     try:
         log_msg = f"\n📥 [{session_name}] Обработка: {channel_ref}"
-        print(log_msg)
-        await add_to_log_buffer(log_msg, "info")
+        print(log_msg); await add_to_log_buffer(log_msg, "info")
         if any(x in channel_ref for x in ['joinchat', 't.me/+', '/+']):
             log_msg = f"🔗 [{session_name}] Это ссылка-приглашение, пробуем присоединиться..."
-            print(log_msg)
-            await add_to_log_buffer(log_msg, "info")
+            print(log_msg); await add_to_log_buffer(log_msg, "info")
             return await join_invite_link(client, channel_ref, session_name)
         if channel_ref.startswith('@'):
             username = channel_ref[1:]
@@ -2716,107 +1912,86 @@ async def subscribe_to_channel(client, channel_ref, session_name="", retry_count
             channel_entity = await client.get_entity(channel_ref)
             channel_title = getattr(channel_entity, 'title', username)
             log_msg = f"✅ [{session_name}] Получена сущность канала: {channel_title}"
-            print(log_msg)
-            await add_to_log_buffer(log_msg, "success")
+            print(log_msg); await add_to_log_buffer(log_msg, "success")
         except FloodWaitError as e:
             log_msg = f"🚫 [{session_name}] Флуд-контроль при получении информации о канале!"
-            print(log_msg)
-            await add_to_log_buffer(log_msg, "flood")
+            print(log_msg); await add_to_log_buffer(log_msg, "flood")
             if await handle_flood_wait(e, f"получение информации о {channel_ref}", session_name):
                 return await subscribe_to_channel(client, channel_ref, session_name, retry_count + 1)
             return False, "flood_timeout"
         except ValueError as e:
             if "No user has" in str(e):
                 log_msg = f"❌ [{session_name}] Канал не найден: {channel_ref}"
-                print(log_msg)
-                await add_to_log_buffer(log_msg, "error")
+                print(log_msg); await add_to_log_buffer(log_msg, "error")
                 log_failed_subscription(session_name, channel_ref, "Канал не найден")
                 return False, "channel_not_found"
             log_msg = f"⚠️ [{session_name}] Ошибка при получении канала: {e}"
-            print(log_msg)
-            await add_to_log_buffer(log_msg, "warning")
+            print(log_msg); await add_to_log_buffer(log_msg, "warning")
             log_failed_subscription(session_name, channel_ref, str(e)[:100])
             return False, "channel_error"
         except Exception as e:
             log_msg = f"⚠️ [{session_name}] Не удалось получить канал: {e}"
-            print(log_msg)
-            await add_to_log_buffer(log_msg, "warning")
+            print(log_msg); await add_to_log_buffer(log_msg, "warning")
             log_failed_subscription(session_name, channel_ref, str(e)[:100])
             return False, "entity_error"
         try:
             await client.get_permissions(channel_entity, 'me')
             log_msg = f"ℹ️ [{session_name}] Уже подписаны на этот канал"
-            print(log_msg)
-            await add_to_log_buffer(log_msg, "info")
+            print(log_msg); await add_to_log_buffer(log_msg, "info")
             return True, "already_subscribed"
         except FloodWaitError as e:
             log_msg = f"🚫 [{session_name}] Флуд-контроль при проверке подписки!"
-            print(log_msg)
-            await add_to_log_buffer(log_msg, "flood")
+            print(log_msg); await add_to_log_buffer(log_msg, "flood")
             if await handle_flood_wait(e, f"проверка подписки на {channel_ref}", session_name):
                 return await subscribe_to_channel(client, channel_ref, session_name, retry_count + 1)
             return False, "flood_timeout"
-        except Exception:
-            pass
+        except Exception: pass
         try:
             await client(JoinChannelRequest(channel_entity))
             log_msg = f"✅ [{session_name}] Успешно подписались на канал!"
-            print(log_msg)
-            await add_to_log_buffer(log_msg, "success")
+            print(log_msg); await add_to_log_buffer(log_msg, "success")
             await asyncio.sleep(2)
             try:
                 await client.get_permissions(channel_entity, 'me')
                 log_msg = f"✅ [{session_name}] Подписка подтверждена!"
-                print(log_msg)
-                await add_to_log_buffer(log_msg, "success")
+                print(log_msg); await add_to_log_buffer(log_msg, "success")
             except:
                 log_msg = f"⚠️ [{session_name}] Не удалось подтвердить подписку"
-                print(log_msg)
-                await add_to_log_buffer(log_msg, "warning")
+                print(log_msg); await add_to_log_buffer(log_msg, "warning")
             await asyncio.sleep(auto_subscribe_pause_between_channels)
             return True, "subscribed"
         except FloodWaitError as e:
             log_msg = f"\n{'🚫' * 10} [{session_name}] ФЛУД-КОНТРОЛЬ {'🚫' * 10}"
-            print(log_msg)
-            await add_to_log_buffer(log_msg, "flood")
+            print(log_msg); await add_to_log_buffer(log_msg, "flood")
             log_msg = f"📊 Статистика по флуду:"
-            print(log_msg)
-            await add_to_log_buffer(log_msg, "flood")
+            print(log_msg); await add_to_log_buffer(log_msg, "flood")
             log_msg = f"   • Канал: {channel_ref}"
-            print(log_msg)
-            await add_to_log_buffer(log_msg, "flood")
+            print(log_msg); await add_to_log_buffer(log_msg, "flood")
             log_msg = f"   • Попытка: {retry_count + 1}/{max_retries}"
-            print(log_msg)
-            await add_to_log_buffer(log_msg, "flood")
+            print(log_msg); await add_to_log_buffer(log_msg, "flood")
             log_msg = f"   • Время ожидания: {format_time(e.seconds)}"
-            print(log_msg)
-            await add_to_log_buffer(log_msg, "flood")
+            print(log_msg); await add_to_log_buffer(log_msg, "flood")
             if await handle_flood_wait(e, f"подписка на {channel_ref}", session_name):
                 if retry_count < max_retries:
                     log_msg = f"🔄 [{session_name}] Повторная попытка {retry_count + 2}/{max_retries}..."
-                    print(log_msg)
-                    await add_to_log_buffer(log_msg, "info")
+                    print(log_msg); await add_to_log_buffer(log_msg, "info")
                     return await subscribe_to_channel(client, channel_ref, session_name, retry_count + 1)
                 else:
                     log_msg = f"❌ [{session_name}] Достигнуто максимальное количество попыток ({max_retries})"
-                    print(log_msg)
-                    await add_to_log_buffer(log_msg, "error")
+                    print(log_msg); await add_to_log_buffer(log_msg, "error")
                     log_failed_subscription(session_name, channel_ref, "Максимальное количество попыток")
                     return False, "max_retries_reached"
             return False, "flood_timeout"
         except Exception as e:
             log_msg = f"❌ [{session_name}] Ошибка при подписке: {e}"
-            print(log_msg)
-            await add_to_log_buffer(log_msg, "error")
+            print(log_msg); await add_to_log_buffer(log_msg, "error")
             log_failed_subscription(session_name, channel_ref, str(e)[:100])
             return False, "subscribe_error"
     except Exception as e:
         log_msg = f"❌ [{session_name}] Ошибка при обработке канала: {e}"
-        print(log_msg)
-        await add_to_log_buffer(log_msg, "error")
+        print(log_msg); await add_to_log_buffer(log_msg, "error")
         log_failed_subscription(session_name, channel_ref, str(e)[:100])
         return False, "unknown_error"
-
 
 async def subscribe_to_channels(client, message, session_name=""):
     global flood_wait_occurred, total_flood_time
@@ -2824,33 +1999,25 @@ async def subscribe_to_channels(client, message, session_name=""):
     total_flood_time = 0
     start_time = time.time()
     log_msg = "\n🔍 Ищем каналы для подписки..."
-    print(log_msg)
-    await add_to_log_buffer(log_msg, "info")
+    print(log_msg); await add_to_log_buffer(log_msg, "info")
     channels_to_join = await find_channels_in_message(client, message)
     if not channels_to_join:
         log_msg = "❌ Не найдены ссылки на каналы"
-        print(log_msg)
-        await add_to_log_buffer(log_msg, "warning")
+        print(log_msg); await add_to_log_buffer(log_msg, "warning")
         return False
     log_msg = f"\n🔍 Найдены каналы для подписки:"
-    print(log_msg)
-    await add_to_log_buffer(log_msg, "info")
+    print(log_msg); await add_to_log_buffer(log_msg, "info")
     for i, channel in enumerate(channels_to_join, 1):
         log_msg = f"  {i}. {channel}"
-        print(log_msg)
-        await add_to_log_buffer(log_msg, "info")
-    results = {"success": 0, "already_subscribed": 0, "failed": 0, "flood_wait": 0, "joined_by_invite": 0,
-               "details": []}
+        print(log_msg); await add_to_log_buffer(log_msg, "info")
+    results = {"success": 0, "already_subscribed": 0, "failed": 0, "flood_wait": 0, "joined_by_invite": 0, "details": []}
     for i, channel_ref in enumerate(channels_to_join, 1):
         log_msg = f"\n{'─' * 40}"
-        print(log_msg)
-        await add_to_log_buffer(log_msg, "info")
+        print(log_msg); await add_to_log_buffer(log_msg, "info")
         log_msg = f"📌 Канал {i}/{len(channels_to_join)}"
-        print(log_msg)
-        await add_to_log_buffer(log_msg, "info")
+        print(log_msg); await add_to_log_buffer(log_msg, "info")
         log_msg = f"{'─' * 40}"
-        print(log_msg)
-        await add_to_log_buffer(log_msg, "info")
+        print(log_msg); await add_to_log_buffer(log_msg, "info")
         success, status = await subscribe_to_channel(client, channel_ref, session_name)
         if success:
             if status == "already_subscribed":
@@ -2865,134 +2032,91 @@ async def subscribe_to_channels(client, message, session_name=""):
                 results["details"].append(f"✅ {channel_ref} - успешно подписались")
         else:
             results["failed"] += 1
-            if "flood" in status:
-                results["flood_wait"] += 1
+            if "flood" in status: results["flood_wait"] += 1
             results["details"].append(f"❌ {channel_ref} - {status}")
         if i < len(channels_to_join) and not flood_wait_occurred:
             log_msg = f"⏳ [{session_name}] Пауза {auto_subscribe_pause_between_channels} секунд перед следующим каналом..."
-            print(log_msg)
-            await add_to_log_buffer(log_msg, "info")
+            print(log_msg); await add_to_log_buffer(log_msg, "info")
             await asyncio.sleep(auto_subscribe_pause_between_channels)
     total_time = time.time() - start_time
     log_msg = f"\n{'=' * 60}"
-    print(log_msg)
-    await add_to_log_buffer(log_msg, "info")
+    print(log_msg); await add_to_log_buffer(log_msg, "info")
     log_msg = f"📊 ИТОГОВАЯ СТАТИСТИКА ПОДПИСОК [{session_name}]"
-    print(log_msg)
-    await add_to_log_buffer(log_msg, "info")
+    print(log_msg); await add_to_log_buffer(log_msg, "info")
     log_msg = f"{'=' * 60}"
-    print(log_msg)
-    await add_to_log_buffer(log_msg, "info")
+    print(log_msg); await add_to_log_buffer(log_msg, "info")
     log_msg = f"✅ Успешно подписались: {results['success']}"
-    print(log_msg)
-    await add_to_log_buffer(log_msg, "success")
+    print(log_msg); await add_to_log_buffer(log_msg, "success")
     if results['joined_by_invite'] > 0:
         log_msg = f"   └ По ссылкам-приглашениям: {results['joined_by_invite']}"
-        print(log_msg)
-        await add_to_log_buffer(log_msg, "success")
+        print(log_msg); await add_to_log_buffer(log_msg, "success")
     log_msg = f"ℹ️ Уже были подписаны: {results['already_subscribed']}"
-    print(log_msg)
-    await add_to_log_buffer(log_msg, "info")
+    print(log_msg); await add_to_log_buffer(log_msg, "info")
     log_msg = f"❌ Не удалось подписаться: {results['failed']}"
-    print(log_msg)
-    await add_to_log_buffer(log_msg, "error")
+    print(log_msg); await add_to_log_buffer(log_msg, "error")
     if results['flood_wait'] > 0:
         log_msg = f"🚫 Из-за флуд-контроля: {results['flood_wait']}"
-        print(log_msg)
-        await add_to_log_buffer(log_msg, "flood")
+        print(log_msg); await add_to_log_buffer(log_msg, "flood")
     if total_flood_time > 0:
         log_msg = f"⏱️ Общее время ожидания флуда: {format_time(int(total_flood_time))}"
-        print(log_msg)
-        await add_to_log_buffer(log_msg, "flood")
+        print(log_msg); await add_to_log_buffer(log_msg, "flood")
     log_msg = f"⏱️ Общее время операции: {format_time(int(total_time))}"
-    print(log_msg)
-    await add_to_log_buffer(log_msg, "info")
+    print(log_msg); await add_to_log_buffer(log_msg, "info")
     if flood_wait_occurred:
         log_msg = f"\n⚠️ ВНИМАНИЕ: Во время подписки был обнаружен флуд-контроль!"
-        print(log_msg)
-        await add_to_log_buffer(log_msg, "warning")
+        print(log_msg); await add_to_log_buffer(log_msg, "warning")
         log_msg = f"   Рекомендуется сделать паузу перед следующим действием."
-        print(log_msg)
-        await add_to_log_buffer(log_msg, "warning")
+        print(log_msg); await add_to_log_buffer(log_msg, "warning")
         log_msg = f"   Рекомендуемая пауза: {format_time(min(total_flood_time * 2, 300))}"
-        print(log_msg)
-        await add_to_log_buffer(log_msg, "warning")
+        print(log_msg); await add_to_log_buffer(log_msg, "warning")
     log_msg = f"{'=' * 60}\n"
-    print(log_msg)
-    await add_to_log_buffer(log_msg, "info")
+    print(log_msg); await add_to_log_buffer(log_msg, "info")
     log_msg = "📋 Детали по каждой ссылке:"
-    print(log_msg)
-    await add_to_log_buffer(log_msg, "info")
+    print(log_msg); await add_to_log_buffer(log_msg, "info")
     for detail in results["details"]:
         log_msg = f"   {detail}"
-        print(log_msg)
-        await add_to_log_buffer(log_msg, "info")
-    if results["success"] > 0 or results["already_subscribed"] > 0:
-        return True
+        print(log_msg); await add_to_log_buffer(log_msg, "info")
+    if results["success"] > 0 or results["already_subscribed"] > 0: return True
     return False
-
 
 async def monitor_and_subscribe(client, session_name="", target_group=None, cycle=1):
     global flood_wait_occurred, total_flood_time
-    if not target_group:
-        return
-
+    if not target_group: return
     try:
         me = await client.get_me()
         user_id = me.id
         username = me.username
         group_title = getattr(target_group, 'title', str(target_group.id))
-
         log_msg = f"\n🔄 [{session_name}] [ЦИКЛ {cycle}/{auto_subscribe_cycles}] ЗАПУЩЕН МОНИТОРИНГ ГРУППЫ: {group_title}"
         print(f"{Fore.MAGENTA}{log_msg}{Style.RESET_ALL}")
         await add_to_log_buffer(log_msg, "info")
-
         log_msg = f"👤 [{session_name}] Аккаунт: {me.first_name} (ID: {user_id}, @{username if username else 'нет юзернейма'})"
         print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
         await add_to_log_buffer(log_msg, "info")
-
-        # Флаги для отслеживания состояния
         mentioned = False
         subscription_complete = False
         messages_received = []
-
-        # Создаём событие для отслеживания упоминания
         mention_event = asyncio.Event()
-
         @client.on(events.NewMessage(chats=target_group))
         async def mention_handler(event):
             nonlocal mentioned, subscription_complete, messages_received
-
-            if mentioned or stop_event.is_set():
-                return
-
-            # Сохраняем сообщение для анализа
+            if mentioned or stop_event.is_set(): return
             messages_received.append(event.message)
-
-            # Логируем каждое новое сообщение
             msg_preview = event.message.text[:100] if event.message.text else "[нет текста]"
             log_msg = f"📨 [{session_name}] Новое сообщение в группе: {msg_preview}"
             print(f"{Fore.BLUE}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg, "info")
-
-            # Проверяем, есть ли упоминание аккаунта
             mention_found = False
-
-            # Проверяем по ID
             if str(user_id) in event.message.text:
                 mention_found = True
                 log_msg = f"🔔 [{session_name}] НАЙДЕНО УПОМИНАНИЕ ПО ID: {user_id}"
                 print(f"{Fore.GREEN}{log_msg}{Style.RESET_ALL}")
                 await add_to_log_buffer(log_msg, "success")
-
-            # Проверяем по username
             if username and f"@{username}" in event.message.text:
                 mention_found = True
                 log_msg = f"🔔 [{session_name}] НАЙДЕНО УПОМИНАНИЕ ПО USERNAME: @{username}"
                 print(f"{Fore.GREEN}{log_msg}{Style.RESET_ALL}")
                 await add_to_log_buffer(log_msg, "success")
-
-            # Проверяем entities (более точный способ)
             if event.message.entities:
                 for entity in event.message.entities:
                     if hasattr(entity, 'user_id') and entity.user_id == user_id:
@@ -3009,33 +2133,23 @@ async def monitor_and_subscribe(client, session_name="", target_group=None, cycl
                             print(f"{Fore.GREEN}{log_msg}{Style.RESET_ALL}")
                             await add_to_log_buffer(log_msg, "success")
                             break
-
             if mention_found:
                 mentioned = True
                 mention_event.set()
-
                 log_msg = f"\n{'=' * 60}"
-                print(log_msg)
-                await add_to_log_buffer(log_msg, "info")
+                print(log_msg); await add_to_log_buffer(log_msg, "info")
                 log_msg = f"✅ [{session_name}] ПОЛУЧЕНО УПОМИНАНИЕ! НАЧИНАЕМ ПОДПИСКУ..."
                 print(f"{Fore.GREEN}{log_msg}{Style.RESET_ALL}")
                 await add_to_log_buffer(log_msg, "success")
                 log_msg = f"{'=' * 60}"
-                print(log_msg)
-                await add_to_log_buffer(log_msg, "info")
-
-                # Выводим полный текст сообщения для анализа
+                print(log_msg); await add_to_log_buffer(log_msg, "info")
                 log_msg = f"📩 ПОЛНЫЙ ТЕКСТ СООБЩЕНИЯ:\n{event.message.text}"
                 print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
                 await add_to_log_buffer(log_msg, "info")
-
-                # Ищем каналы в сообщении
                 log_msg = f"🔍 [{session_name}] Анализируем сообщение на наличие каналов..."
                 print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
                 await add_to_log_buffer(log_msg, "info")
-
                 subscription_complete = await subscribe_to_channels(client, event.message, session_name)
-
                 if subscription_complete:
                     log_msg = f"\n✅ [{session_name}] ВСЕ ОПЕРАЦИИ С КАНАЛАМИ ЗАВЕРШЕНЫ!"
                     print(f"{Fore.GREEN}{log_msg}{Style.RESET_ALL}")
@@ -3044,12 +2158,9 @@ async def monitor_and_subscribe(client, session_name="", target_group=None, cycl
                     log_msg = f"\n⚠️ [{session_name}] НЕ УДАЛОСЬ ПОДПИСАТЬСЯ НА КАНАЛЫ"
                     print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
                     await add_to_log_buffer(log_msg, "warning")
-
-        # Отправляем сообщение для активации бота
         log_msg = f"📤 [{session_name}] Отправляем сообщение для активации бота в группу {group_title}..."
         print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
         await add_to_log_buffer(log_msg, "info")
-
         try:
             await client.send_message(target_group, "s")
             log_msg = f"✅ [{session_name}] Сообщение отправлено!"
@@ -3060,14 +2171,10 @@ async def monitor_and_subscribe(client, session_name="", target_group=None, cycl
             print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg, "error")
             return
-
-        # Ждём упоминания
         log_msg = f"⏳ [{session_name}] Ожидаем упоминание в группе (макс. {auto_subscribe_wait_for_mention} сек)..."
         print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
         await add_to_log_buffer(log_msg, "info")
-
         try:
-            # Ждём упоминания с таймаутом
             await asyncio.wait_for(mention_event.wait(), timeout=auto_subscribe_wait_for_mention)
             log_msg = f"✅ [{session_name}] Упоминание получено вовремя!"
             print(f"{Fore.GREEN}{log_msg}{Style.RESET_ALL}")
@@ -3076,20 +2183,15 @@ async def monitor_and_subscribe(client, session_name="", target_group=None, cycl
             log_msg = f"\n⏰ [{session_name}] ВРЕМЯ ОЖИДАНИЯ УПОМИНАНИЯ ИСТЕКЛО ({auto_subscribe_wait_for_mention}с)"
             print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg, "warning")
-
-            # Анализируем полученные сообщения для отладки
             if messages_received:
                 log_msg = f"📊 [{session_name}] За время ожидания получено {len(messages_received)} сообщений:"
                 print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
                 await add_to_log_buffer(log_msg, "info")
-
-                for i, msg in enumerate(messages_received[-5:], 1):  # Показываем последние 5
+                for i, msg in enumerate(messages_received[-5:], 1):
                     msg_preview = msg.text[:50] if msg.text else "[нет текста]"
                     log_msg = f"  {i}. {msg_preview}"
                     print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
                     await add_to_log_buffer(log_msg, "info")
-
-                    # Проверяем, есть ли ID аккаунта в сообщении
                     if str(user_id) in (msg.text or ""):
                         log_msg = f"     👆 В этом сообщении есть ID {user_id}!"
                         print(f"{Fore.GREEN}{log_msg}{Style.RESET_ALL}")
@@ -3098,10 +2200,7 @@ async def monitor_and_subscribe(client, session_name="", target_group=None, cycl
                 log_msg = f"⚠️ [{session_name}] За время ожидания не получено НИ ОДНОГО сообщения!"
                 print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
                 await add_to_log_buffer(log_msg, "error")
-
-        # Удаляем обработчик
         client.remove_event_handler(mention_handler)
-
         if mentioned:
             log_msg = f"\n✅ [{session_name}] Мониторинг завершен - упоминание обработано"
             print(f"{Fore.GREEN}{log_msg}{Style.RESET_ALL}")
@@ -3110,9 +2209,7 @@ async def monitor_and_subscribe(client, session_name="", target_group=None, cycl
             log_msg = f"\nℹ️ [{session_name}] Мониторинг завершен - упоминаний не было"
             print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg, "info")
-
-        return mentioned  # Возвращаем результат для статистики
-
+        return mentioned
     except Exception as e:
         log_msg = f"❌ [{session_name}] КРИТИЧЕСКАЯ ОШИБКА В МОНИТОРИНГЕ: {e}"
         print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
@@ -3120,13 +2217,10 @@ async def monitor_and_subscribe(client, session_name="", target_group=None, cycl
         traceback.print_exc()
         return False
 
-
 async def process_folder_link(client, link, session_name=""):
     try:
-        if 'addlist/' in link:
-            slug = link.split('addlist/')[-1].split('?')[0]
-        else:
-            slug = link
+        if 'addlist/' in link: slug = link.split('addlist/')[-1].split('?')[0]
+        else: slug = link
         log_msg = f"🔍 [{session_name}] Проверка папки..."
         print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
         await add_to_log_buffer(log_msg, "info")
@@ -3141,10 +2235,8 @@ async def process_folder_link(client, link, session_name=""):
                 for idx, chat in enumerate(all_chats, 1):
                     chat_title = getattr(chat, 'title', f"чат ID {chat.id}")
                     can_write = True
-                    if hasattr(chat, 'left') and chat.left:
-                        can_write = False
-                    if hasattr(chat, 'broadcast') and chat.broadcast:
-                        can_write = False
+                    if hasattr(chat, 'left') and chat.left: can_write = False
+                    if hasattr(chat, 'broadcast') and chat.broadcast: can_write = False
                     status = "✅" if can_write else "⚠️ (только чтение)"
                     chat_log = f"  {idx}. {chat_title[:50]} {status}"
                     print(chat_log)
@@ -3188,8 +2280,7 @@ async def process_folder_link(client, link, session_name=""):
             print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg, "flood")
             for remaining in range(wait_time, 0, -1):
-                if stop_event.is_set():
-                    return None, False
+                if stop_event.is_set(): return None, False
                 if remaining % 10 == 0 or remaining <= 5:
                     print(f"{Fore.YELLOW}⏳ [{session_name}] Осталось: {remaining} сек...{Style.RESET_ALL}")
                 await asyncio.sleep(1)
@@ -3205,7 +2296,6 @@ async def process_folder_link(client, link, session_name=""):
         await add_to_log_buffer(log_msg, "error")
         return None, False
 
-
 async def get_chat_from_link(client, link, session_name=""):
     try:
         link = link.strip()
@@ -3214,8 +2304,7 @@ async def get_chat_from_link(client, link, session_name=""):
             print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg, "info")
             chats, success = await process_folder_link(client, link, session_name)
-            if success and chats:
-                return chats, "folder"
+            if success and chats: return chats, "folder"
             elif success and not chats:
                 log_msg = f"⚠️ [{session_name}] Папка обработана, но чаты не получены"
                 print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
@@ -3229,12 +2318,9 @@ async def get_chat_from_link(client, link, session_name=""):
         else:
             try:
                 if 'joinchat' in link or '+' in link:
-                    if 'joinchat/' in link:
-                        hash_part = link.split('joinchat/')[-1].split('?')[0]
-                    elif '+' in link:
-                        hash_part = link.split('+')[-1].split('?')[0]
-                    else:
-                        hash_part = link
+                    if 'joinchat/' in link: hash_part = link.split('joinchat/')[-1].split('?')[0]
+                    elif '+' in link: hash_part = link.split('+')[-1].split('?')[0]
+                    else: hash_part = link
                     try:
                         entity = await client.get_entity(hash_part)
                         chat_title = getattr(entity, 'title', str(entity.id))
@@ -3248,8 +2334,7 @@ async def get_chat_from_link(client, link, session_name=""):
                             print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
                             await add_to_log_buffer(log_msg, "error")
                             return None, "error"
-                        else:
-                            raise
+                        else: raise
                 else:
                     entity = await client.get_entity(link)
                     chat_title = getattr(entity, 'title', str(entity.id))
@@ -3280,7 +2365,6 @@ async def get_chat_from_link(client, link, session_name=""):
         await add_to_log_buffer(log_msg, "error")
         return None, "error"
 
-
 async def get_user_chats(client, chat_type="all"):
     chats = []
     skipped_channels = 0
@@ -3288,34 +2372,22 @@ async def get_user_chats(client, chat_type="all"):
         async for dialog in client.iter_dialogs():
             entity = dialog.entity
             if chat_type == "users" and isinstance(entity, User):
-                chats.append(entity)
-                continue
+                chats.append(entity); continue
             if chat_type == "groups":
                 if isinstance(entity, Chat):
-                    chats.append(entity)
-                    continue
+                    chats.append(entity); continue
                 if isinstance(entity, Channel):
-                    if entity.broadcast:
-                        skipped_channels += 1
-                        continue
-                    if entity.megagroup and not entity.left:
-                        chats.append(entity)
+                    if entity.broadcast: skipped_channels += 1; continue
+                    if entity.megagroup and not entity.left: chats.append(entity)
                     continue
-                continue
             if chat_type == "all":
                 if isinstance(entity, Chat):
-                    chats.append(entity)
-                    continue
+                    chats.append(entity); continue
                 if isinstance(entity, Channel):
-                    if entity.broadcast:
-                        skipped_channels += 1
-                        continue
-                    if entity.megagroup and not entity.left:
-                        chats.append(entity)
+                    if entity.broadcast: skipped_channels += 1; continue
+                    if entity.megagroup and not entity.left: chats.append(entity)
                     continue
-                if isinstance(entity, User):
-                    chats.append(entity)
-                    continue
+                if isinstance(entity, User): chats.append(entity); continue
         type_names = {"all": "чатов/групп/личных чатов", "users": "личных чатов", "groups": "групп"}
         log_msg = f"✔ Найдено {len(chats)} {type_names[chat_type]}"
         print(f"{Fore.GREEN}{log_msg}{Style.RESET_ALL}")
@@ -3331,15 +2403,10 @@ async def get_user_chats(client, chat_type="all"):
         await add_to_log_buffer(log_msg, "error")
         return []
 
-
-# =============== ИСПРАВЛЕННАЯ ФУНКЦИЯ ДЛЯ ПАРСЕРА ЧАТОВ ===============
 async def parse_chats_by_language(session_file, api_id, api_hash):
-    """Парсит все групповые чаты (включая супергруппы) и определяет их язык"""
     print(f"\n{Fore.MAGENTA}--- ЗАПУСК ПАРСЕРА ЧАТОВ ДЛЯ {session_file} ---{Style.RESET_ALL}")
     await add_to_log_buffer(f"--- ЗАПУСК ПАРСЕРА ЧАТОВ ДЛЯ {session_file} ---", "info")
-
     client = await create_telegram_client(session_file, api_id, api_hash)
-
     try:
         await client.connect()
         if not await client.is_user_authorized():
@@ -3348,149 +2415,79 @@ async def parse_chats_by_language(session_file, api_id, api_hash):
             await add_to_log_buffer(log_msg, "error")
             log_invalid_session(session_file)
             return False
-
         me = await client.get_me()
         account_info = f"@{me.username or me.id}"
         print(f"{Fore.GREEN}✔ Аккаунт: {account_info}{Style.RESET_ALL}")
         await add_to_log_buffer(f"✔ Аккаунт: {account_info}", "success")
-
-        # Словарь для хранения чатов по языкам
         language_chats = {}
-
-        # Получаем все диалоги
         print(f"{Fore.CYAN}🔍 Получаем список всех диалогов...{Style.RESET_ALL}")
         await add_to_log_buffer("🔍 Получаем список всех диалогов...", "info")
-
         dialogs = await client.get_dialogs()
         total_chats = len(dialogs)
         print(f"{Fore.GREEN}✔ Найдено диалогов: {total_chats}{Style.RESET_ALL}")
         await add_to_log_buffer(f"✔ Найдено диалогов: {total_chats}", "info")
-
-        processed = 0
-        skipped = 0
-        no_messages = 0
-        error_count = 0
-
+        processed = 0; skipped = 0; no_messages = 0; error_count = 0
         for dialog in dialogs:
-            if stop_event.is_set():
-                break
-
+            if stop_event.is_set(): break
             entity = dialog.entity
-
-            # Пропускаем только личные чаты
-            if isinstance(entity, User):
-                skipped += 1
-                continue
-
-            # Пропускаем ботов (если есть)
-            if hasattr(entity, 'bot') and entity.bot:
-                skipped += 1
-                continue
-
-            # Проверяем, является ли это каналом (broadcast)
-            if isinstance(entity, Channel) and hasattr(entity, 'broadcast') and entity.broadcast:
-                skipped += 1
-                continue
-
-            # Все остальное считаем групповыми чатами (включая супергруппы)
+            if isinstance(entity, User): skipped += 1; continue
+            if hasattr(entity, 'bot') and entity.bot: skipped += 1; continue
+            if isinstance(entity, Channel) and hasattr(entity, 'broadcast') and entity.broadcast: skipped += 1; continue
             processed += 1
             chat_title = getattr(entity, 'title', 'Без названия')
-
             chat_type = "Группа"
-            if isinstance(entity, Channel):
-                chat_type = "Супергруппа"
-
+            if isinstance(entity, Channel): chat_type = "Супергруппа"
             print(f"{Fore.CYAN}[{processed}] Обрабатываю {chat_type}: {chat_title[:50]}...{Style.RESET_ALL}")
             await add_to_log_buffer(f"Обрабатываю {chat_type}: {chat_title[:50]}...", "info")
-
             try:
-                # Получаем информацию о группе
                 chat_info = await client.get_entity(entity)
-
-                # Получаем последние сообщения для определения языка
-                messages = await client.get_messages(entity, limit=20)  # Увеличил до 20 для лучшего определения
-
+                messages = await client.get_messages(entity, limit=20)
                 if not messages:
                     no_messages += 1
                     log_msg = f"⚠️ В {chat_type} '{chat_title}' нет сообщений"
-                    print(log_msg)
-                    await add_to_log_buffer(log_msg, "warning")
+                    print(log_msg); await add_to_log_buffer(log_msg, "warning")
                     continue
-
-                # Собираем текст из сообщений
                 text_samples = []
                 for msg in messages:
-                    if msg.text and len(msg.text.strip()) > 5:  # Берем только сообщения с текстом
+                    if msg.text and len(msg.text.strip()) > 5:
                         text_samples.append(msg.text)
-
                 if not text_samples:
                     no_messages += 1
                     log_msg = f"⚠️ В {chat_type} '{chat_title}' нет текстовых сообщений для анализа"
-                    print(log_msg)
-                    await add_to_log_buffer(log_msg, "warning")
+                    print(log_msg); await add_to_log_buffer(log_msg, "warning")
                     continue
-
-                # Объединяем текст для анализа (берем максимум 500 символов)
                 combined_text = " ".join(text_samples)[:500]
-
-                # Определяем язык
                 try:
                     detected_lang = detect(combined_text)
                     lang_name = LANGUAGE_MAP.get(detected_lang, f"Другие ({detected_lang})")
                 except Exception as lang_err:
                     lang_name = "Не определено"
                     log_msg = f"⚠️ Не удалось определить язык для {chat_type} '{chat_title}': {lang_err}"
-                    print(log_msg)
-                    await add_to_log_buffer(log_msg, "warning")
-
-                # Получаем количество участников
+                    print(log_msg); await add_to_log_buffer(log_msg, "warning")
                 try:
-                    if hasattr(entity, 'participants_count'):
-                        members_count = entity.participants_count
+                    if hasattr(entity, 'participants_count'): members_count = entity.participants_count
                     else:
-                        # Пытаемся получить полную информацию о чате
                         full_chat = await client.get_entity(entity)
-                        if hasattr(full_chat, 'participants_count'):
-                            members_count = full_chat.participants_count
-                        else:
-                            members_count = 0
-                except:
-                    members_count = 0
-
-                # Получаем ссылку на чат
-                if hasattr(entity, 'username') and entity.username:
-                    chat_link = f"https://t.me/{entity.username}"
+                        if hasattr(full_chat, 'participants_count'): members_count = full_chat.participants_count
+                        else: members_count = 0
+                except: members_count = 0
+                if hasattr(entity, 'username') and entity.username: chat_link = f"https://t.me/{entity.username}"
                 else:
-                    # Для приватных чатов используем invite link если доступен
                     try:
-                        if hasattr(entity, 'invite_link') and entity.invite_link:
-                            chat_link = entity.invite_link
+                        if hasattr(entity, 'invite_link') and entity.invite_link: chat_link = entity.invite_link
                         else:
-                            # Пытаемся создать invite link
                             invite = await client(ExportChatInviteRequest(entity))
                             chat_link = invite.link
-                    except:
-                        chat_link = f"ID: {entity.id} (приватный чат)"
-
-                # Сохраняем информацию о чате
-                if lang_name not in language_chats:
-                    language_chats[lang_name] = []
-
+                    except: chat_link = f"ID: {entity.id} (приватный чат)"
+                if lang_name not in language_chats: language_chats[lang_name] = []
                 language_chats[lang_name].append({
-                    'title': chat_title,
-                    'link': chat_link,
-                    'members': members_count,
-                    'id': entity.id,
-                    'type': chat_type
+                    'title': chat_title, 'link': chat_link, 'members': members_count,
+                    'id': entity.id, 'type': chat_type
                 })
-
                 log_msg = f"✅ {chat_type} '{chat_title}' - язык: {lang_name}, участников: {members_count}"
                 print(f"{Fore.GREEN}{log_msg}{Style.RESET_ALL}")
                 await add_to_log_buffer(log_msg, "success")
-
-                # Небольшая пауза, чтобы не получить флуд
                 await asyncio.sleep(1)
-
             except FloodWaitError as e:
                 log_msg = f"⏳ FloodWait при обработке {chat_type} {chat_title}: {e.seconds} сек"
                 print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
@@ -3503,58 +2500,36 @@ async def parse_chats_by_language(session_file, api_id, api_hash):
                 print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
                 await add_to_log_buffer(log_msg, "error")
                 continue
-
-        # В функции parse_chats_by_language, замените блок сохранения результатов на этот:
-
-        # Сохраняем результаты
         if language_chats:
-            # Создаем основную папку с датой
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             main_folder = os.path.join("pars", f"{timestamp}_ИТОГИ")
             os.makedirs(main_folder, exist_ok=True)
-
             total_chats_found = 0
-
-            # Для каждого языка создаем отдельную папку
             for lang, chats in language_chats.items():
-                if not chats:
-                    continue
-
-                # Создаем папку для языка (очищаем название от недопустимых символов)
+                if not chats: continue
                 lang_folder_name = re.sub(r'[<>:"/\\|?*]', '', lang)
                 lang_folder = os.path.join(main_folder, lang_folder_name)
                 os.makedirs(lang_folder, exist_ok=True)
-
-                # Сортируем чаты по количеству участников (от большего к меньшему)
                 sorted_chats = sorted(chats, key=lambda x: x['members'], reverse=True)
-
-                # Файл с красивым форматированием (для чтения)
                 filename_readable = os.path.join(lang_folder, f"{lang_folder_name}_подробно.txt")
                 with open(filename_readable, 'w', encoding='utf-8') as f:
                     f.write(f"Найдено чатов на языке '{lang}': {len(chats)}\n")
                     f.write("=" * 50 + "\n\n")
-
                     for chat in sorted_chats:
                         f.write(f"📌 {chat['title']}\n")
                         f.write(f"   Ссылка: {chat['link']}\n")
                         f.write(f"   Участников: {chat['members']}\n")
                         f.write(f"   Тип: {chat['type']}\n\n")
-
-                # Файл только со ссылками (для копирования)
                 filename_links = os.path.join(lang_folder, f"{lang_folder_name}_ссылки.txt")
                 with open(filename_links, 'w', encoding='utf-8') as f:
                     for chat in sorted_chats:
-                        # Если ссылка начинается с "ID:", пропускаем (приватные чаты)
                         if not chat['link'].startswith('ID:'):
                             f.write(f"{chat['link']}\n")
-
-                # Файл со ссылками + количество участников (для анализа)
                 filename_links_with_stats = os.path.join(lang_folder, f"{lang_folder_name}_ссылки_с_участниками.txt")
                 with open(filename_links_with_stats, 'w', encoding='utf-8') as f:
                     for chat in sorted_chats:
                         if not chat['link'].startswith('ID:'):
                             f.write(f"{chat['link']} - {chat['members']} участников\n")
-
                 total_chats_found += len(chats)
                 print(f"{Fore.GREEN}✔ Создана папка для языка '{lang}':{Style.RESET_ALL}")
                 print(f"   📁 {lang_folder}")
@@ -3562,22 +2537,16 @@ async def parse_chats_by_language(session_file, api_id, api_hash):
                 print(f"      🔗 {lang_folder_name}_ссылки.txt")
                 print(f"      📊 {lang_folder_name}_ссылки_с_участниками.txt")
                 await add_to_log_buffer(f"✔ Создана папка для языка '{lang}'", "success")
-
-            # Создаем общий файл со ВСЕМИ ссылками в корневой папке
             all_links_file = os.path.join(main_folder, "ВСЕ_ССЫЛКИ.txt")
             with open(all_links_file, 'w', encoding='utf-8') as f:
                 f.write("# Все найденные ссылки на чаты\n")
                 f.write("# Формат: ссылка - язык - количество участников\n\n")
-
                 for lang, chats in language_chats.items():
                     sorted_chats = sorted(chats, key=lambda x: x['members'], reverse=True)
                     for chat in sorted_chats:
                         if not chat['link'].startswith('ID:'):
                             f.write(f"{chat['link']} - {lang} - {chat['members']} участников\n")
-
             print(f"{Fore.GREEN}✔ Создан общий файл со всеми ссылками: {all_links_file}{Style.RESET_ALL}")
-
-            # Создаем общий отчет со статистикой в корневой папке
             summary_file = os.path.join(main_folder, "ОБЩИЙ_ОТЧЕТ.txt")
             with open(summary_file, 'w', encoding='utf-8') as f:
                 f.write("=" * 60 + "\n")
@@ -3585,7 +2554,6 @@ async def parse_chats_by_language(session_file, api_id, api_hash):
                 f.write(f"Аккаунт: {account_info}\n")
                 f.write(f"Дата: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
                 f.write("=" * 60 + "\n\n")
-
                 f.write(f"📊 ОБЩАЯ СТАТИСТИКА:\n")
                 f.write(f"   Всего обработано диалогов: {total_chats}\n")
                 f.write(f"   Проанализировано групп/супергрупп: {processed}\n")
@@ -3593,64 +2561,48 @@ async def parse_chats_by_language(session_file, api_id, api_hash):
                 f.write(f"   Групп без сообщений: {no_messages}\n")
                 f.write(f"   Ошибок при обработке: {error_count}\n")
                 f.write(f"   Найдено чатов с языками: {total_chats_found}\n\n")
-
                 f.write("📊 СТАТИСТИКА ПО ЯЗЫКАМ:\n")
-                # Сортируем языки по количеству чатов
                 sorted_langs = sorted(language_chats.items(), key=lambda x: len(x[1]), reverse=True)
                 for lang, chats in sorted_langs:
                     f.write(f"   📁 {lang}/\n")
                     f.write(f"      Всего чатов: {len(chats)}\n")
-                    # Подсчитываем сколько из них публичных (со ссылками)
                     public_chats = sum(1 for c in chats if not c['link'].startswith('ID:'))
                     if public_chats < len(chats):
                         f.write(f"      ├─ публичных: {public_chats}\n")
                         f.write(f"      └─ приватных: {len(chats) - public_chats}\n")
-                    else:
-                        f.write(f"      └─ публичных: {public_chats}\n")
-
+                    else: f.write(f"      └─ публичных: {public_chats}\n")
                 f.write("\n" + "=" * 60 + "\n")
                 f.write("ДЕТАЛЬНАЯ ИНФОРМАЦИЯ ПО ЯЗЫКАМ (первые 5 чатов):\n")
                 f.write("=" * 60 + "\n\n")
-
                 for lang, chats in sorted_langs:
                     f.write(f"\n📁 {lang.upper()}/\n")
                     f.write("-" * 40 + "\n")
-                    for chat in chats[:5]:  # Показываем первые 5 чатов
+                    for chat in chats[:5]:
                         f.write(f"   📌 {chat['title']}\n")
                         f.write(f"      Ссылка: {chat['link']}\n")
                         f.write(f"      Участников: {chat['members']}\n")
                         f.write(f"      Тип: {chat['type']}\n")
-                    if len(chats) > 5:
-                        f.write(f"      ... и еще {len(chats) - 5} чатов\n")
-
+                    if len(chats) > 5: f.write(f"      ... и еще {len(chats) - 5} чатов\n")
             print(f"\n{Fore.GREEN}✅ ПАРСИНГ ЗАВЕРШЕН!{Style.RESET_ALL}")
             print(f"{Fore.CYAN}📁 Результаты сохранены в папке: {main_folder}{Style.RESET_ALL}")
             print(f"\n{Fore.YELLOW}📋 Структура папок:{Style.RESET_ALL}")
-
-            # Показываем структуру папок
             for lang in language_chats.keys():
                 lang_folder_name = re.sub(r'[<>:"/\\|?*]', '', lang)
                 print(f"   📁 {lang_folder_name}/")
                 print(f"      ├─ {lang_folder_name}_подробно.txt")
                 print(f"      ├─ {lang_folder_name}_ссылки.txt")
                 print(f"      └─ {lang_folder_name}_ссылки_с_участниками.txt")
-
             print(f"\n   📄 ВСЕ_ССЫЛКИ.txt")
             print(f"   📄 ОБЩИЙ_ОТЧЕТ.txt")
-
             print(f"\n{Fore.CYAN}📊 Статистика:{Style.RESET_ALL}")
             print(f"   Всего обработано групп/супергрупп: {processed}")
             print(f"   Найдено чатов: {total_chats_found}")
             print(f"   Пропущено (личные/каналы/боты): {skipped}")
             print(f"   Групп без сообщений: {no_messages}")
             print(f"   Ошибок: {error_count}")
-
             await add_to_log_buffer(f"✅ ПАРСИНГ ЗАВЕРШЕН! Результаты в папке: {main_folder}", "success")
-            await add_to_log_buffer(
-                f"📊 Всего обработано групп/супергрупп: {processed}, найдено чатов: {total_chats_found}", "info")
-
+            await add_to_log_buffer(f"📊 Всего обработано групп/супергрупп: {processed}, найдено чатов: {total_chats_found}", "info")
             return True
-
     except Exception as e:
         log_msg = f"✘ Критическая ошибка при парсинге: {e}"
         print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
@@ -3661,37 +2613,25 @@ async def parse_chats_by_language(session_file, api_id, api_hash):
         if client.is_connected():
             await client.disconnect()
 
-
-# =============== ИСПРАВЛЕННАЯ ФУНКЦИЯ send_message_safely ===============
-async def send_message_safely(client, chat, message, delete_after=False, media_path=None, retry_count=0,
-                              session_name="", forward_link=None):
-    """
-    Отправляет сообщение с поддержкой:
-    - Обычного текста
-    - Медиа (фото/видео/файл)
-    - Пересылки сообщения по ссылке
-    """
+async def send_message_safely(client, chat, message, delete_after=False, media_path=None, retry_count=0, session_name="", forward_link=None):
     sent_message = None
     try:
-        # Если включен режим пересылки и есть ссылка
+        try:
+            await client.get_permissions(chat, 'me')
+        except:
+            log_msg = f"⚠️ [{session_name}] Нет прав для отправки в этот чат (только чтение)"
+            print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
+            await add_to_log_buffer(log_msg, "warning")
+            return False, None
         if forward_link:
-            # Пробуем получить сообщение для пересылки
             msg_to_forward, error = await get_message_from_link(client, forward_link, session_name)
             if msg_to_forward:
-                # Пересылаем сообщение
                 try:
-                    # Используем ту же функцию для всех типов чатов
                     sent_message = await client.forward_messages(chat, msg_to_forward)
-
-                    # Получаем название чата для логирования
                     chat_name = ""
-                    if hasattr(chat, 'title'):
-                        chat_name = chat.title
-                    elif hasattr(chat, 'first_name'):
-                        chat_name = f"{chat.first_name} {chat.last_name or ''}".strip()
-                    else:
-                        chat_name = str(chat.id)
-
+                    if hasattr(chat, 'title'): chat_name = chat.title
+                    elif hasattr(chat, 'first_name'): chat_name = f"{chat.first_name} {chat.last_name or ''}".strip()
+                    else: chat_name = str(chat.id)
                     log_msg = f"📨 [{session_name}] Сообщение переслано в: {chat_name[:30]}..."
                     print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
                     await add_to_log_buffer(log_msg, "success")
@@ -3701,51 +2641,34 @@ async def send_message_safely(client, chat, message, delete_after=False, media_p
                     await add_to_log_buffer(log_msg, "error")
                     return False, None
             else:
-                # Если не удалось получить сообщение, логируем ошибку
                 log_msg = f"❌ [{session_name}] Ошибка получения сообщения для пересылки: {error}"
                 print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
                 await add_to_log_buffer(log_msg, "error")
                 return False, None
-
-        # Если включен режим медиа и файл существует
         elif media_path and os.path.exists(media_path):
             sent_message = await client.send_file(chat, media_path, caption=message)
         else:
-            # Обычная отправка текста
             sent_message = await client.send_message(chat, message)
-
-        # Если нужно удалить сообщение после отправки
         if delete_after and sent_message:
             await client.delete_messages(chat, [sent_message.id], revoke=False)
             log_msg = f"🗑 [{session_name}] Сообщение удалено у отправителя"
             print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg, "info")
-
-        # Отмечаем успех прокси, если используется
-        if use_proxy and session_name:
-            proxy_manager.mark_proxy_success(session_name)
-
+        if use_proxy and session_name: proxy_manager.mark_proxy_success(session_name)
         return True, sent_message
-
     except FloodWaitError as e:
         log_msg = f"⏳ [{session_name}] FloodWait {e.seconds} сек..."
         print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
         await add_to_log_buffer(log_msg, "flood")
         await asyncio.sleep(e.seconds)
-        # Повторяем попытку после флуда
-        return await send_message_safely(client, chat, message, delete_after, media_path, retry_count, session_name,
-                                         forward_link)
-
+        return await send_message_safely(client, chat, message, delete_after, media_path, retry_count, session_name, forward_link)
     except (ChatAdminRequiredError, ChannelPrivateError, UserPrivacyRestrictedError) as e:
         log_msg = f"✘ [{session_name}] Нет прав для отправки в этот чат: {e}"
         print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
         await add_to_log_buffer(log_msg, "error")
         return False, None
-
     except (ConnectionError, TimeoutError, asyncio.TimeoutError, OSError) as e:
-        # Обработка ошибок подключения (особенно для прокси)
-        if use_proxy and proxy_manager.has_proxies() and session_name and retry_count < proxy_max_retries * len(
-                proxy_manager.proxies):
+        if use_proxy and proxy_manager.has_proxies() and session_name and retry_count < proxy_max_retries * len(proxy_manager.proxies):
             proxy_info = ""
             if session_name in proxy_manager.proxy_assignments:
                 proxy_str = proxy_manager.proxy_assignments[session_name]
@@ -3762,46 +2685,36 @@ async def send_message_safely(client, chat, message, delete_after=False, media_p
                     log_msg = f"🔄 [{session_name}] Назначен новый прокси: {new_proxy_info}"
                     print(f"{Fore.MAGENTA}{log_msg}{Style.RESET_ALL}")
                     await add_to_log_buffer(log_msg, "proxy")
-                # Переподключаемся с новым прокси
                 await client.disconnect()
                 client.set_proxy(new_proxy)
                 await asyncio.sleep(2)
                 await client.connect()
-                return await send_message_safely(client, chat, message, delete_after, media_path, retry_count + 1,
-                                                 session_name, forward_link)
+                return await send_message_safely(client, chat, message, delete_after, media_path, retry_count + 1, session_name, forward_link)
         return False, None
-
     except Exception as e:
         log_msg = f"✘ [{session_name}] Другая ошибка: {e}"
         print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
         await add_to_log_buffer(log_msg, "error")
         return False, None
 
-
 async def join_chat_safely(client, link, session_name="", retry_count=0):
     try:
         link = link.strip()
         try:
             if 'joinchat' in link or '+' in link:
-                if 'joinchat/' in link:
-                    hash_part = link.split('joinchat/')[-1].split('?')[0]
-                elif '+' in link:
-                    hash_part = link.split('+')[-1].split('?')[0]
-                else:
-                    hash_part = link
+                if 'joinchat/' in link: hash_part = link.split('joinchat/')[-1].split('?')[0]
+                elif '+' in link: hash_part = link.split('+')[-1].split('?')[0]
+                else: hash_part = link
                 result = await client(JoinChannelRequest(hash_part))
             else:
                 entity = await client.get_entity(link)
                 result = await client(JoinChannelRequest(entity))
-            if hasattr(result, 'chats') and result.chats:
-                chat_title = result.chats[0].title
-            else:
-                chat_title = link[:30]
+            if hasattr(result, 'chats') and result.chats: chat_title = result.chats[0].title
+            else: chat_title = link[:30]
             log_msg = f"✔ [{session_name}] Успешно вступил в: {chat_title}"
             print(f"{Fore.GREEN}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg, "success")
-            if use_proxy and session_name:
-                proxy_manager.mark_proxy_success(session_name)
+            if use_proxy and session_name: proxy_manager.mark_proxy_success(session_name)
             return True, chat_title
         except UserAlreadyParticipantError:
             log_msg = f"⚠️ [{session_name}] Уже состоит в чате/группе"
@@ -3824,20 +2737,15 @@ async def join_chat_safely(client, link, session_name="", retry_count=0):
                 print(f"\n{Fore.YELLOW}🛑 Остановлено пользователем во время ожидания{Style.RESET_ALL}")
                 return False, "Остановлено"
             if remaining % 10 == 0 or remaining < 10:
-                if remaining > 60:
-                    mins = remaining // 60
-                    secs = remaining % 60
-                    print(f"{Fore.YELLOW}⏳ Осталось: {mins} мин {secs} сек...{Style.RESET_ALL}")
-                else:
-                    print(f"{Fore.YELLOW}⏳ Осталось: {remaining} сек...{Style.RESET_ALL}")
+                if remaining > 60: print(f"{Fore.YELLOW}⏳ Осталось: {remaining // 60} мин {remaining % 60} сек...{Style.RESET_ALL}")
+                else: print(f"{Fore.YELLOW}⏳ Осталось: {remaining} сек...{Style.RESET_ALL}")
             await asyncio.sleep(1)
         log_msg = f"⏳ Пауза закончена, продолжаем..."
         print(f"{Fore.GREEN}{log_msg}{Style.RESET_ALL}")
         await add_to_log_buffer(log_msg, "info")
         return await join_chat_safely(client, link, session_name, retry_count)
     except (ConnectionError, TimeoutError, asyncio.TimeoutError, OSError) as e:
-        if use_proxy and proxy_manager.has_proxies() and session_name and retry_count < proxy_max_retries * len(
-                proxy_manager.proxies):
+        if use_proxy and proxy_manager.has_proxies() and session_name and retry_count < proxy_max_retries * len(proxy_manager.proxies):
             proxy_info = ""
             if session_name in proxy_manager.proxy_assignments:
                 proxy_str = proxy_manager.proxy_assignments[session_name]
@@ -3892,7 +2800,6 @@ async def join_chat_safely(client, link, session_name="", retry_count=0):
         await add_to_log_buffer(log_msg, "error")
         return False, error_msg
 
-
 async def create_telegram_client(session_name, api_id, api_hash, account_age_days=0):
     session_path = os.path.join(session_folder, session_name.replace('.session', ''))
     proxy = proxy_manager.get_proxy_for_session(session_name) if use_proxy and proxy_manager.has_proxies() else None
@@ -3911,13 +2818,9 @@ async def create_telegram_client(session_name, api_id, api_hash, account_age_day
         await add_to_log_buffer(log_msg, "proxy")
     return client
 
-
 async def process_account_join(session_file, api_id, api_hash, join_links, delay_between_joins=5):
     client = await create_telegram_client(session_file, api_id, api_hash)
-    joined_count = 0
-    failed_count = 0
-    already_joined_count = 0
-    flood_pause_count = 0
+    joined_count = 0; failed_count = 0; already_joined_count = 0; flood_pause_count = 0
     account_info = "неавторизована"
     try:
         await client.connect()
@@ -3926,7 +2829,7 @@ async def process_account_join(session_file, api_id, api_hash, join_links, delay
             print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg, "error")
             log_invalid_session(session_file)
-            return 0, 0, 0, 0, False
+            return 0,0,0,0,False
         try:
             me = await client.get_me()
             account_info = f"@{me.username or me.id}"
@@ -3935,7 +2838,7 @@ async def process_account_join(session_file, api_id, api_hash, join_links, delay
             print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg, "error")
             log_invalid_session(session_file)
-            return 0, 0, 0, 0, False
+            return 0,0,0,0,False
         proxy_info = ""
         if session_file in proxy_manager.proxy_assignments:
             proxy_str = proxy_manager.proxy_assignments[session_file]
@@ -3960,20 +2863,15 @@ async def process_account_join(session_file, api_id, api_hash, join_links, delay
                     log_msg = f"⚠️ [{session_file}] Достигнут дневной лимит вступлений ({max_daily_joins}). Пропускаем..."
                     print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
                     await add_to_log_buffer(log_msg, "warning")
-                    failed_count += 1
-                    continue
+                    failed_count += 1; continue
             success, result = await join_chat_safely(client, link, account_info)
             if success:
-                if result == "Уже участник":
-                    already_joined_count += 1
+                if result == "Уже участник": already_joined_count += 1
                 else:
                     joined_count += 1
-                    if anti_ban_enabled:
-                        account_protector.record_join(session_file, is_channel=True)
-            else:
-                failed_count += 1
-            if "FloodWait" in result or "пауза" in str(result).lower():
-                flood_pause_count += 1
+                    if anti_ban_enabled: account_protector.record_join(session_file, is_channel=True)
+            else: failed_count += 1
+            if "FloodWait" in result or "пауза" in str(result).lower(): flood_pause_count += 1
             if i < len(join_links):
                 delay = delay_between_joins
                 if anti_ban_enabled:
@@ -4022,7 +2920,6 @@ async def process_account_join(session_file, api_id, api_hash, join_links, delay
     await add_to_log_buffer(log_msg, "info")
     return joined_count, failed_count, already_joined_count, flood_pause_count, True
 
-
 async def run_join_broadcast(api_id, api_hash, session_files, join_links):
     print("\n" + Fore.MAGENTA + "--- Запуск вступления в группы ---" + Style.RESET_ALL)
     await add_to_log_buffer("--- Запуск вступления в группы ---", "info")
@@ -4046,37 +2943,24 @@ async def run_join_broadcast(api_id, api_hash, session_files, join_links):
     tasks = []
     processed_session_files = []
     for i, session_file in enumerate(session_files):
-        if stop_event.is_set():
-            break
-        task = asyncio.create_task(
-            process_account_join(session_file, api_id, api_hash, join_links, delay_between_joins=5))
+        if stop_event.is_set(): break
+        task = asyncio.create_task(process_account_join(session_file, api_id, api_hash, join_links, delay_between_joins=5))
         tasks.append(task)
         processed_session_files.append(session_file)
         if i < len(session_files) - 1:
             await asyncio.sleep(delay_between_accounts)
     if tasks:
         results = await asyncio.gather(*tasks)
-        total_joined = 0
-        total_failed = 0
-        total_already = 0
-        total_flood_pauses = 0
-        working_sessions = 0
+        total_joined = 0; total_failed = 0; total_already = 0; total_flood_pauses = 0; working_sessions = 0
         for i, result in enumerate(results):
-            if result is None:
-                continue
+            if result is None: continue
             try:
                 joined, failed, already, flood_pauses, authorized = result
-                total_joined += joined
-                total_failed += failed
-                total_already += already
-                total_flood_pauses += flood_pauses
-                if authorized:
-                    working_sessions += 1
+                total_joined += joined; total_failed += failed; total_already += already; total_flood_pauses += flood_pauses
+                if authorized: working_sessions += 1
             except Exception as res_err:
-                print(
-                    f"\n" + Fore.RED + f"✘ Ошибка обработки результата для {processed_session_files[i]}: {res_err}" + Style.RESET_ALL)
-                await add_to_log_buffer(f"✘ Ошибка обработки результата для {processed_session_files[i]}: {res_err}",
-                                        "error")
+                print(f"\n" + Fore.RED + f"✘ Ошибка обработки результата для {processed_session_files[i]}: {res_err}" + Style.RESET_ALL)
+                await add_to_log_buffer(f"✘ Ошибка обработки результата для {processed_session_files[i]}: {res_err}", "error")
         print("\n" + "=" * 50)
         await add_to_log_buffer("=" * 50, "info")
         print(f"{Fore.MAGENTA}     ✔ ОБЩАЯ СТАТИСТИКА ВСТУПЛЕНИЙ")
@@ -4099,26 +2983,16 @@ async def run_join_broadcast(api_id, api_hash, session_files, join_links):
     print(Fore.MAGENTA + "--- Вступление в группы завершено ---" + Style.RESET_ALL)
     await add_to_log_buffer("--- Вступление в группы завершено ---", "info")
 
-
-# =============== НОВАЯ ФУНКЦИЯ ДЛЯ ВЫПОЛНЕНИЯ ЗАДАЧИ РАССЫЛКИ ===============
-async def execute_distribution_task(client, session_file, api_id, api_hash, task, cycle_number=1):
-    """Выполняет одну задачу распределенной рассылки с использованием существующего клиента"""
-    sent_count = 0
-    skipped_count = 0
-    deleted_count = 0
-    total_chats_processed = 0
-    account_info = "неавторизована"
-    all_groups_for_monitoring = []
-
+async def execute_distribution_task(client, session_file, task, cycle_number=1):
+    sent_count = 0; skipped_count = 0; deleted_count = 0; total_chats_processed = 0
+    account_info = "неавторизована"; all_groups_for_monitoring = []
     try:
-        # Проверяем авторизацию
         if not await client.is_user_authorized():
             log_msg = f"✘ [{session_file}] НЕ АВТОРИЗОВАНА - ПРОПУЩЕНА"
             print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg, "error")
             log_invalid_session(session_file)
-            return 0, 0, 0, 0, False, []
-
+            return 0,0,0,0,False,[]
         try:
             me = await client.get_me()
             account_info = f"@{me.username or me.id}"
@@ -4127,50 +3001,34 @@ async def execute_distribution_task(client, session_file, api_id, api_hash, task
             print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg, "error")
             log_invalid_session(session_file)
-            return 0, 0, 0, 0, False, []
-
+            return 0,0,0,0,False,[]
         log_msg = f"\n📋 [{account_info}] ВЫПОЛНЕНИЕ ЗАДАЧИ: {task['name']}"
         print(f"{Fore.MAGENTA}{log_msg}{Style.RESET_ALL}")
         await add_to_log_buffer(log_msg, "info")
-
-        # Получаем все чаты для задачи
         chats_to_process = []
         for target in task['targets']:
-            if stop_event.is_set():
-                break
-
+            if stop_event.is_set(): break
             if isinstance(target, str):
                 result, result_type = await get_chat_from_link(client, target, account_info)
-
                 if result_type == "folder" and isinstance(result, list):
                     log_msg = f"✔ [{account_info}] Получено {len(result)} чатов из папки для задачи '{task['name']}'"
                     print(f"{Fore.GREEN}{log_msg}{Style.RESET_ALL}")
                     await add_to_log_buffer(log_msg, "success")
-
                     for chat in result:
-                        if chat not in chats_to_process:
-                            chats_to_process.append(chat)
-
+                        if chat not in chats_to_process: chats_to_process.append(chat)
                 elif result_type == "chat" and result:
-                    if result not in chats_to_process:
-                        chats_to_process.append(result)
-
+                    if result not in chats_to_process: chats_to_process.append(result)
         if not chats_to_process:
             log_msg = f"⚠️ [{account_info}] Нет чатов для задачи '{task['name']}'"
             print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg, "warning")
-            return 0, 0, 0, 0, True, []
-
+            return 0,0,0,0,True,[]
         total_chats_processed = len(chats_to_process)
         log_msg = f"ℹ [{account_info}] Задача '{task['name']}': {total_chats_processed} чатов для обработки"
         print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
         await add_to_log_buffer(log_msg, "info")
-
-        # Отправляем сообщения во все чаты
         for i, chat in enumerate(chats_to_process, 1):
-            if stop_event.is_set():
-                break
-
+            if stop_event.is_set(): break
             if anti_ban_enabled:
                 can_send, remaining = account_protector.can_send_message(session_file)
                 if not can_send:
@@ -4178,41 +3036,25 @@ async def execute_distribution_task(client, session_file, api_id, api_hash, task
                     print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
                     await add_to_log_buffer(log_msg, "warning")
                     break
-
             chat_title = getattr(chat, 'title', f"чат ID {chat.id}")
             if isinstance(chat, User):
                 chat_title = f"{chat.first_name or ''} {chat.last_name or ''}".strip() or f"пользователь {chat.id}"
-
             log_msg = f"[{account_info}] [{i}/{len(chats_to_process)}] '{chat_title[:30].strip()}...'"
-            print(log_msg)
-            await add_to_log_buffer(log_msg, "info")
-
+            print(log_msg); await add_to_log_buffer(log_msg, "info")
             current_time = datetime.now().strftime("%H:%M:%S.%f")[:-3]
             media_to_use = task.get('media_path') if task.get('use_media') else None
             forward_link_to_use = task.get('forward_link') if task.get('forward_link') else None
-
             success, sent_message = await send_message_safely(
-                client, chat,
-                task.get('message_text', ''),
-                delete_after_send,
-                media_to_use,
-                session_name=session_file,
-                forward_link=forward_link_to_use
+                client, chat, task.get('message_text', ''), delete_after_send,
+                media_to_use, session_name=session_file, forward_link=forward_link_to_use
             )
-
             if success:
                 sent_count += 1
                 log_msg = f"✔ ({current_time}) Отправлено!"
                 print(f"{Fore.GREEN}{log_msg}{Style.RESET_ALL}")
                 await add_to_log_buffer(log_msg, "success")
-
-                if delete_after_send:
-                    deleted_count += 1
-
-                if anti_ban_enabled:
-                    account_protector.record_message_sent(session_file)
-
-                # Сохраняем группу для мониторинга
+                if delete_after_send: deleted_count += 1
+                if anti_ban_enabled: account_protector.record_message_sent(session_file)
                 if isinstance(chat, (Channel, Chat)) and not isinstance(chat, User):
                     all_groups_for_monitoring.append(chat)
             else:
@@ -4220,94 +3062,72 @@ async def execute_distribution_task(client, session_file, api_id, api_hash, task
                 log_msg = f"✘ ({current_time}) Пропущено (нет доступа)"
                 print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
                 await add_to_log_buffer(log_msg, "error")
-
-            if sent_count >= max_messages_per_account:
-                break
-
+            if sent_count >= max_messages_per_account: break
             if i < len(chats_to_process):
                 delay = fast_delay if fast_mode else delay_between_messages
-                if anti_ban_enabled:
-                    delay = account_protector.get_safe_delay(session_file, delay)
+                if anti_ban_enabled: delay = account_protector.get_safe_delay(session_file, delay)
                 delay = await human_like_pause(delay, session_file)
                 await asyncio.sleep(delay)
-
         return sent_count, skipped_count, deleted_count, total_chats_processed, True, all_groups_for_monitoring, account_info
-
     except Exception as e:
         log_msg = f"✘ [{session_file}] Ошибка в задаче '{task['name']}': {e}"
         print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
         await add_to_log_buffer(log_msg, "error")
         traceback.print_exc()
-        return 0, 0, 0, 0, False, [], "неавторизована"
+        return 0,0,0,0,False,[],"неавторизована"
 
-
-# =============== ИСПРАВЛЕННАЯ ФУНКЦИЯ ДЛЯ ПАРАЛЛЕЛЬНОЙ РАССЫЛКИ С РАСПРЕДЕЛЕНИЕМ ===============
 async def run_distributed_broadcast(api_id, api_hash, session_files):
-    """Запускает распределенную рассылку по задачам (параллельно для всех задач)"""
     print("\n" + Fore.MAGENTA + "--- ЗАПУСК РАСПРЕДЕЛЕННОЙ РАССЫЛКИ ---" + Style.RESET_ALL)
     await add_to_log_buffer("--- ЗАПУСК РАСПРЕДЕЛЕННОЙ РАССЫЛКИ ---", "info")
-
     if not distribution_config.tasks:
         print(f"{Fore.RED}✘ Нет задач для рассылки!{Style.RESET_ALL}")
         await add_to_log_buffer("✘ Нет задач для рассылки!", "error")
         return
-
-    # Фильтруем только активные задачи
-    active_tasks = [t for t in distribution_config.tasks if t.get('enabled', True)]
+    active_tasks = {t['id']: t for t in distribution_config.tasks if t.get('enabled', True)}
     if not active_tasks:
         print(f"{Fore.RED}✘ Нет активных задач для рассылки!{Style.RESET_ALL}")
         await add_to_log_buffer("✘ Нет активных задач для рассылки!", "error")
         return
-
-    print(f"📋 Найдено активных задач: {len(active_tasks)}")
-    await add_to_log_buffer(f"📋 Найдено активных задач: {len(active_tasks)}", "info")
-
-    for idx, task in enumerate(active_tasks, 1):
-        targets_count = len(task['targets'])
-        msg_type = "пересылка" if task.get('forward_link') else "текст"
-        print(f"  {idx}. {task['name']} - {targets_count} целей, тип: {msg_type}")
-        await add_to_log_buffer(f"  {idx}. {task['name']} - {targets_count} целей, тип: {msg_type}", "info")
-
-    print(f"📊 Сессий для обработки: {len(session_files)}")
-    await add_to_log_buffer(f"📊 Сессий для обработки: {len(session_files)}", "info")
-
+    print(f"📋 Активных задач: {len(active_tasks)}")
+    await add_to_log_buffer(f"📋 Активных задач: {len(active_tasks)}", "info")
+    assignments = distribution_config.get_all_assignments()
+    session_tasks = {}
+    for session_file in session_files:
+        if session_file in assignments:
+            task_id = assignments[session_file]
+            if task_id in active_tasks:
+                session_tasks[session_file] = active_tasks[task_id]
+    if not session_tasks:
+        print(f"{Fore.YELLOW}⚠️ Нет назначенных задач для выбранных сессий!{Style.RESET_ALL}")
+        await add_to_log_buffer("⚠️ Нет назначенных задач для выбранных сессий!", "warning")
+        return
+    print(f"\n{Fore.CYAN}📊 Распределение задач:{Style.RESET_ALL}")
+    for session_file, task in session_tasks.items():
+        print(f"  📱 {session_file} ➔ {task['name']}")
+        await add_to_log_buffer(f"  📱 {session_file} ➔ {task['name']}", "info")
     cycle_number = 1
     while True:
-        if stop_event.is_set():
-            break
-
+        if stop_event.is_set(): break
         log_msg = f"\n{'=' * 50}"
-        print(log_msg)
-        await add_to_log_buffer(log_msg, "info")
+        print(log_msg); await add_to_log_buffer(log_msg, "info")
         log_msg = f"🚀 ЦИКЛ {cycle_number} РАСПРЕДЕЛЕННОЙ РАССЫЛКИ"
         print(f"{Fore.MAGENTA}{log_msg}{Style.RESET_ALL}")
         await add_to_log_buffer(log_msg, "info")
         log_msg = f"{'=' * 50}"
-        print(log_msg)
-        await add_to_log_buffer(log_msg, "info")
-
-        # Для каждой сессии создаем ОДНОГО клиента и выполняем все задачи параллельно
-        all_session_tasks = []
+        print(log_msg); await add_to_log_buffer(log_msg, "info")
         session_clients = {}
-
-        for session_file in session_files:
-            if stop_event.is_set():
-                break
-
-            # Создаем клиента для сессии
+        all_session_tasks = []
+        for session_file, task in session_tasks.items():
+            if stop_event.is_set(): break
             client = await create_telegram_client(session_file, api_id, api_hash)
             await client.connect()
-
-            # Проверяем авторизацию
             if not await client.is_user_authorized():
                 log_msg = f"✘ [{session_file}] НЕ АВТОРИЗОВАНА - ПРОПУЩЕНА"
                 print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
                 await add_to_log_buffer(log_msg, "error")
                 log_invalid_session(session_file)
-                if client.is_connected():
-                    await client.disconnect()
+                if client.is_connected(): await client.disconnect()
                 continue
-
             try:
                 me = await client.get_me()
                 account_info = f"@{me.username or me.id}"
@@ -4315,124 +3135,72 @@ async def run_distributed_broadcast(api_id, api_hash, session_files):
                 log_msg = f"✘ [{session_file}] Ошибка получения информации: {e}"
                 print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
                 await add_to_log_buffer(log_msg, "error")
-                if client.is_connected():
-                    await client.disconnect()
+                if client.is_connected(): await client.disconnect()
                 continue
-
             session_clients[session_file] = (client, account_info)
-
-            # Создаем задачи для всех активных задач этой сессии (параллельно)
-            for task in active_tasks:
-                if stop_event.is_set():
-                    break
-
-                task_coro = execute_distribution_task(
-                    client, session_file, api_id, api_hash, task, cycle_number
-                )
-                all_session_tasks.append(task_coro)
-
+            task_coro = execute_distribution_task(client, session_file, task, cycle_number)
+            all_session_tasks.append(task_coro)
         if not all_session_tasks:
             print(f"{Fore.YELLOW}⚠️ Нет задач для выполнения{Style.RESET_ALL}")
             await add_to_log_buffer("⚠️ Нет задач для выполнения", "warning")
             break
-
-        # Запускаем ВСЕ задачи ПАРАЛЛЕЛЬНО
         log_msg = f"⏳ Запущено {len(all_session_tasks)} задач параллельно..."
         print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
         await add_to_log_buffer(log_msg, "info")
-
         results = await asyncio.gather(*all_session_tasks, return_exceptions=True)
-
-        # Собираем результаты
-        all_results = []
-        all_groups_by_session = {}
-        account_infos = {}
-
+        all_results = []; all_groups_by_session = {}
         for i, result in enumerate(results):
             if isinstance(result, Exception):
                 print(f"{Fore.RED}✘ Ошибка в задаче: {result}{Style.RESET_ALL}")
                 continue
-            if result is None:
-                continue
-
+            if result is None: continue
             if len(result) >= 7:
                 sent, skipped, deleted, chats, authorized, groups, acc_info = result
                 all_results.append((sent, skipped, deleted, chats, authorized))
-                # Находим, к какой сессии относится результат
                 for session_file, (client, acc_info_val) in session_clients.items():
                     if acc_info_val == acc_info:
                         if session_file not in all_groups_by_session:
                             all_groups_by_session[session_file] = (client, [], acc_info_val)
                         all_groups_by_session[session_file][1].extend(groups)
                         break
-            else:
-                sent, skipped, deleted, chats, authorized, groups = result[:6]
-                all_results.append((sent, skipped, deleted, chats, authorized))
-
-        # Суммируем результаты
         total_sent = sum(r[0] for r in all_results)
         total_skipped = sum(r[1] for r in all_results)
         total_deleted = sum(r[2] for r in all_results)
         total_chats = sum(r[3] for r in all_results)
         working_sessions = sum(1 for r in all_results if r[4])
-
-        # =============== ПАРАЛЛЕЛЬНАЯ АВТОПОДПИСКА ===============
         if auto_subscribe_enabled:
             for cycle in range(1, auto_subscribe_cycles + 1):
-                if stop_event.is_set():
-                    break
-
+                if stop_event.is_set(): break
                 log_msg = f"\n🤖 ЗАПУСК ЦИКЛА АВТОПОДПИСКИ {cycle}/{auto_subscribe_cycles}..."
                 print(f"{Fore.MAGENTA}{log_msg}{Style.RESET_ALL}")
                 await add_to_log_buffer(log_msg, "info")
-
                 monitor_tasks = []
-
                 for session_file, (client, groups, account_info) in all_groups_by_session.items():
-                    if not groups:
-                        continue
-
-                    # Ограничиваем количество одновременно мониторимых групп
+                    if not groups: continue
                     MAX_CONCURRENT_MONITORS = 5
                     groups_to_monitor = groups[:MAX_CONCURRENT_MONITORS]
-
                     for group in groups_to_monitor:
                         group_title = getattr(group, 'title', 'группа')
                         log_msg = f"📌 [{account_info}] Добавлена группа в мониторинг: {group_title[:50]} (цикл {cycle})"
                         print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
                         await add_to_log_buffer(log_msg, "info")
-
-                        # Используем существующего клиента для мониторинга
-                        task = asyncio.create_task(
-                            monitor_and_subscribe(client, account_info, group, cycle)
-                        )
+                        task = asyncio.create_task(monitor_and_subscribe(client, account_info, group, cycle))
                         monitor_tasks.append(task)
-
                 if monitor_tasks:
                     log_msg = f"⏳ Ожидание завершения {len(monitor_tasks)} задач мониторинга (цикл {cycle})..."
                     print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
                     await add_to_log_buffer(log_msg, "info")
-
-                    # Ждем завершения всех задач
                     await asyncio.gather(*monitor_tasks, return_exceptions=True)
-
                     log_msg = f"✅ Цикл автоподписки {cycle} завершен"
                     print(f"{Fore.GREEN}{log_msg}{Style.RESET_ALL}")
                     await add_to_log_buffer(log_msg, "success")
-
-                # Пауза между циклами
                 if cycle < auto_subscribe_cycles:
                     log_msg = f"⏸️ Пауза 5 секунд перед следующим циклом..."
                     print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
                     await add_to_log_buffer(log_msg, "info")
                     await asyncio.sleep(5)
-
-        # Закрываем всех клиентов
         for session_file, (client, _, _) in all_groups_by_session.items():
-            if client.is_connected():
-                await client.disconnect()
-
-        # Выводим статистику
+            if client.is_connected(): await client.disconnect()
         print("\n" + "=" * 50)
         await add_to_log_buffer("=" * 50, "info")
         print(f"{Fore.MAGENTA}     ✔ ОБЩАЯ СТАТИСТИКА (ЦИКЛ {cycle_number})")
@@ -4448,35 +3216,25 @@ async def run_distributed_broadcast(api_id, api_hash, session_files):
             await add_to_log_buffer(f"🗑 Всего удалено у себя: {total_deleted}", "info")
         print(f"{Fore.CYAN}ℹ Всего чатов охвачено: {total_chats}")
         await add_to_log_buffer(f"ℹ Всего чатов охвачено: {total_chats}", "info")
-        print(f"{Fore.GREEN}✔ Работало сессий: {working_sessions}/{len(session_files)}")
-        await add_to_log_buffer(f"✔ Работало сессий: {working_sessions}/{len(session_files)}", "success")
-
+        print(f"{Fore.GREEN}✔ Работало сессий: {working_sessions}/{len(session_tasks)}")
+        await add_to_log_buffer(f"✔ Работало сессий: {working_sessions}/{len(session_tasks)}", "success")
         if repeat_broadcast and not stop_event.is_set():
             print(f"\n{Fore.CYAN}ℹ Повтор рассылки через {repeat_interval} секунд...{Style.RESET_ALL}")
             await add_to_log_buffer(f"ℹ Повтор рассылки через {repeat_interval} секунд...", "info")
-
             for remaining in range(repeat_interval, 0, -1):
-                if stop_event.is_set():
-                    break
+                if stop_event.is_set(): break
                 if remaining % 10 == 0 or remaining <= 5:
                     print(f"{Fore.CYAN}⏳ До повтора: {remaining} сек...{Style.RESET_ALL}")
                 await asyncio.sleep(1)
-
             cycle_number += 1
-        else:
-            break
-
+        else: break
     print(Fore.MAGENTA + "--- Распределенная рассылка завершена ---" + Style.RESET_ALL)
     await add_to_log_buffer("--- Распределенная рассылка завершена ---", "info")
 
-
-# =============== ФУНКЦИЯ ДЛЯ УПРАВЛЕНИЯ ЗАДАЧАМИ ===============
 async def manage_distribution_tasks():
-    """Меню управления задачами распределенной рассылки"""
     while True:
         os.system('cls' if os.name == 'nt' else 'clear')
         print_header("📋 УПРАВЛЕНИЕ ЗАДАЧАМИ РАССЫЛКИ")
-
         print(f"{CLR_INFO}Текущие задачи:{Style.RESET_ALL}")
         if distribution_config.tasks:
             for i, task in enumerate(distribution_config.tasks, 1):
@@ -4484,118 +3242,83 @@ async def manage_distribution_tasks():
                 msg_type = "📨 Пересылка" if task.get('forward_link') else "📝 Текст"
                 targets = len(task['targets'])
                 print(f"  {status} {i}. {task['name']} - {msg_type}, целей: {targets}")
-        else:
-            print("  Нет задач")
-
+        else: print("  Нет задач")
         print(f"\n{CLR_MAIN}Действия:{Style.RESET_ALL}")
         print(f"{CLR_INFO}1. ➕ Добавить задачу")
         print(f"{CLR_INFO}2. ✏️ Редактировать задачу")
         print(f"{CLR_INFO}3. ❌ Удалить задачу")
         print(f"{CLR_INFO}4. 🔄 Включить/выключить задачу")
-        print(f"{CLR_INFO}5. 💾 Сохранить конфигурацию")
-        print(f"{CLR_INFO}6. 📂 Загрузить конфигурацию")
+        print(f"{CLR_INFO}5. 📋 Назначить задачи сессиям")
+        print(f"{CLR_INFO}6. 📋 Просмотреть назначения")
+        print(f"{CLR_INFO}7. 💾 Сохранить конфигурацию")
+        print(f"{CLR_INFO}8. 📂 Загрузить конфигурацию")
         print(f"{CLR_ERR}0. 🔙 Назад")
-
         choice = input(f"\n{CLR_MAIN}Выберите действие ➔ {RESET}").strip()
-
         if choice == '1':
-            # Добавление новой задачи
             print(f"\n{Fore.CYAN}--- Добавление новой задачи ---{Style.RESET_ALL}")
-
             name = input("Название задачи: ").strip()
             if not name:
                 print(f"{Fore.RED}✘ Название не может быть пустым{Style.RESET_ALL}")
-                await asyncio.sleep(2)
-                continue
-
+                await asyncio.sleep(2); continue
             print(f"\n{Fore.YELLOW}Введите цели (папки или ссылки на чаты), по одной в строке.")
             print("Пустая строка - завершить ввод:{Style.RESET_ALL}")
             targets = []
             while True:
                 target = input(f"Цель {len(targets) + 1}: ").strip()
-                if not target:
-                    break
-                if target:
-                    targets.append(target)
-
+                if not target: break
+                if target: targets.append(target)
             if not targets:
                 print(f"{Fore.RED}✘ Нужно указать хотя бы одну цель{Style.RESET_ALL}")
-                await asyncio.sleep(2)
-                continue
-
+                await asyncio.sleep(2); continue
             print(f"\n{Fore.YELLOW}Тип сообщения:{Style.RESET_ALL}")
             print("1. Текстовое сообщение")
             print("2. Пересылка сообщения по ссылке")
-
             msg_type = input("Выберите (1-2): ").strip()
-
-            message_text = None
-            forward_link = None
-            use_media = False
-            media_path = None
-
+            message_text = None; forward_link = None; use_media = False; media_path = None
             if msg_type == '1':
                 print(f"\n{Fore.YELLOW}Введите текст сообщения (Enter дважды для завершения):{Style.RESET_ALL}")
                 lines = []
                 while True:
                     line = input()
-                    if not line and lines:
-                        break
+                    if not line and lines: break
                     lines.append(line)
                 message_text = '\n'.join(lines)
             elif msg_type == '2':
                 forward_link = input("Ссылка на сообщение (например, https://t.me/username/123): ").strip()
                 if not forward_link:
                     print(f"{Fore.RED}✘ Ссылка не может быть пустой{Style.RESET_ALL}")
-                    await asyncio.sleep(2)
-                    continue
+                    await asyncio.sleep(2); continue
             else:
                 print(f"{Fore.RED}✘ Неверный выбор{Style.RESET_ALL}")
-                await asyncio.sleep(2)
-                continue
-
+                await asyncio.sleep(2); continue
             distribution_config.add_task(name, targets, message_text, forward_link, use_media, media_path)
             distribution_config.save_to_file()
             print(f"{Fore.GREEN}✔ Задача '{name}' добавлена!{Style.RESET_ALL}")
             await asyncio.sleep(2)
-
         elif choice == '2' and distribution_config.tasks:
-            # Редактирование задачи
             try:
                 task_num = int(input("Номер задачи для редактирования: ")) - 1
                 if 0 <= task_num < len(distribution_config.tasks):
                     task = distribution_config.tasks[task_num]
                     print(f"\n{Fore.CYAN}Редактирование задачи '{task['name']}'{Style.RESET_ALL}")
-
                     new_name = input(f"Новое название (Enter - оставить '{task['name']}'): ").strip()
-                    if new_name:
-                        task['name'] = new_name
-
+                    if new_name: task['name'] = new_name
                     print(f"\n{Fore.YELLOW}Текущие цели:{Style.RESET_ALL}")
-                    for i, t in enumerate(task['targets'], 1):
-                        print(f"  {i}. {t}")
-
+                    for i, t in enumerate(task['targets'], 1): print(f"  {i}. {t}")
                     if input("Изменить цели? (y/n): ").lower() == 'y':
                         print("Введите новые цели (по одной в строке, пустая строка - завершить):")
                         new_targets = []
                         while True:
                             target = input(f"Цель {len(new_targets) + 1}: ").strip()
-                            if not target:
-                                break
+                            if not target: break
                             new_targets.append(target)
-                        if new_targets:
-                            task['targets'] = new_targets
-
+                        if new_targets: task['targets'] = new_targets
                     distribution_config.save_to_file()
                     print(f"{Fore.GREEN}✔ Задача обновлена!{Style.RESET_ALL}")
-                else:
-                    print(f"{Fore.RED}✘ Неверный номер задачи{Style.RESET_ALL}")
-            except ValueError:
-                print(f"{Fore.RED}✘ Введите число{Style.RESET_ALL}")
+                else: print(f"{Fore.RED}✘ Неверный номер задачи{Style.RESET_ALL}")
+            except ValueError: print(f"{Fore.RED}✘ Введите число{Style.RESET_ALL}")
             await asyncio.sleep(2)
-
         elif choice == '3' and distribution_config.tasks:
-            # Удаление задачи
             try:
                 task_num = int(input("Номер задачи для удаления: ")) - 1
                 if 0 <= task_num < len(distribution_config.tasks):
@@ -4604,14 +3327,10 @@ async def manage_distribution_tasks():
                         distribution_config.remove_task(task_num + 1)
                         distribution_config.save_to_file()
                         print(f"{Fore.GREEN}✔ Задача удалена!{Style.RESET_ALL}")
-                else:
-                    print(f"{Fore.RED}✘ Неверный номер задачи{Style.RESET_ALL}")
-            except ValueError:
-                print(f"{Fore.RED}✘ Введите число{Style.RESET_ALL}")
+                else: print(f"{Fore.RED}✘ Неверный номер задачи{Style.RESET_ALL}")
+            except ValueError: print(f"{Fore.RED}✘ Введите число{Style.RESET_ALL}")
             await asyncio.sleep(2)
-
         elif choice == '4' and distribution_config.tasks:
-            # Включение/выключение задачи
             try:
                 task_num = int(input("Номер задачи: ")) - 1
                 if 0 <= task_num < len(distribution_config.tasks):
@@ -4620,47 +3339,72 @@ async def manage_distribution_tasks():
                     status = "включена" if task['enabled'] else "выключена"
                     distribution_config.save_to_file()
                     print(f"{Fore.GREEN}✔ Задача '{task['name']}' {status}{Style.RESET_ALL}")
-                else:
-                    print(f"{Fore.RED}✘ Неверный номер задачи{Style.RESET_ALL}")
-            except ValueError:
-                print(f"{Fore.RED}✘ Введите число{Style.RESET_ALL}")
+                else: print(f"{Fore.RED}✘ Неверный номер задачи{Style.RESET_ALL}")
+            except ValueError: print(f"{Fore.RED}✘ Введите число{Style.RESET_ALL}")
             await asyncio.sleep(2)
-
-        elif choice == '5':
-            # Сохранение конфигурации
+        elif choice == '5' and distribution_config.tasks:
+            print(f"\n{Fore.CYAN}--- Назначение задач сессиям ---{Style.RESET_ALL}")
+            session_files = [f for f in os.listdir(session_folder) if f.endswith('.session')]
+            if not session_files:
+                print(f"{Fore.RED}✘ Нет сессий в папке '{session_folder}'{Style.RESET_ALL}")
+                await asyncio.sleep(2); continue
+            print(f"\n{Fore.YELLOW}Доступные сессии:{Style.RESET_ALL}")
+            for i, sf in enumerate(session_files, 1): print(f"  {i}. {sf}")
+            print(f"\n{Fore.YELLOW}Доступные задачи:{Style.RESET_ALL}")
+            for i, task in enumerate(distribution_config.tasks, 1):
+                status = "✅" if task.get('enabled', True) else "❌"
+                print(f"  {status} {i}. {task['name']}")
+            session_choice = input("\nВведите номер сессии: ").strip()
+            try:
+                session_idx = int(session_choice) - 1
+                if 0 <= session_idx < len(session_files):
+                    session_name = session_files[session_idx]
+                    task_choice = input("Введите номер задачи для назначения (0 - снять назначение): ").strip()
+                    if task_choice == '0':
+                        distribution_config.remove_session_assignment(session_name)
+                        print(f"{Fore.GREEN}✔ Назначение для сессии {session_name} удалено{Style.RESET_ALL}")
+                    else:
+                        task_idx = int(task_choice) - 1
+                        if 0 <= task_idx < len(distribution_config.tasks):
+                            task_id = distribution_config.tasks[task_idx]['id']
+                            if distribution_config.assign_task_to_session(session_name, task_id):
+                                print(f"{Fore.GREEN}✔ Сессии {session_name} назначена задача {distribution_config.tasks[task_idx]['name']}{Style.RESET_ALL}")
+                            else: print(f"{Fore.RED}✘ Ошибка назначения{Style.RESET_ALL}")
+                        else: print(f"{Fore.RED}✘ Неверный номер задачи{Style.RESET_ALL}")
+                else: print(f"{Fore.RED}✘ Неверный номер сессии{Style.RESET_ALL}")
+            except ValueError: print(f"{Fore.RED}✘ Введите число{Style.RESET_ALL}")
+            distribution_config.save_to_file()
+            await asyncio.sleep(2)
+        elif choice == '6':
+            print(f"\n{Fore.CYAN}--- Текущие назначения задач ---{Style.RESET_ALL}")
+            assignments = distribution_config.get_all_assignments()
+            if assignments:
+                for session, task_id in assignments.items():
+                    task_name = "Неизвестно"
+                    for task in distribution_config.tasks:
+                        if task['id'] == task_id:
+                            task_name = task['name']
+                            break
+                    print(f"  📱 {session} ➔ {task_name}")
+            else: print("  Нет назначений")
+            await asyncio.sleep(3)
+        elif choice == '7':
             if distribution_config.save_to_file():
                 print(f"{Fore.GREEN}✔ Конфигурация сохранена в {distribution_config.tasks_file}{Style.RESET_ALL}")
-            else:
-                print(f"{Fore.RED}✘ Ошибка сохранения{Style.RESET_ALL}")
+            else: print(f"{Fore.RED}✘ Ошибка сохранения{Style.RESET_ALL}")
             await asyncio.sleep(2)
-
-        elif choice == '6':
-            # Загрузка конфигурации
+        elif choice == '8':
             if distribution_config.load_from_file():
                 print(f"{Fore.GREEN}✔ Конфигурация загружена из {distribution_config.tasks_file}{Style.RESET_ALL}")
                 print(f"Найдено задач: {len(distribution_config.tasks)}")
-            else:
-                print(f"{Fore.YELLOW}⚠️ Файл не найден или ошибка загрузки{Style.RESET_ALL}")
+            else: print(f"{Fore.YELLOW}⚠️ Файл не найден или ошибка загрузки{Style.RESET_ALL}")
             await asyncio.sleep(2)
+        elif choice == '0': break
 
-        elif choice == '0':
-            break
-
-
-async def process_account(session_file, api_id, api_hash, message, max_messages, delete_after, use_media_flag,
-                          media_file_path, recipient_filter, fast_mode_flag, fast_delay_val, target_chats_ids=None,
-                          cycle_number=1, use_forward_flag=False, forward_link_val=None):
+async def process_account(session_file, api_id, api_hash, message, max_messages, delete_after, use_media_flag, media_file_path, recipient_filter, fast_mode_flag, fast_delay_val, target_chats_ids=None, cycle_number=1, use_forward_flag=False, forward_link_val=None):
     client = await create_telegram_client(session_file, api_id, api_hash)
-    sent_count = 0
-    skipped_count = 0
-    deleted_count = 0
-    total_chats_processed = 0
-    authorized = False
-    account_info = "неавторизована"
-
-    # Список для хранения всех групп, куда успешно отправили сообщение
-    all_groups_for_monitoring = []
-
+    sent_count = 0; skipped_count = 0; deleted_count = 0; total_chats_processed = 0; authorized = False
+    account_info = "неавторизована"; all_groups_for_monitoring = []
     try:
         await client.connect()
         if not await client.is_user_authorized():
@@ -4668,8 +3412,7 @@ async def process_account(session_file, api_id, api_hash, message, max_messages,
             print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg, "error")
             log_invalid_session(session_file)
-            return 0, 0, 0, 0, False
-
+            return 0,0,0,0,False
         try:
             me = await client.get_me()
             authorized = True
@@ -4679,70 +3422,52 @@ async def process_account(session_file, api_id, api_hash, message, max_messages,
             print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg, "error")
             log_invalid_session(session_file)
-            return 0, 0, 0, 0, False
-
+            return 0,0,0,0,False
         proxy_info = ""
         if session_file in proxy_manager.proxy_assignments:
             proxy_str = proxy_manager.proxy_assignments[session_file]
             proxy_info = f" [прокси #{proxy_manager.proxy_stats[proxy_str]['line_number']} {proxy_manager.proxy_stats[proxy_str]['host']}]"
-
         log_msg = f"\n⚙ Обработка сессии: {session_file} ({account_info}){proxy_info}"
         print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
         await add_to_log_buffer(log_msg, "info")
-
         if fast_mode_flag and safe_mode:
             log_msg = f"⚠️ Быстрый режим отключен в безопасном режиме"
             print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg, "warning")
             fast_mode_flag = False
-
         if fast_mode_flag:
             log_msg = f"⚡ БЫСТРЫЙ РЕЖИМ: задержка {fast_delay_val}с"
             print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg, "info")
-
         if use_forward_flag and forward_link_val:
             log_msg = f"📨 РЕЖИМ ПЕРЕСЫЛКИ: {forward_link_val}"
             print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg, "info")
-
-        # =============== ЭТАП 1: ПОЛУЧАЕМ ВСЕ ЧАТЫ ДЛЯ ОБРАБОТКИ ===============
         chats_to_process = []
-
         if target_chats_ids:
             log_msg = f"ℹ Рассылка по целям из файла ({len(target_chats_ids)} шт.)"
             print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg, "info")
-
             for target in target_chats_ids:
-                if stop_event.is_set():
-                    break
-
+                if stop_event.is_set(): break
                 if isinstance(target, str):
                     result, result_type = await get_chat_from_link(client, target, account_info)
-
                     if result_type == "folder" and isinstance(result, list):
                         log_msg = f"✔ [{account_info}] Получено {len(result)} чатов из папки"
                         print(f"{Fore.GREEN}{log_msg}{Style.RESET_ALL}")
                         await add_to_log_buffer(log_msg, "success")
-
                         for chat in result:
-                            if chat not in chats_to_process:
-                                chats_to_process.append(chat)
-
+                            if chat not in chats_to_process: chats_to_process.append(chat)
                     elif result_type == "folder_empty":
                         log_msg = f"⚠️ [{account_info}] Папка обработана, но чаты не получены"
                         print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
                         await add_to_log_buffer(log_msg, "warning")
-
                     elif result_type == "chat" and result:
-                        if result not in chats_to_process:
-                            chats_to_process.append(result)
+                        if result not in chats_to_process: chats_to_process.append(result)
                 else:
                     try:
                         entity = await client.get_entity(target)
-                        if entity not in chats_to_process:
-                            chats_to_process.append(entity)
+                        if entity not in chats_to_process: chats_to_process.append(entity)
                     except ValueError:
                         log_msg = f"✘ Не удалось получить информацию о группе по ID: {target}"
                         print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
@@ -4751,12 +3476,11 @@ async def process_account(session_file, api_id, api_hash, message, max_messages,
                         log_msg = f"✘ Ошибка при получении группы {target}: {e}"
                         print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
                         await add_to_log_buffer(log_msg, "error")
-
             if not chats_to_process:
                 log_msg = f"⚠️ [{account_info}] Не найдены доступные чаты для рассылки по списку!"
                 print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
                 await add_to_log_buffer(log_msg, "warning")
-                return 0, 0, 0, 0, True
+                return 0,0,0,0,True
         else:
             chats_to_process = await get_user_chats(client, recipient_filter)
             if not chats_to_process:
@@ -4764,24 +3488,19 @@ async def process_account(session_file, api_id, api_hash, message, max_messages,
                 log_msg = f"⚠️ [{account_info}] Нет доступных {filter_names[recipient_filter]}!"
                 print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
                 await add_to_log_buffer(log_msg, "warning")
-                return 0, 0, 0, 0, True
-
+                return 0,0,0,0,True
         total_chats_processed = len(chats_to_process)
         log_msg = f"ℹ [{account_info}] Всего чатов для обработки: {total_chats_processed}"
         print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
         await add_to_log_buffer(log_msg, "info")
-
-        # =============== ЭТАП 2: ОТПРАВЛЯЕМ СООБЩЕНИЯ ВО ВСЕ ЧАТЫ ===============
         log_msg = f"\n📤 [{account_info}] ЭТАП 1: ОТПРАВКА СООБЩЕНИЙ ВО ВСЕ ЧАТЫ..."
         print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
         await add_to_log_buffer(log_msg, "info")
-
         for i, chat in enumerate(chats_to_process, 1):
             if stop_event.is_set():
                 print("\n" + Fore.YELLOW + "🛑 Остановлено пользователем" + Style.RESET_ALL)
                 await add_to_log_buffer("🛑 Остановлено пользователем", "warning")
                 break
-
             if anti_ban_enabled:
                 can_send, remaining = account_protector.can_send_message(session_file)
                 if not can_send:
@@ -4789,60 +3508,37 @@ async def process_account(session_file, api_id, api_hash, message, max_messages,
                     print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
                     await add_to_log_buffer(log_msg, "warning")
                     break
-
             chat_title = getattr(chat, 'title', f"чат ID {chat.id}")
             if isinstance(chat, User):
                 chat_title = f"{chat.first_name or ''} {chat.last_name or ''}".strip() or f"пользователь {chat.id}"
-
             log_msg = f"[{account_info}] [{i}/{len(chats_to_process)}] '{chat_title[:30].strip()}...'"
-            print(log_msg)
-            await add_to_log_buffer(log_msg, "info")
-
-            # ОТПРАВКА СООБЩЕНИЯ
+            print(log_msg); await add_to_log_buffer(log_msg, "info")
             current_time = datetime.now().strftime("%H:%M:%S.%f")[:-3]
-            media_to_use = media_file_path if use_media_flag and media_file_path and os.path.exists(
-                media_file_path) else None
+            media_to_use = media_file_path if use_media_flag and media_file_path and os.path.exists(media_file_path) else None
             forward_link_to_use = forward_link_val if use_forward_flag else None
-
-            success, sent_message = await send_message_safely(client, chat, message, delete_after, media_to_use,
-                                                              session_name=session_file,
-                                                              forward_link=forward_link_to_use)
-
+            success, sent_message = await send_message_safely(client, chat, message, delete_after, media_to_use, session_name=session_file, forward_link=forward_link_to_use)
             if success:
                 sent_count += 1
                 log_msg = f"✔ ({current_time}) Отправлено!"
                 print(f"{Fore.GREEN}{log_msg}{Style.RESET_ALL}")
                 await add_to_log_buffer(log_msg, "success")
-
-                if delete_after:
-                    deleted_count += 1
-
-                if anti_ban_enabled:
-                    account_protector.record_message_sent(session_file)
-
-                # Сохраняем группу для последующего мониторинга (только если это группа/канал)
+                if delete_after: deleted_count += 1
+                if anti_ban_enabled: account_protector.record_message_sent(session_file)
                 if isinstance(chat, (Channel, Chat)) and not isinstance(chat, User):
                     all_groups_for_monitoring.append(chat)
-
             else:
                 skipped_count += 1
                 log_msg = f"✘ ({current_time}) Пропущено (нет доступа)"
                 print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
                 await add_to_log_buffer(log_msg, "error")
-
             if sent_count >= max_messages:
                 log_msg = f"✔ Достигнут лимит: {max_messages} сообщений"
                 print(f"{Fore.GREEN}{log_msg}{Style.RESET_ALL}")
                 await add_to_log_buffer(log_msg, "success")
                 break
-
-            # Задержка перед следующим сообщением
             if i < len(chats_to_process):
-                if fast_mode_flag:
-                    delay = fast_delay_val
-                else:
-                    delay = delay_between_messages
-
+                if fast_mode_flag: delay = fast_delay_val
+                else: delay = delay_between_messages
                 if anti_ban_enabled:
                     delay = account_protector.get_safe_delay(session_file, delay)
                     should_pause, pause_time = account_protector.should_pause(session_file)
@@ -4851,71 +3547,45 @@ async def process_account(session_file, api_id, api_hash, message, max_messages,
                         print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
                         await add_to_log_buffer(log_msg, "warning")
                         await asyncio.sleep(pause_time)
-
                 delay = await human_like_pause(delay, session_file)
                 await asyncio.sleep(delay)
-
-        # =============== ЭТАП 3: ПАРАЛЛЕЛЬНЫЙ МОНИТОРИНГ ВСЕХ ГРУПП ===============
-        if auto_subscribe_enabled and (
-                auto_subscribe_first_cycle_only and cycle_number == 1 or not auto_subscribe_first_cycle_only) and all_groups_for_monitoring:
+        if auto_subscribe_enabled and (auto_subscribe_first_cycle_only and cycle_number == 1 or not auto_subscribe_first_cycle_only) and all_groups_for_monitoring:
             log_msg = f"\n🤖 [{account_info}] ЭТАП 2: ЗАПУСКАЕМ ПАРАЛЛЕЛЬНЫЙ МОНИТОРИНГ ДЛЯ {len(all_groups_for_monitoring)} ГРУПП..."
             print(f"{Fore.MAGENTA}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg, "info")
-
-            # Ограничение на количество одновременно мониторимых групп (чтобы не перегрузить аккаунт)
             MAX_CONCURRENT_MONITORS = 5
             monitor_tasks = []
-
-            # Создаем задачи для мониторинга каждой группы
             for idx, group in enumerate(all_groups_for_monitoring[:MAX_CONCURRENT_MONITORS], 1):
                 group_title = getattr(group, 'title', f"группа {idx}")
                 log_msg = f"📌 [{account_info}] Добавлена группа в мониторинг: {group_title[:50]}"
                 print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
                 await add_to_log_buffer(log_msg, "info")
-
-                # Создаем задачу для мониторинга этой группы
-                task = asyncio.create_task(
-                    monitor_and_subscribe(client, account_info, group)
-                )
+                task = asyncio.create_task(monitor_and_subscribe(client, account_info, group))
                 monitor_tasks.append(task)
-
-            # Если групп больше лимита, сообщаем об этом
             if len(all_groups_for_monitoring) > MAX_CONCURRENT_MONITORS:
                 log_msg = f"⚠️ [{account_info}] Одновременно мониторится только {MAX_CONCURRENT_MONITORS} групп. Остальные будут проверены в следующих циклах."
                 print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
                 await add_to_log_buffer(log_msg, "warning")
-
-            # Запускаем все задачи параллельно и ждем их завершения
             if monitor_tasks:
                 log_msg = f"⏳ [{account_info}] Ожидание завершения мониторинга всех групп (макс. {auto_subscribe_wait_for_mention}с каждая)..."
                 print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
                 await add_to_log_buffer(log_msg, "info")
-
-                # Ждем завершения всех задач
                 results = await asyncio.gather(*monitor_tasks, return_exceptions=True)
-
-                # Анализируем результаты
-                successful = 0
-                failed = 0
+                successful = 0; failed = 0
                 for i, result in enumerate(results):
                     if isinstance(result, Exception):
                         failed += 1
                         log_msg = f"❌ [{account_info}] Ошибка в мониторинге группы {i + 1}: {result}"
                         print(f"{Fore.RED}{log_msg}{Style.RESET_ALL}")
                         await add_to_log_buffer(log_msg, "error")
-                    elif result is None:
-                        # Функция monitor_and_subscribe не возвращает значение
-                        successful += 1
-
+                    elif result is None: successful += 1
                 log_msg = f"\n✅ [{account_info}] ПАРАЛЛЕЛЬНЫЙ МОНИТОРИНГ ЗАВЕРШЕН. Успешно: {successful}, ошибок: {failed}"
                 print(f"{Fore.GREEN}{log_msg}{Style.RESET_ALL}")
                 await add_to_log_buffer(log_msg, "success")
-
         elif auto_subscribe_enabled and not all_groups_for_monitoring:
             log_msg = f"ℹ️ [{account_info}] Нет групп для мониторинга"
             print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
             await add_to_log_buffer(log_msg, "info")
-
     except asyncio.TimeoutError:
         log_msg = f"⏳ [{session_file}] Тайм-аут подключения"
         print(f"{Fore.YELLOW}{log_msg}{Style.RESET_ALL}")
@@ -4948,12 +3618,10 @@ async def process_account(session_file, api_id, api_hash, message, max_messages,
                 await client.disconnect()
         except:
             pass
-
     proxy_info = ""
     if session_file in proxy_manager.proxy_assignments:
         proxy_str = proxy_manager.proxy_assignments[session_file]
         proxy_info = f" [прокси #{proxy_manager.proxy_stats[proxy_str]['line_number']} {proxy_manager.proxy_stats[proxy_str]['host']}]"
-
     log_msg = f"\n--- ИТОГ {session_file} ({account_info}){proxy_info} ---"
     print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
     await add_to_log_buffer(log_msg, "info")
@@ -4970,30 +3638,19 @@ async def process_account(session_file, api_id, api_hash, message, max_messages,
     log_msg = f"ℹ Всего обработано: {total_chats_processed}"
     print(f"{Fore.CYAN}{log_msg}{Style.RESET_ALL}")
     await add_to_log_buffer(log_msg, "info")
-
     if all_groups_for_monitoring and auto_subscribe_enabled:
-        monitored_count = min(len(all_groups_for_monitoring), 5)  # MAX_CONCURRENT_MONITORS
+        monitored_count = min(len(all_groups_for_monitoring), 5)
         log_msg = f"🤖 Запущен параллельный мониторинг для {monitored_count} из {len(all_groups_for_monitoring)} групп"
         print(f"{Fore.MAGENTA}{log_msg}{Style.RESET_ALL}")
         await add_to_log_buffer(log_msg, "success")
-
     log_msg = "-------------------------------------"
-    print(log_msg)
-    await add_to_log_buffer(log_msg, "info")
-
+    print(log_msg); await add_to_log_buffer(log_msg, "info")
     return sent_count, skipped_count, deleted_count, total_chats_processed, authorized
 
-
-# =============== ОБНОВЛЕННАЯ ФУНКЦИЯ run_broadcast ===============
-async def run_broadcast(api_id, api_hash, session_files, message, max_messages_per_account, repeat_broadcast_flag,
-                        repeat_interval_val, delete_after, use_media_flag, media_file_path, recipient_filter,
-                        fast_mode_flag, fast_delay_val, target_chats_ids=None, cycle_number=1,
-                        use_forward_flag=False, forward_link_val=None):
+async def run_broadcast(api_id, api_hash, session_files, message, max_messages_per_account, repeat_broadcast_flag, repeat_interval_val, delete_after, use_media_flag, media_file_path, recipient_filter, fast_mode_flag, fast_delay_val, target_chats_ids=None, cycle_number=1, use_forward_flag=False, forward_link_val=None):
     filter_names = {"all": "Все диалоги", "users": "Только личные чаты", "groups": "Только группы"}
     print("\n" + Fore.MAGENTA + "--- Запуск рассылки ---" + Style.RESET_ALL)
     await add_to_log_buffer("--- Запуск рассылки ---", "info")
-
-    # Отображаем режим отправки
     if use_forward_flag and forward_link_val:
         print(f"{Fore.CYAN}📨 РЕЖИМ: ПЕРЕСЫЛКА СООБЩЕНИЯ{Style.RESET_ALL}")
         print(f"{Fore.CYAN}📎 Ссылка: {forward_link_val}{Style.RESET_ALL}")
@@ -5002,7 +3659,6 @@ async def run_broadcast(api_id, api_hash, session_files, message, max_messages_p
     else:
         print(f"Сообщение: '{message[:60]}...'")
         await add_to_log_buffer(f"Сообщение: '{message[:60]}...'", "info")
-
     if use_media_flag and media_file_path and os.path.exists(media_file_path):
         print(f"{Fore.CYAN}🖼 Медиафайл: {os.path.basename(media_file_path)}")
         await add_to_log_buffer(f"🖼 Медиафайл: {os.path.basename(media_file_path)}", "info")
@@ -5012,10 +3668,8 @@ async def run_broadcast(api_id, api_hash, session_files, message, max_messages_p
         total_targets = len(target_chats_ids)
         folder_count = sum(1 for t in target_chats_ids if isinstance(t, str) and 'addlist' in t)
         if folder_count > 0:
-            print(
-                f"{Fore.CYAN}● Цели: {total_targets} элементов (включая {folder_count} папок с группами){Style.RESET_ALL}")
-            await add_to_log_buffer(f"● Цели: {total_targets} элементов (включая {folder_count} папок с группами)",
-                                    "info")
+            print(f"{Fore.CYAN}● Цели: {total_targets} элементов (включая {folder_count} папок с группами){Style.RESET_ALL}")
+            await add_to_log_buffer(f"● Цели: {total_targets} элементов (включая {folder_count} папок с группами)", "info")
         else:
             print(f"{Fore.CYAN}● Цели: {total_targets} групп/ссылок из файла{Style.RESET_ALL}")
             await add_to_log_buffer(f"● Цели: {total_targets} групп/ссылок из файла", "info")
@@ -5044,15 +3698,11 @@ async def run_broadcast(api_id, api_hash, session_files, message, max_messages_p
     await add_to_log_buffer(f"🗑 Удаление у себя: {'ВКЛЮЧЕНО' if delete_after else 'ВЫКЛЮЧЕНО'}", "info")
     if auto_subscribe_enabled:
         if auto_subscribe_first_cycle_only:
-            print(
-                f"{Fore.MAGENTA}🤖 АВТОПОДПИСКА: Только 1-й цикл (ожидание {auto_subscribe_wait_for_mention}с){Style.RESET_ALL}")
-            await add_to_log_buffer(f"🤖 АВТОПОДПИСКА: Только 1-й цикл (ожидание {auto_subscribe_wait_for_mention}с)",
-                                    "info")
+            print(f"{Fore.MAGENTA}🤖 АВТОПОДПИСКА: Только 1-й цикл (ожидание {auto_subscribe_wait_for_mention}с){Style.RESET_ALL}")
+            await add_to_log_buffer(f"🤖 АВТОПОДПИСКА: Только 1-й цикл (ожидание {auto_subscribe_wait_for_mention}с)", "info")
         else:
-            print(
-                f"{Fore.MAGENTA}🤖 АВТОПОДПИСКА: Каждый цикл (ожидание {auto_subscribe_wait_for_mention}с){Style.RESET_ALL}")
-            await add_to_log_buffer(f"🤖 АВТОПОДПИСКА: Каждый цикл (ожидание {auto_subscribe_wait_for_mention}с)",
-                                    "info")
+            print(f"{Fore.MAGENTA}🤖 АВТОПОДПИСКА: Каждый цикл (ожидание {auto_subscribe_wait_for_mention}с){Style.RESET_ALL}")
+            await add_to_log_buffer(f"🤖 АВТОПОДПИСКА: Каждый цикл (ожидание {auto_subscribe_wait_for_mention}с)", "info")
     if use_proxy and proxy_manager.has_proxies():
         print(f"{Fore.CYAN}🌐 Прокси: ВКЛЮЧЕНЫ ({proxy_manager.get_proxy_count()} шт.){Style.RESET_ALL}")
         await add_to_log_buffer(f"🌐 Прокси: ВКЛЮЧЕНЫ ({proxy_manager.get_proxy_count()} шт.)", "proxy")
@@ -5068,48 +3718,26 @@ async def run_broadcast(api_id, api_hash, session_files, message, max_messages_p
     print("---")
     await add_to_log_buffer("---", "info")
     while True:
-        if stop_event.is_set():
-            break
-        tasks = []
-        processed_session_files = []
+        if stop_event.is_set(): break
+        tasks = []; processed_session_files = []
         for i, session_file in enumerate(session_files):
-            if stop_event.is_set():
-                break
-            task = asyncio.create_task(
-                process_account(session_file, api_id, api_hash, message, max_messages_per_account, delete_after,
-                                use_media_flag, media_file_path, recipient_filter, fast_mode_flag, fast_delay_val,
-                                target_chats_ids=target_chats_ids, cycle_number=cycle_number,
-                                use_forward_flag=use_forward_flag, forward_link_val=forward_link_val))
-            tasks.append(task)
-            processed_session_files.append(session_file)
-            if i < len(session_files) - 1:
-                await asyncio.sleep(delay_between_accounts)
+            if stop_event.is_set(): break
+            task = asyncio.create_task(process_account(session_file, api_id, api_hash, message, max_messages_per_account, delete_after, use_media_flag, media_file_path, recipient_filter, fast_mode_flag, fast_delay_val, target_chats_ids=target_chats_ids, cycle_number=cycle_number, use_forward_flag=use_forward_flag, forward_link_val=forward_link_val))
+            tasks.append(task); processed_session_files.append(session_file)
+            if i < len(session_files) - 1: await asyncio.sleep(delay_between_accounts)
         if tasks:
             results = await asyncio.gather(*tasks)
-            total_sent = 0
-            total_skipped = 0
-            total_deleted = 0
-            total_chats = 0
-            working_sessions = 0
-            invalid_count = 0
+            total_sent = 0; total_skipped = 0; total_deleted = 0; total_chats = 0; working_sessions = 0; invalid_count = 0
             for i, result in enumerate(results):
-                if result is None:
-                    continue
+                if result is None: continue
                 try:
                     sent, skipped, deleted, chats, authorized = result
-                    total_sent += sent
-                    total_skipped += skipped
-                    total_deleted += deleted
-                    total_chats += chats
-                    if authorized:
-                        working_sessions += 1
-                    else:
-                        invalid_count += 1
+                    total_sent += sent; total_skipped += skipped; total_deleted += deleted; total_chats += chats
+                    if authorized: working_sessions += 1
+                    else: invalid_count += 1
                 except Exception as res_err:
-                    print(
-                        f"\n" + Fore.RED + f"✘ Ошибка обработки результата для {processed_session_files[i]}: {res_err}" + Style.RESET_ALL)
-                    await add_to_log_buffer(
-                        f"✘ Ошибка обработки результата для {processed_session_files[i]}: {res_err}", "error")
+                    print(f"\n" + Fore.RED + f"✘ Ошибка обработки результата для {processed_session_files[i]}: {res_err}" + Style.RESET_ALL)
+                    await add_to_log_buffer(f"✘ Ошибка обработки результата для {processed_session_files[i]}: {res_err}", "error")
             print("\n" + "=" * 50)
             await add_to_log_buffer("=" * 50, "info")
             print(f"{Fore.MAGENTA}     ✔ ОБЩАЯ СТАТИСТИКА (ЦИКЛ {cycle_number})")
@@ -5137,36 +3765,28 @@ async def run_broadcast(api_id, api_hash, session_files, message, max_messages_p
             await add_to_log_buffer("=" * 50, "info")
             if notify_cycle_results:
                 proxy_summary = ""
-                if use_proxy and proxy_manager.has_proxies():
-                    proxy_summary = f"\n🌐 Использовано прокси: {len(proxy_manager.proxy_assignments)}"
+                if use_proxy and proxy_manager.has_proxies(): proxy_summary = f"\n🌐 Использовано прокси: {len(proxy_manager.proxy_assignments)}"
                 notification_message = f"📊 **Результаты цикла #{cycle_number}**\n\n✅ Отправлено: {total_sent}\n❌ Пропущено: {total_skipped}\n"
-                if delete_after:
-                    notification_message += f"🗑 Удалено у себя: {total_deleted}\n"
+                if delete_after: notification_message += f"🗑 Удалено у себя: {total_deleted}\n"
                 notification_message += f"📝 Всего чатов: {total_chats}\n👥 Работало сессий: {working_sessions}/{len(processed_session_files)}\n"
-                if invalid_count > 0:
-                    notification_message += f"⚠️ Недействительных сессий: {invalid_count}\n"
-                if proxy_summary:
-                    notification_message += proxy_summary
+                if invalid_count > 0: notification_message += f"⚠️ Недействительных сессий: {invalid_count}\n"
+                if proxy_summary: notification_message += proxy_summary
                 await send_notification(notification_message, "cycle_result")
             if notify_full_logs:
                 await send_notification("", "full_log")
-                async with log_buffer_lock:
-                    log_buffer.clear()
+                async with log_buffer_lock: log_buffer.clear()
         if repeat_broadcast_flag and not stop_event.is_set():
             print(f"\n{Fore.CYAN}ℹ Повтор рассылки через {repeat_interval_val} секунд...{Style.RESET_ALL}")
             await add_to_log_buffer(f"ℹ Повтор рассылки через {repeat_interval_val} секунд...", "info")
             for remaining in range(repeat_interval_val, 0, -1):
-                if stop_event.is_set():
-                    break
+                if stop_event.is_set(): break
                 if remaining % 10 == 0 or remaining <= 5:
                     print(f"{Fore.CYAN}⏳ До повтора: {remaining} сек...{Style.RESET_ALL}")
                 await asyncio.sleep(1)
             cycle_number += 1
-        else:
-            break
+        else: break
     print(Fore.MAGENTA + "--- Рассылка завершена ---" + Style.RESET_ALL)
     await add_to_log_buffer("--- Рассылка завершена ---", "info")
-
 
 async def run_auto_subscribe(api_id, api_hash, session_files, target_group_link):
     print("\n" + Fore.MAGENTA + "--- Запуск автоподписки на каналы ---" + Style.RESET_ALL)
@@ -5186,28 +3806,21 @@ async def run_auto_subscribe(api_id, api_hash, session_files, target_group_link)
         await add_to_log_buffer("🛡️ Анти-бан защита: ВКЛЮЧЕНА", "success")
     print("---")
     await add_to_log_buffer("---", "info")
-    tasks = []
-    processed_session_files = []
+    tasks = []; processed_session_files = []
     for i, session_file in enumerate(session_files):
-        if stop_event.is_set():
-            break
+        if stop_event.is_set(): break
         task = asyncio.create_task(process_account_auto_subscribe(session_file, api_id, api_hash, target_group_link))
-        tasks.append(task)
-        processed_session_files.append(session_file)
+        tasks.append(task); processed_session_files.append(session_file)
         if i < len(session_files) - 1:
             log_msg = f"\n⏳ Задержка {delay_between_accounts}с перед следующей сессией..."
-            print(log_msg)
-            await add_to_log_buffer(log_msg, "info")
+            print(log_msg); await add_to_log_buffer(log_msg, "info")
             await asyncio.sleep(delay_between_accounts)
     if tasks:
         results = await asyncio.gather(*tasks)
-        successful = 0
-        failed = 0
+        successful = 0; failed = 0
         for i, result in enumerate(results):
-            if result:
-                successful += 1
-            else:
-                failed += 1
+            if result: successful += 1
+            else: failed += 1
         print("\n" + "=" * 50)
         await add_to_log_buffer("=" * 50, "info")
         print(f"{Fore.MAGENTA}     ✔ ОБЩАЯ СТАТИСТИКА АВТОПОДПИСКИ")
@@ -5226,11 +3839,9 @@ async def run_auto_subscribe(api_id, api_hash, session_files, target_group_link)
     print(Fore.MAGENTA + "--- Автоподписка завершена ---" + Style.RESET_ALL)
     await add_to_log_buffer("--- Автоподписка завершена ---", "info")
 
-
 async def process_account_auto_subscribe(session_file, api_id, api_hash, target_group_link):
     client = await create_telegram_client(session_file, api_id, api_hash)
-    account_info = "неавторизована"
-    success = False
+    account_info = "неавторизована"; success = False
     try:
         await client.connect()
         if not await client.is_user_authorized():
@@ -5283,7 +3894,6 @@ async def process_account_auto_subscribe(session_file, api_id, api_hash, target_
             pass
     return success
 
-
 async def display_proxy_menu():
     global use_proxy, proxy_file, proxy_rotate_on_fail, proxy_max_retries, proxy_manager
     while True:
@@ -5291,12 +3901,10 @@ async def display_proxy_menu():
         print_header("🌐 НАСТРОЙКИ ПРОКСИ")
         proxy_count = proxy_manager.get_proxy_count()
         bad_count = len(proxy_manager.bad_proxies)
-        print(
-            f"{CLR_INFO}1. Использовать прокси: {CLR_SUCCESS if use_proxy else CLR_ERR}{'ВКЛ' if use_proxy else 'ВЫКЛ'}")
+        print(f"{CLR_INFO}1. Использовать прокси: {CLR_SUCCESS if use_proxy else CLR_ERR}{'ВКЛ' if use_proxy else 'ВЫКЛ'}")
         print(f"{CLR_INFO}2. Файл с прокси: {CLR_WARN}{proxy_file}")
         print(f"{CLR_INFO}3. Загружено прокси: {CLR_WARN}{proxy_count} (🚫 {bad_count} плохих)")
-        print(
-            f"{CLR_INFO}4. Менять прокси при ошибке: {CLR_SUCCESS if proxy_rotate_on_fail else CLR_ERR}{'ВКЛ' if proxy_rotate_on_fail else 'ВЫКЛ'}")
+        print(f"{CLR_INFO}4. Менять прокси при ошибке: {CLR_SUCCESS if proxy_rotate_on_fail else CLR_ERR}{'ВКЛ' if proxy_rotate_on_fail else 'ВЫКЛ'}")
         print(f"{CLR_INFO}5. Макс. количество попыток: {CLR_WARN}{proxy_max_retries}")
         print(f"{CLR_INFO}6. Перезагрузить прокси из файла")
         print(f"{CLR_INFO}7. Форматы прокси (примеры)")
@@ -5317,8 +3925,7 @@ async def display_proxy_menu():
                     print(f"  📱 {session[:15]}... → {proxy_info}")
             if len(proxy_manager.proxy_assignments) > 5:
                 print(f"  ... и еще {len(proxy_manager.proxy_assignments) - 5} сессий")
-        else:
-            print("  Нет активных назначений")
+        else: print("  Нет активных назначений")
         choice = input(f"\n{CLR_MAIN}Выберите пункт ➔ {RESET}").strip()
         if choice == '1':
             use_proxy = not use_proxy
@@ -5329,8 +3936,7 @@ async def display_proxy_menu():
                 proxy_file = new_file
                 new_manager = ProxyManager(proxy_file)
                 proxy_manager = new_manager
-                print(
-                    f"{Fore.GREEN}✔ Файл с прокси обновлен. Загружено {proxy_manager.get_proxy_count()} прокси.{Style.RESET_ALL}")
+                print(f"{Fore.GREEN}✔ Файл с прокси обновлен. Загружено {proxy_manager.get_proxy_count()} прокси.{Style.RESET_ALL}")
         elif choice == '3':
             print(f"{Fore.CYAN}Загружено прокси: {proxy_count}{Style.RESET_ALL}")
             if proxy_count > 0:
@@ -5345,23 +3951,19 @@ async def display_proxy_menu():
             input("Нажмите Enter...")
         elif choice == '4':
             proxy_rotate_on_fail = not proxy_rotate_on_fail
-            print(
-                f"{Fore.GREEN}✔ Автоматическая смена прокси при ошибке {'включена' if proxy_rotate_on_fail else 'выключена'}.{Style.RESET_ALL}")
+            print(f"{Fore.GREEN}✔ Автоматическая смена прокси при ошибке {'включена' if proxy_rotate_on_fail else 'выключена'}.{Style.RESET_ALL}")
         elif choice == '5':
             try:
                 new_value = int(input(f"Макс. количество попыток (текущее: {proxy_max_retries}): "))
                 if new_value > 0:
                     proxy_max_retries = new_value
                     print(f"{Fore.GREEN}✔ Количество попыток обновлено.{Style.RESET_ALL}")
-                else:
-                    print(f"{Fore.RED}✘ Введите число больше 0.{Style.RESET_ALL}")
-            except ValueError:
-                print(f"{Fore.RED}✘ Введите число.{Style.RESET_ALL}")
+                else: print(f"{Fore.RED}✘ Введите число больше 0.{Style.RESET_ALL}")
+            except ValueError: print(f"{Fore.RED}✘ Введите число.{Style.RESET_ALL}")
         elif choice == '6':
             new_manager = ProxyManager(proxy_file)
             proxy_manager = new_manager
-            print(
-                f"{Fore.GREEN}✔ Прокси перезагружены. Загружено {proxy_manager.get_proxy_count()} прокси.{Style.RESET_ALL}")
+            print(f"{Fore.GREEN}✔ Прокси перезагружены. Загружено {proxy_manager.get_proxy_count()} прокси.{Style.RESET_ALL}")
         elif choice == '7':
             print(f"\n{Fore.CYAN}Примеры форматов прокси:{Style.RESET_ALL}")
             print("1. socks5://username:password@192.168.1.1:1080")
@@ -5377,8 +3979,7 @@ async def display_proxy_menu():
             print(f"{'#':<4} {'Статус':<6} {'Успех':<6} {'Провал':<6} {'Исп.':<6} {'Рейтинг':<8} Прокси")
             print("-" * 80)
             for s in sorted(stats, key=lambda x: x['line'])[:20]:
-                print(
-                    f"{s['line']:<4} {s['status']:<6} {s['success']:<6} {s['fail']:<6} {s['usage']:<6} {s['rate']:<8} {s['host']}")
+                print(f"{s['line']:<4} {s['status']:<6} {s['success']:<6} {s['fail']:<6} {s['usage']:<6} {s['rate']:<8} {s['host']}")
             input("Нажмите Enter...")
         elif choice == '9':
             proxy_manager.clear_bad_proxies()
@@ -5396,21 +3997,15 @@ async def display_proxy_menu():
             break
         await asyncio.sleep(1)
 
-
 async def display_protection_menu():
     global safe_mode, max_daily_messages, max_daily_joins, anti_ban_enabled, human_like_delays, random_pause_enabled
-    global proxy_manager
     while True:
         os.system('cls' if os.name == 'nt' else 'clear')
         print_header("🛡️ НАСТРОЙКИ ЗАЩИТЫ")
-        print(
-            f"{CLR_INFO}1. 🛡️ Анти-бан защита: {CLR_SUCCESS if anti_ban_enabled else CLR_ERR}{'ВКЛ' if anti_ban_enabled else 'ВЫКЛ'}")
-        print(
-            f"{CLR_INFO}2. 🔒 Безопасный режим: {CLR_SUCCESS if safe_mode else CLR_ERR}{'ВКЛ' if safe_mode else 'ВЫКЛ'}")
-        print(
-            f"{CLR_INFO}3. 👤 Человекоподобные задержки: {CLR_SUCCESS if human_like_delays else CLR_ERR}{'ВКЛ' if human_like_delays else 'ВЫКЛ'}")
-        print(
-            f"{CLR_INFO}4. 🎲 Случайные паузы: {CLR_SUCCESS if random_pause_enabled else CLR_ERR}{'ВКЛ' if random_pause_enabled else 'ВЫКЛ'}")
+        print(f"{CLR_INFO}1. 🛡️ Анти-бан защита: {CLR_SUCCESS if anti_ban_enabled else CLR_ERR}{'ВКЛ' if anti_ban_enabled else 'ВЫКЛ'}")
+        print(f"{CLR_INFO}2. 🔒 Безопасный режим: {CLR_SUCCESS if safe_mode else CLR_ERR}{'ВКЛ' if safe_mode else 'ВЫКЛ'}")
+        print(f"{CLR_INFO}3. 👤 Человекоподобные задержки: {CLR_SUCCESS if human_like_delays else CLR_ERR}{'ВКЛ' if human_like_delays else 'ВЫКЛ'}")
+        print(f"{CLR_INFO}4. 🎲 Случайные паузы: {CLR_SUCCESS if random_pause_enabled else CLR_ERR}{'ВКЛ' if random_pause_enabled else 'ВЫКЛ'}")
         print(f"{CLR_INFO}5. 📊 Макс. сообщений в день: {CLR_WARN}{max_daily_messages}")
         print(f"{CLR_INFO}6. 📊 Макс. вступлений в день: {CLR_WARN}{max_daily_joins}")
         print(f"{CLR_INFO}7. ℹ️ Информация о защите")
@@ -5428,32 +4023,26 @@ async def display_protection_menu():
             print(f"{Fore.GREEN}✔ Безопасный режим {'включен' if safe_mode else 'выключен'}.{Style.RESET_ALL}")
         elif choice == '3':
             human_like_delays = not human_like_delays
-            print(
-                f"{Fore.GREEN}✔ Человекоподобные задержки {'включены' if human_like_delays else 'выключены'}.{Style.RESET_ALL}")
+            print(f"{Fore.GREEN}✔ Человекоподобные задержки {'включены' if human_like_delays else 'выключены'}.{Style.RESET_ALL}")
         elif choice == '4':
             random_pause_enabled = not random_pause_enabled
-            print(
-                f"{Fore.GREEN}✔ Случайные паузы {'включены' if random_pause_enabled else 'выключены'}.{Style.RESET_ALL}")
+            print(f"{Fore.GREEN}✔ Случайные паузы {'включены' if random_pause_enabled else 'выключены'}.{Style.RESET_ALL}")
         elif choice == '5':
             try:
                 new_value = int(input(f"Макс. сообщений в день (текущее: {max_daily_messages}): "))
                 if new_value > 0:
                     max_daily_messages = new_value
                     print(f"{Fore.GREEN}✔ Лимит сообщений обновлен.{Style.RESET_ALL}")
-                else:
-                    print(f"{Fore.RED}✘ Введите число больше 0.{Style.RESET_ALL}")
-            except ValueError:
-                print(f"{Fore.RED}✘ Введите число.{Style.RESET_ALL}")
+                else: print(f"{Fore.RED}✘ Введите число больше 0.{Style.RESET_ALL}")
+            except ValueError: print(f"{Fore.RED}✘ Введите число.{Style.RESET_ALL}")
         elif choice == '6':
             try:
                 new_value = int(input(f"Макс. вступлений в день (текущее: {max_daily_joins}): "))
                 if new_value > 0:
                     max_daily_joins = new_value
                     print(f"{Fore.GREEN}✔ Лимит вступлений обновлен.{Style.RESET_ALL}")
-                else:
-                    print(f"{Fore.RED}✘ Введите число больше 0.{Style.RESET_ALL}")
-            except ValueError:
-                print(f"{Fore.RED}✘ Введите число.{Style.RESET_ALL}")
+                else: print(f"{Fore.RED}✘ Введите число больше 0.{Style.RESET_ALL}")
+            except ValueError: print(f"{Fore.RED}✘ Введите число.{Style.RESET_ALL}")
         elif choice == '7':
             print(f"\n{Fore.CYAN}🛡️ Информация о защите:{Style.RESET_ALL}")
             print("1. Анти-бан защита - автоматическое ограничение активности")
@@ -5467,27 +4056,21 @@ async def display_protection_menu():
             break
         await asyncio.sleep(1)
 
-
 async def display_auto_subscribe_menu():
     global auto_subscribe_enabled, auto_subscribe_on_mention, auto_subscribe_delay, auto_subscribe_max_flood_wait
     global auto_subscribe_retry_after_flood, auto_subscribe_check_interval, auto_subscribe_wait_for_mention
     global auto_subscribe_pause_between_channels, auto_subscribe_forced_channels, auto_subscribe_first_cycle_only, auto_subscribe_cycles
-    global proxy_manager
     while True:
         os.system('cls' if os.name == 'nt' else 'clear')
         print_header("🤖 НАСТРОЙКИ АВТОПОДПИСКИ")
-        print(
-            f"{CLR_INFO}1. 🔄 Автоподписка: {CLR_SUCCESS if auto_subscribe_enabled else CLR_ERR}{'ВКЛ' if auto_subscribe_enabled else 'ВЫКЛ'}")
-        print(
-            f"{CLR_INFO}2. 🎯 Режим упоминания: {CLR_SUCCESS if auto_subscribe_on_mention else CLR_ERR}{'ВКЛ' if auto_subscribe_on_mention else 'ВЫКЛ'}")
+        print(f"{CLR_INFO}1. 🔄 Автоподписка: {CLR_SUCCESS if auto_subscribe_enabled else CLR_ERR}{'ВКЛ' if auto_subscribe_enabled else 'ВЫКЛ'}")
+        print(f"{CLR_INFO}2. 🎯 Режим упоминания: {CLR_SUCCESS if auto_subscribe_on_mention else CLR_ERR}{'ВКЛ' if auto_subscribe_on_mention else 'ВЫКЛ'}")
         print(f"{CLR_INFO}3. ⏱️ Задержка между подписками: {CLR_WARN}{auto_subscribe_pause_between_channels}с")
         print(f"{CLR_INFO}4. ⏳ Макс. время ожидания флуда: {CLR_WARN}{auto_subscribe_max_flood_wait}с")
-        print(
-            f"{CLR_INFO}5. 🔄 Повтор после флуда: {CLR_SUCCESS if auto_subscribe_retry_after_flood else CLR_ERR}{'ВКЛ' if auto_subscribe_retry_after_flood else 'ВЫКЛ'}")
+        print(f"{CLR_INFO}5. 🔄 Повтор после флуда: {CLR_SUCCESS if auto_subscribe_retry_after_flood else CLR_ERR}{'ВКЛ' if auto_subscribe_retry_after_flood else 'ВЫКЛ'}")
         print(f"{CLR_INFO}6. 🔍 Интервал проверки: {CLR_WARN}{auto_subscribe_check_interval}с")
         print(f"{CLR_INFO}7. ⏰ Макс. ожидание упоминания: {CLR_WARN}{auto_subscribe_wait_for_mention}с")
-        print(
-            f"{CLR_INFO}8. 🔂 Только первый цикл: {CLR_SUCCESS if auto_subscribe_first_cycle_only else CLR_ERR}{'ВКЛ' if auto_subscribe_first_cycle_only else 'ВЫКЛ'}")
+        print(f"{CLR_INFO}8. 🔂 Только первый цикл: {CLR_SUCCESS if auto_subscribe_first_cycle_only else CLR_ERR}{'ВКЛ' if auto_subscribe_first_cycle_only else 'ВЫКЛ'}")
         print(f"{CLR_INFO}9. 🔢 Количество циклов проверки: {CLR_WARN}{auto_subscribe_cycles}")
         print(f"{CLR_INFO}10. 📋 Ручной список каналов (JSON формат)")
         if auto_subscribe_forced_channels:
@@ -5500,71 +4083,56 @@ async def display_auto_subscribe_menu():
         choice = input(f"\n{CLR_MAIN}Выберите пункт ➔ {RESET}").strip()
         if choice == '1':
             auto_subscribe_enabled = not auto_subscribe_enabled
-            print(
-                f"{Fore.GREEN}✔ Автоподписка {'включена' if auto_subscribe_enabled else 'выключена'}.{Style.RESET_ALL}")
+            print(f"{Fore.GREEN}✔ Автоподписка {'включена' if auto_subscribe_enabled else 'выключена'}.{Style.RESET_ALL}")
         elif choice == '2':
             auto_subscribe_on_mention = not auto_subscribe_on_mention
-            print(
-                f"{Fore.GREEN}✔ Режим упоминания {'включен' if auto_subscribe_on_mention else 'выключен'}.{Style.RESET_ALL}")
+            print(f"{Fore.GREEN}✔ Режим упоминания {'включен' if auto_subscribe_on_mention else 'выключен'}.{Style.RESET_ALL}")
         elif choice == '3':
             try:
-                new_value = float(
-                    input(f"Задержка между подписками (сек, текущая: {auto_subscribe_pause_between_channels}): "))
+                new_value = float(input(f"Задержка между подписками (сек, текущая: {auto_subscribe_pause_between_channels}): "))
                 if new_value >= 0.5:
                     auto_subscribe_pause_between_channels = new_value
                     print(f"{Fore.GREEN}✔ Задержка обновлена.{Style.RESET_ALL}")
-                else:
-                    print(f"{Fore.RED}✘ Задержка должна быть не менее 0.5 сек.{Style.RESET_ALL}")
-            except ValueError:
-                print(f"{Fore.RED}✘ Введите число.{Style.RESET_ALL}")
+                else: print(f"{Fore.RED}✘ Задержка должна быть не менее 0.5 сек.{Style.RESET_ALL}")
+            except ValueError: print(f"{Fore.RED}✘ Введите число.{Style.RESET_ALL}")
         elif choice == '4':
             try:
                 new_value = int(input(f"Макс. время ожидания флуда (сек, текущее: {auto_subscribe_max_flood_wait}): "))
                 if new_value >= 10:
                     auto_subscribe_max_flood_wait = new_value
                     print(f"{Fore.GREEN}✔ Время ожидания обновлено.{Style.RESET_ALL}")
-                else:
-                    print(f"{Fore.RED}✘ Время должно быть не менее 10 сек.{Style.RESET_ALL}")
-            except ValueError:
-                print(f"{Fore.RED}✘ Введите число.{Style.RESET_ALL}")
+                else: print(f"{Fore.RED}✘ Время должно быть не менее 10 сек.{Style.RESET_ALL}")
+            except ValueError: print(f"{Fore.RED}✘ Введите число.{Style.RESET_ALL}")
         elif choice == '5':
             auto_subscribe_retry_after_flood = not auto_subscribe_retry_after_flood
-            print(
-                f"{Fore.GREEN}✔ Повтор после флуда {'включен' if auto_subscribe_retry_after_flood else 'выключен'}.{Style.RESET_ALL}")
+            print(f"{Fore.GREEN}✔ Повтор после флуда {'включен' if auto_subscribe_retry_after_flood else 'выключен'}.{Style.RESET_ALL}")
         elif choice == '6':
             try:
                 new_value = int(input(f"Интервал проверки (сек, текущий: {auto_subscribe_check_interval}): "))
                 if new_value >= 1:
                     auto_subscribe_check_interval = new_value
                     print(f"{Fore.GREEN}✔ Интервал проверки обновлен.{Style.RESET_ALL}")
-                else:
-                    print(f"{Fore.RED}✘ Интервал должен быть не менее 1 сек.{Style.RESET_ALL}")
-            except ValueError:
-                print(f"{Fore.RED}✘ Введите число.{Style.RESET_ALL}")
+                else: print(f"{Fore.RED}✘ Интервал должен быть не менее 1 сек.{Style.RESET_ALL}")
+            except ValueError: print(f"{Fore.RED}✘ Введите число.{Style.RESET_ALL}")
         elif choice == '7':
             try:
                 new_value = int(input(f"Макс. ожидание упоминания (сек, текущее: {auto_subscribe_wait_for_mention}): "))
                 if new_value >= 5:
                     auto_subscribe_wait_for_mention = new_value
                     print(f"{Fore.GREEN}✔ Время ожидания обновлено.{Style.RESET_ALL}")
-                else:
-                    print(f"{Fore.RED}✘ Время должно быть не менее 5 сек.{Style.RESET_ALL}")
-            except ValueError:
-                print(f"{Fore.RED}✘ Введите число.{Style.RESET_ALL}")
+                else: print(f"{Fore.RED}✘ Время должно быть не менее 5 сек.{Style.RESET_ALL}")
+            except ValueError: print(f"{Fore.RED}✘ Введите число.{Style.RESET_ALL}")
         elif choice == '8':
             auto_subscribe_first_cycle_only = not auto_subscribe_first_cycle_only
-            print(
-                f"{Fore.GREEN}✔ Режим 'Только первый цикл' {'включен' if auto_subscribe_first_cycle_only else 'выключен'}.{Style.RESET_ALL}")
+            print(f"{Fore.GREEN}✔ Режим 'Только первый цикл' {'включен' if auto_subscribe_first_cycle_only else 'выключен'}.{Style.RESET_ALL}")
         elif choice == '9':
             try:
                 new_value = int(input(f"Количество циклов проверки (текущее: {auto_subscribe_cycles}): "))
                 if new_value >= 1 and new_value <= 5:
                     auto_subscribe_cycles = new_value
                     print(f"{Fore.GREEN}✔ Количество циклов обновлено.{Style.RESET_ALL}")
-                else:
-                    print(f"{Fore.RED}✘ Введите число от 1 до 5.{Style.RESET_ALL}")
-            except ValueError:
-                print(f"{Fore.RED}✘ Введите число.{Style.RESET_ALL}")
+                else: print(f"{Fore.RED}✘ Введите число от 1 до 5.{Style.RESET_ALL}")
+            except ValueError: print(f"{Fore.RED}✘ Введите число.{Style.RESET_ALL}")
         elif choice == '10':
             print(f"{Fore.YELLOW}Введите список каналов в формате JSON, например:")
             print(f'["@channel1", "https://t.me/channel2", "t.me/+invite_hash"]')
@@ -5577,10 +4145,8 @@ async def display_auto_subscribe_menu():
                     if isinstance(parsed, list):
                         auto_subscribe_forced_channels = parsed
                         print(f"{Fore.GREEN}✔ Список обновлен.{Style.RESET_ALL}")
-                    else:
-                        print(f"{Fore.RED}✘ Должен быть массив JSON.{Style.RESET_ALL}")
-                except json.JSONDecodeError:
-                    print(f"{Fore.RED}✘ Ошибка парсинга JSON.{Style.RESET_ALL}")
+                    else: print(f"{Fore.RED}✘ Должен быть массив JSON.{Style.RESET_ALL}")
+                except json.JSONDecodeError: print(f"{Fore.RED}✘ Ошибка парсинга JSON.{Style.RESET_ALL}")
             else:
                 auto_subscribe_forced_channels = []
                 print(f"{Fore.GREEN}✔ Список очищен.{Style.RESET_ALL}")
@@ -5589,11 +4155,8 @@ async def display_auto_subscribe_menu():
             break
         await asyncio.sleep(1)
 
-
-# =============== ОБНОВЛЕННОЕ МЕНЮ НАСТРОЕК ===============
 async def display_settings_menu():
     global current_api_id, current_api_hash, session_folder, message_to_send, delay_between_messages, delay_between_accounts, max_messages_per_account, repeat_broadcast, repeat_interval, delete_after_send, recipient_type, use_media, media_path, fast_mode, fast_delay, use_forward, forward_link, notification_enabled, notification_bot_token, notification_chat_id, notify_invalid_session, notify_cycle_results, notify_full_logs
-    global proxy_manager
     while True:
         os.system('cls' if os.name == 'nt' else 'clear')
         print_header("⚙️ НАСТРОЙКИ ПАРАМЕТРОВ")
@@ -5611,18 +4174,12 @@ async def display_settings_menu():
         print(f"\n{CLR_WARN}Текущие значения:{Style.RESET_ALL}")
         print(f"  API ID: {current_api_id}")
         print(f"  Папка сессий: {session_folder}")
-        if use_forward and forward_link:
-            print(f"  📨 Пересылка: {forward_link[:30]}...")
-        else:
-            print(f"  Сообщение: {message_to_send[:30]}...")
-        if notification_enabled:
-            print(f"  🔔 Уведомления: ВКЛ")
-        if auto_subscribe_enabled:
-            print(f"  🤖 Автоподписка: ВКЛ ({auto_subscribe_cycles} цикла)")
-        if use_proxy and proxy_manager.has_proxies():
-            print(f"  🌐 Прокси: ВКЛ ({proxy_manager.get_proxy_count()} шт.)")
-        if anti_ban_enabled:
-            print(f"  🛡️ Анти-бан: ВКЛ")
+        if use_forward and forward_link: print(f"  📨 Пересылка: {forward_link[:30]}...")
+        else: print(f"  Сообщение: {message_to_send[:30]}...")
+        if notification_enabled: print(f"  🔔 Уведомления: ВКЛ")
+        if auto_subscribe_enabled: print(f"  🤖 Автоподписка: ВКЛ ({auto_subscribe_cycles} цикла)")
+        if use_proxy and proxy_manager.has_proxies(): print(f"  🌐 Прокси: ВКЛ ({proxy_manager.get_proxy_count()} шт.)")
+        if anti_ban_enabled: print(f"  🛡️ Анти-бан: ВКЛ")
         choice = input(f"\n{CLR_MAIN}Выберите раздел ➔ {RESET}").strip()
         if choice == '1':
             while True:
@@ -5637,23 +4194,20 @@ async def display_settings_menu():
                     if new_api_id_str.isdigit():
                         current_api_id = int(new_api_id_str)
                         print(f"{Fore.GREEN}✔ API ID обновлен.{Style.RESET_ALL}")
-                    else:
-                        print(f"{Fore.RED}✘ API ID должен быть числом.{Style.RESET_ALL}")
+                    else: print(f"{Fore.RED}✘ API ID должен быть числом.{Style.RESET_ALL}")
                 elif sub_choice == '2':
                     new_api_hash = input("API Hash: ").strip()
                     if new_api_hash:
                         current_api_hash = new_api_hash
                         print(f"{Fore.GREEN}✔ API Hash обновлен.{Style.RESET_ALL}")
-                elif sub_choice == '0':
-                    break
+                elif sub_choice == '0': break
                 await asyncio.sleep(1)
         elif choice == '2':
             while True:
                 os.system('cls' if os.name == 'nt' else 'clear')
                 print_header("📁 НАСТРОЙКИ СЕССИЙ")
                 print(f"{CLR_INFO}1. 📂 Папка сессий: {CLR_WARN}{session_folder}")
-                print(
-                    f"{CLR_INFO}2. 👥 Тип получателей: {CLR_WARN}{['Все диалоги', 'Только личные чаты', 'Только группы'][['all', 'users', 'groups'].index(recipient_type)]}")
+                print(f"{CLR_INFO}2. 👥 Тип получателей: {CLR_WARN}{['Все диалоги', 'Только личные чаты', 'Только группы'][['all','users','groups'].index(recipient_type)]}")
                 print(f"{CLR_ERR}0. 🔙 Назад")
                 sub_choice = input(f"\n{CLR_MAIN}Выберите пункт ➔ {RESET}").strip()
                 if sub_choice == '1':
@@ -5664,41 +4218,24 @@ async def display_settings_menu():
                         print(f"{Fore.GREEN}✔ Папка сессий обновлена.{Style.RESET_ALL}")
                 elif sub_choice == '2':
                     print(f"\n{Fore.CYAN}Выберите тип получателей:")
-                    print("1. Все диалоги")
-                    print("2. Только личные чаты")
-                    print("3. Только группы")
+                    print("1. Все диалоги"); print("2. Только личные чаты"); print("3. Только группы")
                     type_choice = input("Ваш выбор (1-3): ").strip()
-                    if type_choice == '1':
-                        recipient_type = "all"
-                        print(f"{Fore.GREEN}✔ Тип получателей: Все диалоги{Style.RESET_ALL}")
-                    elif type_choice == '2':
-                        recipient_type = "users"
-                        print(f"{Fore.GREEN}✔ Тип получателей: Только личные чаты{Style.RESET_ALL}")
-                    elif type_choice == '3':
-                        recipient_type = "groups"
-                        print(f"{Fore.GREEN}✔ Тип получателей: Только группы{Style.RESET_ALL}")
-                    else:
-                        print(f"{Fore.RED}✘ Неверный выбор{Style.RESET_ALL}")
-                elif sub_choice == '0':
-                    break
+                    if type_choice == '1': recipient_type = "all"; print(f"{Fore.GREEN}✔ Тип получателей: Все диалоги{Style.RESET_ALL}")
+                    elif type_choice == '2': recipient_type = "users"; print(f"{Fore.GREEN}✔ Тип получателей: Только личные чаты{Style.RESET_ALL}")
+                    elif type_choice == '3': recipient_type = "groups"; print(f"{Fore.GREEN}✔ Тип получателей: Только группы{Style.RESET_ALL}")
+                    else: print(f"{Fore.RED}✘ Неверный выбор{Style.RESET_ALL}")
+                elif sub_choice == '0': break
                 await asyncio.sleep(1)
-        # =============== ОБНОВЛЕННЫЙ РАЗДЕЛ 3: НАСТРОЙКИ СООБЩЕНИЙ ===============
         elif choice == '3':
             while True:
                 os.system('cls' if os.name == 'nt' else 'clear')
                 print_header("✉️ НАСТРОЙКИ СООБЩЕНИЙ")
                 print(f"{CLR_INFO}1. ✉️ Текст сообщения: {CLR_WARN}{message_to_send[:40]}...")
-                print(
-                    f"{CLR_INFO}2. 🖼 Использовать медиа: {CLR_SUCCESS if use_media else CLR_ERR}{'ВКЛ' if use_media else 'ВЫКЛ'}")
-                if use_media:
-                    print(f"{CLR_INFO}3. 📁 Путь к медиафайлу: {CLR_WARN}{media_path or 'Не указан'}")
-                # НОВЫЕ ПУНКТЫ ДЛЯ ПЕРЕСЫЛКИ
-                print(
-                    f"{CLR_INFO}4. 📨 Пересылать сообщение: {CLR_SUCCESS if use_forward else CLR_ERR}{'ВКЛ' if use_forward else 'ВЫКЛ'}")
-                if use_forward:
-                    print(f"{CLR_INFO}5. 📎 Ссылка на сообщение: {CLR_WARN}{forward_link or 'Не указана'}")
-                print(
-                    f"{CLR_INFO}6. 🗑 Удаление у себя: {CLR_SUCCESS if delete_after_send else CLR_ERR}{'ВКЛ' if delete_after_send else 'ВЫКЛ'}")
+                print(f"{CLR_INFO}2. 🖼 Использовать медиа: {CLR_SUCCESS if use_media else CLR_ERR}{'ВКЛ' if use_media else 'ВЫКЛ'}")
+                if use_media: print(f"{CLR_INFO}3. 📁 Путь к медиафайлу: {CLR_WARN}{media_path or 'Не указан'}")
+                print(f"{CLR_INFO}4. 📨 Пересылать сообщение: {CLR_SUCCESS if use_forward else CLR_ERR}{'ВКЛ' if use_forward else 'ВЫКЛ'}")
+                if use_forward: print(f"{CLR_INFO}5. 📎 Ссылка на сообщение: {CLR_WARN}{forward_link or 'Не указана'}")
+                print(f"{CLR_INFO}6. 🗑 Удаление у себя: {CLR_SUCCESS if delete_after_send else CLR_ERR}{'ВКЛ' if delete_after_send else 'ВЫКЛ'}")
                 print(f"{CLR_ERR}0. 🔙 Назад")
                 sub_choice = input(f"\n{CLR_MAIN}Выберите пункт ➔ {RESET}").strip()
                 if sub_choice == '1':
@@ -5709,57 +4246,43 @@ async def display_settings_menu():
                     while True:
                         try:
                             line = input()
-                            if not line.strip() and lines:
-                                break
+                            if not line.strip() and lines: break
                             elif not line.strip() and not lines:
                                 print(f"{Fore.RED}✘ Сообщение не было изменено.{Style.RESET_ALL}")
                                 break
                             lines.append(line)
-                        except EOFError:
-                            break
+                        except EOFError: break
                     new_message = '\n'.join(lines)
                     if new_message.strip():
                         message_to_send = new_message
                         print(f"{Fore.GREEN}✔ Сообщение обновлено.{Style.RESET_ALL}")
                 elif sub_choice == '2':
                     use_media = not use_media
-                    if use_media:
-                        use_forward = False  # Отключаем пересылку при включении медиа
-                    print(
-                        f"{Fore.GREEN}✔ Использование медиа {'включено' if use_media else 'выключено'}.{Style.RESET_ALL}")
-                    if use_media and not media_path:
-                        print(f"{Fore.YELLOW}⚠️ Укажите путь к медиафайлу в пункте 3.{Style.RESET_ALL}")
+                    if use_media: use_forward = False
+                    print(f"{Fore.GREEN}✔ Использование медиа {'включено' if use_media else 'выключено'}.{Style.RESET_ALL}")
+                    if use_media and not media_path: print(f"{Fore.YELLOW}⚠️ Укажите путь к медиафайлу в пункте 3.{Style.RESET_ALL}")
                 elif sub_choice == '3' and use_media:
                     new_media_path = input(f"Путь к медиафайлу (текущий: {media_path}): ").strip()
                     if new_media_path:
                         if os.path.exists(new_media_path):
                             media_path = new_media_path
                             print(f"{Fore.GREEN}✔ Путь к медиафайлу обновлен.{Style.RESET_ALL}")
-                        else:
-                            print(f"{Fore.RED}✘ Файл не найден!{Style.RESET_ALL}")
-                # НОВЫЕ ОБРАБОТЧИКИ
+                        else: print(f"{Fore.RED}✘ Файл не найден!{Style.RESET_ALL}")
                 elif sub_choice == '4':
                     use_forward = not use_forward
-                    if use_forward:
-                        use_media = False  # Отключаем медиа при включении пересылки
-                    print(
-                        f"{Fore.GREEN}✔ Пересылка сообщений {'включена' if use_forward else 'выключена'}.{Style.RESET_ALL}")
+                    if use_forward: use_media = False
+                    print(f"{Fore.GREEN}✔ Пересылка сообщений {'включена' if use_forward else 'выключена'}.{Style.RESET_ALL}")
                 elif sub_choice == '5' and use_forward:
                     new_link = input(f"Ссылка на сообщение (пример: https://t.me/username/123): ").strip()
                     if new_link:
-                        # Простейшая проверка формата
                         if 't.me/' in new_link and len(new_link.split('/')) >= 4:
                             forward_link = new_link
                             print(f"{Fore.GREEN}✔ Ссылка для пересылки обновлена.{Style.RESET_ALL}")
-                        else:
-                            print(
-                                f"{Fore.RED}✘ Неверный формат ссылки! Пример: https://t.me/username/123{Style.RESET_ALL}")
+                        else: print(f"{Fore.RED}✘ Неверный формат ссылки! Пример: https://t.me/username/123{Style.RESET_ALL}")
                 elif sub_choice == '6':
                     delete_after_send = not delete_after_send
-                    print(
-                        f"{Fore.GREEN}✔ Удаление у себя {'включено' if delete_after_send else 'выключено'}.{Style.RESET_ALL}")
-                elif sub_choice == '0':
-                    break
+                    print(f"{Fore.GREEN}✔ Удаление у себя {'включено' if delete_after_send else 'выключено'}.{Style.RESET_ALL}")
+                elif sub_choice == '0': break
                 await asyncio.sleep(1)
         elif choice == '4':
             while True:
@@ -5768,48 +4291,31 @@ async def display_settings_menu():
                 print(f"{CLR_INFO}1. ⏲️ Задержка между смс (обычный режим): {CLR_WARN}{delay_between_messages}с")
                 print(f"{CLR_INFO}2. ⏲️ Задержка между аккаунтами: {CLR_WARN}{delay_between_accounts}с")
                 print(f"{CLR_INFO}3. 📊 Лимит сообщений на аккаунт: {CLR_WARN}{max_messages_per_account}")
-                print(
-                    f"{CLR_INFO}4. 🔄 Цикличная рассылка: {CLR_SUCCESS if repeat_broadcast else CLR_ERR}{'ВКЛ' if repeat_broadcast else 'ВЫКЛ'}")
-                if repeat_broadcast:
-                    print(f"{CLR_INFO}5. ⏱️ Интервал повтора: {CLR_WARN}{repeat_interval}с")
-                print(
-                    f"{CLR_INFO}6. ⚡ Быстрый режим (задержка < 1с): {CLR_SUCCESS if fast_mode else CLR_ERR}{'ВКЛ' if fast_mode else 'ВЫКЛ'}")
-                if fast_mode:
-                    print(f"{CLR_INFO}7. ⏱️ Задержка в быстром режиме: {CLR_WARN}{fast_delay}с")
+                print(f"{CLR_INFO}4. 🔄 Цикличная рассылка: {CLR_SUCCESS if repeat_broadcast else CLR_ERR}{'ВКЛ' if repeat_broadcast else 'ВЫКЛ'}")
+                if repeat_broadcast: print(f"{CLR_INFO}5. ⏱️ Интервал повтора: {CLR_WARN}{repeat_interval}с")
+                print(f"{CLR_INFO}6. ⚡ Быстрый режим (задержка < 1с): {CLR_SUCCESS if fast_mode else CLR_ERR}{'ВКЛ' if fast_mode else 'ВЫКЛ'}")
+                if fast_mode: print(f"{CLR_INFO}7. ⏱️ Задержка в быстром режиме: {CLR_WARN}{fast_delay}с")
                 print(f"{CLR_ERR}0. 🔙 Назад")
                 sub_choice = input(f"\n{CLR_MAIN}Выберите пункт ➔ {RESET}").strip()
                 if sub_choice == '1':
                     new_delay_str = input(f"Задержка сообщений (сек, текущая: {delay_between_messages}): ").strip()
-                    try:
-                        delay_between_messages = max(0, int(new_delay_str))
-                        print(f"{Fore.GREEN}✔ Задержка обновлена.{Style.RESET_ALL}")
-                    except ValueError:
-                        print(f"{Fore.RED}✘ Введите число.{Style.RESET_ALL}")
+                    try: delay_between_messages = max(0, int(new_delay_str)); print(f"{Fore.GREEN}✔ Задержка обновлена.{Style.RESET_ALL}")
+                    except ValueError: print(f"{Fore.RED}✘ Введите число.{Style.RESET_ALL}")
                 elif sub_choice == '2':
                     new_delay_str = input(f"Задержка аккаунтов (сек, текущая: {delay_between_accounts}): ").strip()
-                    try:
-                        delay_between_accounts = max(0, int(new_delay_str))
-                        print(f"{Fore.GREEN}✔ Задержка обновлена.{Style.RESET_ALL}")
-                    except ValueError:
-                        print(f"{Fore.RED}✘ Введите число.{Style.RESET_ALL}")
+                    try: delay_between_accounts = max(0, int(new_delay_str)); print(f"{Fore.GREEN}✔ Задержка обновлена.{Style.RESET_ALL}")
+                    except ValueError: print(f"{Fore.RED}✘ Введите число.{Style.RESET_ALL}")
                 elif sub_choice == '3':
                     new_max_str = input(f"Макс. сообщений/аккаунт (текущий: {max_messages_per_account}): ").strip()
-                    try:
-                        max_messages_per_account = max(1, int(new_max_str))
-                        print(f"{Fore.GREEN}✔ Лимит обновлен.{Style.RESET_ALL}")
-                    except ValueError:
-                        print(f"{Fore.RED}✘ Введите число больше 0.{Style.RESET_ALL}")
+                    try: max_messages_per_account = max(1, int(new_max_str)); print(f"{Fore.GREEN}✔ Лимит обновлен.{Style.RESET_ALL}")
+                    except ValueError: print(f"{Fore.RED}✘ Введите число больше 0.{Style.RESET_ALL}")
                 elif sub_choice == '4':
                     repeat_broadcast = not repeat_broadcast
-                    print(
-                        f"{Fore.GREEN}✔ Повтор рассылки {'включен' if repeat_broadcast else 'выключен'}.{Style.RESET_ALL}")
+                    print(f"{Fore.GREEN}✔ Повтор рассылки {'включен' if repeat_broadcast else 'выключен'}.{Style.RESET_ALL}")
                 elif sub_choice == '5' and repeat_broadcast:
                     new_interval_str = input(f"Интервал повтора (сек, текущий: {repeat_interval}): ").strip()
-                    try:
-                        repeat_interval = max(1, int(new_interval_str))
-                        print(f"{Fore.GREEN}✔ Интервал повтора обновлен.{Style.RESET_ALL}")
-                    except ValueError:
-                        print(f"{Fore.RED}✘ Введите число больше 0.{Style.RESET_ALL}")
+                    try: repeat_interval = max(1, int(new_interval_str)); print(f"{Fore.GREEN}✔ Интервал повтора обновлен.{Style.RESET_ALL}")
+                    except ValueError: print(f"{Fore.RED}✘ Введите число больше 0.{Style.RESET_ALL}")
                 elif sub_choice == '6':
                     fast_mode = not fast_mode
                     print(f"{Fore.GREEN}✔ Быстрый режим {'включен' if fast_mode else 'выключен'}.{Style.RESET_ALL}")
@@ -5820,39 +4326,28 @@ async def display_settings_menu():
                         if 0.1 <= new_delay <= 0.9:
                             fast_delay = new_delay
                             print(f"{Fore.GREEN}✔ Задержка в быстром режиме обновлена.{Style.RESET_ALL}")
-                        else:
-                            print(f"{Fore.RED}✘ Введите число от 0.1 до 0.9.{Style.RESET_ALL}")
-                    except ValueError:
-                        print(f"{Fore.RED}✘ Введите число (например, 0.3).{Style.RESET_ALL}")
-                elif sub_choice == '0':
-                    break
+                        else: print(f"{Fore.RED}✘ Введите число от 0.1 до 0.9.{Style.RESET_ALL}")
+                    except ValueError: print(f"{Fore.RED}✘ Введите число (например, 0.3).{Style.RESET_ALL}")
+                elif sub_choice == '0': break
                 await asyncio.sleep(1)
         elif choice == '5':
             while True:
                 os.system('cls' if os.name == 'nt' else 'clear')
                 print_header("🔔 НАСТРОЙКИ УВЕДОМЛЕНИЙ")
-                print(
-                    f"{CLR_INFO}1. 🔔 Уведомления: {CLR_SUCCESS if notification_enabled else CLR_ERR}{'ВКЛ' if notification_enabled else 'ВЫКЛ'}")
+                print(f"{CLR_INFO}1. 🔔 Уведомления: {CLR_SUCCESS if notification_enabled else CLR_ERR}{'ВКЛ' if notification_enabled else 'ВЫКЛ'}")
                 if notification_enabled:
-                    print(
-                        f"{CLR_INFO}2. 🤖 Токен бота: {CLR_WARN}{notification_bot_token[:15] if notification_bot_token else 'Не указан'}...")
+                    print(f"{CLR_INFO}2. 🤖 Токен бота: {CLR_WARN}{notification_bot_token[:15] if notification_bot_token else 'Не указан'}...")
                     print(f"{CLR_INFO}3. 👤 Chat ID: {CLR_WARN}{notification_chat_id or 'Не указан'}")
-                    print(
-                        f"{CLR_INFO}4. ⚠️ Невалидные сессии: {CLR_SUCCESS if notify_invalid_session else CLR_ERR}{'ВКЛ' if notify_invalid_session else 'ВЫКЛ'}")
-                    print(
-                        f"{CLR_INFO}5. 📊 Результаты циклов: {CLR_SUCCESS if notify_cycle_results else CLR_ERR}{'ВКЛ' if notify_cycle_results else 'ВЫКЛ'}")
-                    print(
-                        f"{CLR_INFO}6. 📋 Полные логи: {CLR_SUCCESS if notify_full_logs else CLR_ERR}{'ВКЛ' if notify_full_logs else 'ВЫКЛ'}")
+                    print(f"{CLR_INFO}4. ⚠️ Невалидные сессии: {CLR_SUCCESS if notify_invalid_session else CLR_ERR}{'ВКЛ' if notify_invalid_session else 'ВЫКЛ'}")
+                    print(f"{CLR_INFO}5. 📊 Результаты циклов: {CLR_SUCCESS if notify_cycle_results else CLR_ERR}{'ВКЛ' if notify_cycle_results else 'ВЫКЛ'}")
+                    print(f"{CLR_INFO}6. 📋 Полные логи: {CLR_SUCCESS if notify_full_logs else CLR_ERR}{'ВКЛ' if notify_full_logs else 'ВЫКЛ'}")
                 print(f"{CLR_ERR}0. 🔙 Назад")
                 sub_choice = input(f"\n{CLR_MAIN}Выберите пункт ➔ {RESET}").strip()
                 if sub_choice == '1':
                     notification_enabled = not notification_enabled
-                    print(
-                        f"{Fore.GREEN}✔ Уведомления {'включены' if notification_enabled else 'выключены'}.{Style.RESET_ALL}")
-                    if notification_enabled:
-                        await init_notification_client()
-                    else:
-                        await close_notification_client()
+                    print(f"{Fore.GREEN}✔ Уведомления {'включены' if notification_enabled else 'выключены'}.{Style.RESET_ALL}")
+                    if notification_enabled: await init_notification_client()
+                    else: await close_notification_client()
                 elif sub_choice == '2' and notification_enabled:
                     new_token = input("Токен бота (получить у @BotFather): ").strip()
                     if new_token:
@@ -5866,18 +4361,14 @@ async def display_settings_menu():
                         print(f"{Fore.GREEN}✔ Chat ID обновлен.{Style.RESET_ALL}")
                 elif sub_choice == '4' and notification_enabled:
                     notify_invalid_session = not notify_invalid_session
-                    print(
-                        f"{Fore.GREEN}✔ Уведомления о невалидных сессиях {'включены' if notify_invalid_session else 'выключены'}.{Style.RESET_ALL}")
+                    print(f"{Fore.GREEN}✔ Уведомления о невалидных сессиях {'включены' if notify_invalid_session else 'выключены'}.{Style.RESET_ALL}")
                 elif sub_choice == '5' and notification_enabled:
                     notify_cycle_results = not notify_cycle_results
-                    print(
-                        f"{Fore.GREEN}✔ Уведомления о результатах циклов {'включены' if notify_cycle_results else 'выключены'}.{Style.RESET_ALL}")
+                    print(f"{Fore.GREEN}✔ Уведомления о результатах циклов {'включены' if notify_cycle_results else 'выключены'}.{Style.RESET_ALL}")
                 elif sub_choice == '6' and notification_enabled:
                     notify_full_logs = not notify_full_logs
-                    print(
-                        f"{Fore.GREEN}✔ Отправка полных логов {'включена' if notify_full_logs else 'выключена'}.{Style.RESET_ALL}")
-                elif sub_choice == '0':
-                    break
+                    print(f"{Fore.GREEN}✔ Отправка полных логов {'включена' if notify_full_logs else 'выключена'}.{Style.RESET_ALL}")
+                elif sub_choice == '0': break
                 await asyncio.sleep(1)
         elif choice == '6':
             await display_auto_subscribe_menu()
@@ -5889,54 +4380,51 @@ async def display_settings_menu():
             await manage_distribution_tasks()
         elif choice == '10':
             if input(f"{Fore.YELLOW}⚠️ Сбросить ВСЕ настройки к умолчанию? (y/n): ").lower() == 'y':
-                globals().update({'current_api_id': DEFAULT_API_ID, 'current_api_hash': DEFAULT_API_HASH,
-                                  'session_folder': DEFAULT_SESSION_FOLDER, 'message_to_send': DEFAULT_MESSAGE,
-                                  'delay_between_messages': DEFAULT_DELAY_BETWEEN_MESSAGES,
-                                  'delay_between_accounts': DEFAULT_DELAY_BETWEEN_ACCOUNTS,
-                                  'max_messages_per_account': DEFAULT_MAX_MESSAGES_PER_ACCOUNT,
-                                  'repeat_broadcast': DEFAULT_REPEAT_BROADCAST,
-                                  'repeat_interval': DEFAULT_REPEAT_INTERVAL,
-                                  'delete_after_send': DEFAULT_DELETE_AFTER_SEND,
-                                  'recipient_type': DEFAULT_RECIPIENT_TYPE, 'use_media': DEFAULT_USE_MEDIA,
-                                  'media_path': DEFAULT_MEDIA_PATH, 'fast_mode': DEFAULT_FAST_MODE,
-                                  'fast_delay': DEFAULT_FAST_DELAY,
-                                  'use_forward': DEFAULT_USE_FORWARD,
-                                  'forward_link': DEFAULT_FORWARD_LINK,
-                                  'notification_enabled': DEFAULT_NOTIFICATION_ENABLED,
-                                  'notification_bot_token': DEFAULT_NOTIFICATION_BOT_TOKEN,
-                                  'notification_chat_id': DEFAULT_NOTIFICATION_CHAT_ID,
-                                  'notify_invalid_session': DEFAULT_NOTIFY_INVALID_SESSION,
-                                  'notify_cycle_results': DEFAULT_NOTIFY_CYCLE_RESULTS,
-                                  'notify_full_logs': DEFAULT_NOTIFY_FULL_LOGS,
-                                  'auto_subscribe_enabled': DEFAULT_AUTO_SUBSCRIBE_ENABLED,
-                                  'auto_subscribe_on_mention': DEFAULT_AUTO_SUBSCRIBE_ON_MENTION,
-                                  'auto_subscribe_delay': DEFAULT_AUTO_SUBSCRIBE_DELAY,
-                                  'auto_subscribe_max_flood_wait': DEFAULT_AUTO_SUBSCRIBE_MAX_FLOOD_WAIT,
-                                  'auto_subscribe_retry_after_flood': DEFAULT_AUTO_SUBSCRIBE_RETRY_AFTER_FLOOD,
-                                  'auto_subscribe_check_interval': DEFAULT_AUTO_SUBSCRIBE_CHECK_INTERVAL,
-                                  'auto_subscribe_wait_for_mention': DEFAULT_AUTO_SUBSCRIBE_WAIT_FOR_MENTION,
-                                  'auto_subscribe_pause_between_channels': DEFAULT_AUTO_SUBSCRIBE_PAUSE_BETWEEN_CHANNELS,
-                                  'auto_subscribe_forced_channels': DEFAULT_AUTO_SUBSCRIBE_FORCED_CHANNELS,
-                                  'auto_subscribe_first_cycle_only': DEFAULT_AUTO_SUBSCRIBE_FIRST_CYCLE_ONLY,
-                                  'auto_subscribe_cycles': DEFAULT_AUTO_SUBSCRIBE_CYCLES,
-                                  'use_proxy': DEFAULT_USE_PROXY, 'proxy_file': DEFAULT_PROXY_FILE,
-                                  'proxy_rotate_on_fail': DEFAULT_PROXY_ROTATE_ON_FAIL,
-                                  'proxy_max_retries': DEFAULT_PROXY_MAX_RETRIES, 'safe_mode': DEFAULT_SAFE_MODE,
-                                  'max_daily_messages': DEFAULT_MAX_DAILY_MESSAGES,
-                                  'max_daily_joins': DEFAULT_MAX_DAILY_JOINS,
-                                  'anti_ban_enabled': DEFAULT_ANTI_BAN_ENABLED,
-                                  'human_like_delays': DEFAULT_HUMAN_LIKE_DELAYS,
-                                  'random_pause_enabled': DEFAULT_RANDOM_PAUSE_ENABLED})
+                globals().update({
+                    'current_api_id': DEFAULT_API_ID, 'current_api_hash': DEFAULT_API_HASH,
+                    'session_folder': DEFAULT_SESSION_FOLDER, 'message_to_send': DEFAULT_MESSAGE,
+                    'delay_between_messages': DEFAULT_DELAY_BETWEEN_MESSAGES,
+                    'delay_between_accounts': DEFAULT_DELAY_BETWEEN_ACCOUNTS,
+                    'max_messages_per_account': DEFAULT_MAX_MESSAGES_PER_ACCOUNT,
+                    'repeat_broadcast': DEFAULT_REPEAT_BROADCAST, 'repeat_interval': DEFAULT_REPEAT_INTERVAL,
+                    'delete_after_send': DEFAULT_DELETE_AFTER_SEND, 'recipient_type': DEFAULT_RECIPIENT_TYPE,
+                    'use_media': DEFAULT_USE_MEDIA, 'media_path': DEFAULT_MEDIA_PATH,
+                    'fast_mode': DEFAULT_FAST_MODE, 'fast_delay': DEFAULT_FAST_DELAY,
+                    'use_forward': DEFAULT_USE_FORWARD, 'forward_link': DEFAULT_FORWARD_LINK,
+                    'notification_enabled': DEFAULT_NOTIFICATION_ENABLED,
+                    'notification_bot_token': DEFAULT_NOTIFICATION_BOT_TOKEN,
+                    'notification_chat_id': DEFAULT_NOTIFICATION_CHAT_ID,
+                    'notify_invalid_session': DEFAULT_NOTIFY_INVALID_SESSION,
+                    'notify_cycle_results': DEFAULT_NOTIFY_CYCLE_RESULTS,
+                    'notify_full_logs': DEFAULT_NOTIFY_FULL_LOGS,
+                    'auto_subscribe_enabled': DEFAULT_AUTO_SUBSCRIBE_ENABLED,
+                    'auto_subscribe_on_mention': DEFAULT_AUTO_SUBSCRIBE_ON_MENTION,
+                    'auto_subscribe_delay': DEFAULT_AUTO_SUBSCRIBE_DELAY,
+                    'auto_subscribe_max_flood_wait': DEFAULT_AUTO_SUBSCRIBE_MAX_FLOOD_WAIT,
+                    'auto_subscribe_retry_after_flood': DEFAULT_AUTO_SUBSCRIBE_RETRY_AFTER_FLOOD,
+                    'auto_subscribe_check_interval': DEFAULT_AUTO_SUBSCRIBE_CHECK_INTERVAL,
+                    'auto_subscribe_wait_for_mention': DEFAULT_AUTO_SUBSCRIBE_WAIT_FOR_MENTION,
+                    'auto_subscribe_pause_between_channels': DEFAULT_AUTO_SUBSCRIBE_PAUSE_BETWEEN_CHANNELS,
+                    'auto_subscribe_forced_channels': DEFAULT_AUTO_SUBSCRIBE_FORCED_CHANNELS,
+                    'auto_subscribe_first_cycle_only': DEFAULT_AUTO_SUBSCRIBE_FIRST_CYCLE_ONLY,
+                    'auto_subscribe_cycles': DEFAULT_AUTO_SUBSCRIBE_CYCLES,
+                    'use_proxy': DEFAULT_USE_PROXY, 'proxy_file': DEFAULT_PROXY_FILE,
+                    'proxy_rotate_on_fail': DEFAULT_PROXY_ROTATE_ON_FAIL,
+                    'proxy_max_retries': DEFAULT_PROXY_MAX_RETRIES, 'safe_mode': DEFAULT_SAFE_MODE,
+                    'max_daily_messages': DEFAULT_MAX_DAILY_MESSAGES,
+                    'max_daily_joins': DEFAULT_MAX_DAILY_JOINS,
+                    'anti_ban_enabled': DEFAULT_ANTI_BAN_ENABLED,
+                    'human_like_delays': DEFAULT_HUMAN_LIKE_DELAYS,
+                    'random_pause_enabled': DEFAULT_RANDOM_PAUSE_ENABLED
+                })
                 print(f"{Fore.GREEN}✔ Все настройки сброшены!{Style.RESET_ALL}")
                 proxy_manager = ProxyManager(proxy_file)
                 await close_notification_client()
         elif choice == '0':
             save_config()
             break
-        else:
-            print(f"{Fore.RED}✘ Некорректный выбор.{Style.RESET_ALL}")
+        else: print(f"{Fore.RED}✘ Некорректный выбор.{Style.RESET_ALL}")
         await asyncio.sleep(1)
-
 
 async def add_session_by_number():
     print("\n" + Fore.MAGENTA + "--- Добавление сессии по номеру ---" + Style.RESET_ALL)
@@ -5957,8 +4445,7 @@ async def add_session_by_number():
     if not phone_number.startswith('+'):
         print(f"{Fore.YELLOW}⚠️ Рекомендуется указывать номер в формате +код_страныномер{Style.RESET_ALL}")
         await add_to_log_buffer("⚠️ Рекомендуется указывать номер в формате +код_страныномер", "warning")
-        if input("Продолжить? (y/n): ").lower() != 'y':
-            return
+        if input("Продолжить? (y/n): ").lower() != 'y': return
     session_name = input("2. Введите название для сессии (например, my_session): ").strip()
     if not session_name:
         print(f"{Fore.RED}✘ Название сессии не введено.{Style.RESET_ALL}")
@@ -5972,8 +4459,7 @@ async def add_session_by_number():
     session_filename = f"{session_name}.session"
     session_path_base = os.path.join(session_folder, session_name)
     if os.path.exists(session_path_base + ".session"):
-        if input(
-                f"{Fore.YELLOW}⚠️ Файл сессии '{session_filename}' уже существует. Перезаписать? (y/n): ").lower() != 'y':
+        if input(f"{Fore.YELLOW}⚠️ Файл сессии '{session_filename}' уже существует. Перезаписать? (y/n): ").lower() != 'y':
             print(f"{Fore.RED}✘ Добавление сессии отменено.{Style.RESET_ALL}")
             await add_to_log_buffer("✘ Добавление сессии отменено", "error")
             return
@@ -5983,8 +4469,7 @@ async def add_session_by_number():
                 shutil.copy2(session_path_base + ".session", backup_name)
                 print(f"{Fore.CYAN}✔ Создан бэкап старой сессии: {backup_name}{Style.RESET_ALL}")
                 await add_to_log_buffer(f"✔ Создан бэкап старой сессии: {backup_name}", "success")
-            except:
-                pass
+            except: pass
     proxy = proxy_manager.get_best_proxy() if use_proxy and proxy_manager.has_proxies() else None
     device_models = ["PC", "Desktop", "Windows", "MacBook", "iPhone", "Android", "Linux", "Chrome", "Firefox"]
     system_versions = ["Windows 10", "Windows 11", "macOS 13", "Android 13", "iOS 16", "Ubuntu 22.04", "Debian 11"]
@@ -6024,8 +4509,7 @@ async def add_session_by_number():
                 return
             for remaining in range(wait_time, 0, -10):
                 if remaining % 60 == 0 or remaining < 60:
-                    mins = remaining // 60
-                    secs = remaining % 60
+                    mins = remaining // 60; secs = remaining % 60
                     print(f"{Fore.YELLOW}⏳ Осталось: {mins} мин {secs} сек...{Style.RESET_ALL}")
                 await asyncio.sleep(min(10, remaining))
             print(f"{Fore.GREEN}✔ Можно пробовать снова!{Style.RESET_ALL}")
@@ -6035,10 +4519,8 @@ async def add_session_by_number():
             if "FLOOD_PREMIUM_WAIT" in str(e):
                 print(f"{Fore.RED}✘ Превышен лимит запросов для обычного аккаунта.{Style.RESET_ALL}")
                 await add_to_log_buffer("✘ Превышен лимит запросов для обычного аккаунта", "error")
-                print(
-                    f"{Fore.YELLOW}💡 Используйте аккаунт с Telegram Premium или подождите несколько часов.{Style.RESET_ALL}")
-                await add_to_log_buffer("💡 Используйте аккаунт с Telegram Premium или подождите несколько часов",
-                                        "info")
+                print(f"{Fore.YELLOW}💡 Используйте аккаунт с Telegram Premium или подождите несколько часов.{Style.RESET_ALL}")
+                await add_to_log_buffer("💡 Используйте аккаунт с Telegram Premium или подождите несколько часов", "info")
                 return
             raise
         print(f"\n{Fore.CYAN}3. Введите код подтверждения из Telegram{Style.RESET_ALL}")
@@ -6054,8 +4536,7 @@ async def add_session_by_number():
         if len(tg_code) != 5:
             print(f"{Fore.YELLOW}⚠️ Код обычно состоит из 5 цифр. Продолжить? (y/n): ", end="")
             await add_to_log_buffer("⚠️ Код обычно состоит из 5 цифр", "warning")
-            if input().lower() != 'y':
-                return
+            if input().lower() != 'y': return
         print(f"{Fore.CYAN}🔄 Выполняю вход с кодом...{Style.RESET_ALL}")
         await add_to_log_buffer("🔄 Выполняю вход с кодом...", "info")
         await asyncio.sleep(random.uniform(1, 2))
@@ -6064,10 +4545,8 @@ async def add_session_by_number():
         except SessionPasswordNeededError:
             print(f"\n{Fore.YELLOW}🔐 Требуется двухфакторная аутентификация{Style.RESET_ALL}")
             await add_to_log_buffer("🔐 Требуется двухфакторная аутентификация", "info")
-            print(
-                f"{Fore.CYAN}💡 Если не помните пароль, используйте функцию сброса в официальном приложении{Style.RESET_ALL}")
-            await add_to_log_buffer("💡 Если не помните пароль, используйте функцию сброса в официальном приложении",
-                                    "info")
+            print(f"{Fore.CYAN}💡 Если не помните пароль, используйте функцию сброса в официальном приложении{Style.RESET_ALL}")
+            await add_to_log_buffer("💡 Если не помните пароль, используйте функцию сброса в официальном приложении", "info")
             password = input("Введите ваш пароль 2FA: ").strip()
             if not password:
                 print(f"{Fore.RED}✘ Пароль не введен.{Style.RESET_ALL}")
@@ -6099,14 +4578,10 @@ async def add_session_by_number():
             await add_to_log_buffer("✅ СЕССИЯ УСПЕШНО ДОБАВЛЕНА!", "success")
             print(f"{Fore.CYAN}📱 Информация об аккаунте:{Style.RESET_ALL}")
             await add_to_log_buffer("📱 Информация об аккаунте:", "info")
-            print(f"   ID: {me.id}")
-            await add_to_log_buffer(f"   ID: {me.id}", "info")
-            print(f"   Имя: {me.first_name} {me.last_name or ''}")
-            await add_to_log_buffer(f"   Имя: {me.first_name} {me.last_name or ''}", "info")
-            print(f"   Юзернейм: @{me.username or 'отсутствует'}")
-            await add_to_log_buffer(f"   Юзернейм: @{me.username or 'отсутствует'}", "info")
-            print(f"   Номер: {me.phone}")
-            await add_to_log_buffer(f"   Номер: {me.phone}", "info")
+            print(f"   ID: {me.id}"); await add_to_log_buffer(f"   ID: {me.id}", "info")
+            print(f"   Имя: {me.first_name} {me.last_name or ''}"); await add_to_log_buffer(f"   Имя: {me.first_name} {me.last_name or ''}", "info")
+            print(f"   Юзернейм: @{me.username or 'отсутствует'}"); await add_to_log_buffer(f"   Юзернейм: @{me.username or 'отсутствует'}", "info")
+            print(f"   Номер: {me.phone}"); await add_to_log_buffer(f"   Номер: {me.phone}", "info")
             print(f"\n{Fore.GREEN}✔ Файл сессии сохранен: {session_path_base}.session{Style.RESET_ALL}")
             await add_to_log_buffer(f"✔ Файл сессии сохранен: {session_path_base}.session", "success")
             account_protector.register_account(session_name, 0)
@@ -6155,56 +4630,41 @@ async def add_session_by_number():
             print(f"{Fore.CYAN}🔌 Соединение закрыто{Style.RESET_ALL}")
             await add_to_log_buffer("🔌 Соединение закрыто", "info")
 
-
 async def display_update_info():
-    """Отображает информацию о том как обновить софт"""
     os.system('cls' if os.name == 'nt' else 'clear')
     print_header("📢 ИНФОРМАЦИЯ ОБ ОБНОВЛЕНИЯХ")
-
     print(f"{CLR_INFO}📌 Актуальная информация об обновлениях:{Style.RESET_ALL}")
     print(f"{CLR_ACCENT}🔗 https://t.me/LiteGammaTools{Style.RESET_ALL}\n")
-
     print(f"{CLR_MAIN}⚙️ КАК ОБНОВИТЬ СОФТ ДО ПОСЛЕДНЕЙ ВЕРСИИ:{Style.RESET_ALL}\n")
-
     print(f"{CLR_SUCCESS}1️⃣ ЗАКРОЙТЕ ПРОГРАММУ{Style.RESET_ALL}")
     print(f"   • Убедитесь, что софт полностью закрыт\n")
-
     print(f"{CLR_SUCCESS}2️⃣ ОТКРОЙТЕ КОРНЕВУЮ ПАПКУ{Style.RESET_ALL}")
     print(f"   • Найдите папку, где установлен софт\n")
-
     print(f"{CLR_SUCCESS}3️⃣ ОТРЕДАКТИРУЙТЕ КОНФИГ{Style.RESET_ALL}")
     print(f"   • Откройте файл {CLR_WARN}config.json{Style.RESET_ALL} любым текстовым редактором")
     print(f"   • Найдите строку: {CLR_WARN}\"current_version\": \"{CURRENT_VERSION}\"{Style.RESET_ALL}")
     print(f"   • {CLR_ERR}УДАЛИТЕ{Style.RESET_ALL} эту строку полностью или измените версию на более старую")
     print(f"   • Пример после удаления: {CLR_WARN}\"current_version\": \"1.0.0\"{Style.RESET_ALL}")
     print(f"   • {CLR_SUCCESS}СОХРАНИТЕ{Style.RESET_ALL} файл\n")
-
     print(f"{CLR_SUCCESS}4️⃣ УДАЛИТЕ ФАЙЛ ПРОВЕРКИ{Style.RESET_ALL}")
     print(f"   • Удалите файл {CLR_WARN}last_update_check.json{Style.RESET_ALL} (если есть)\n")
-
     print(f"{CLR_SUCCESS}5️⃣ ЗАПУСТИТЕ СОФТ{Style.RESET_ALL}")
     print(f"   • Запустите программу заново\n")
-
     print(f"{CLR_SUCCESS}6️⃣ ЗАЙДИТЕ В МЕНЮ ОБНОВЛЕНИЙ{Style.RESET_ALL}")
     print(f"   • В главном меню выберите пункт {CLR_WARN}[6] ➔ 🔄 ОБНОВЛЕНИЯ{Style.RESET_ALL}")
     print(f"   • Нажмите {CLR_WARN}[1] ➔ 🔍 Проверить обновления{Style.RESET_ALL}")
     print(f"   • Если обновление найдено, нажмите {CLR_WARN}[2] ➔ ⬇️ Скачать и установить{Style.RESET_ALL}")
     print(f"   • После установки программа предложит перезапуститься\n")
-
     print(f"{CLR_WARN}⚠️ ВАЖНО:{Style.RESET_ALL}")
     print(f"   • Все настройки и сессии сохранятся")
     print(f"   • Создаётся автоматический бэкап текущей версии в папке {CLR_WARN}backups{Style.RESET_ALL}")
     print(f"   • При проблемах можно восстановиться из бэкапа\n")
-
     print(f"{CLR_ACCENT}📢 Подпишитесь на канал обновлений:{Style.RESET_ALL}")
     print(f"{CLR_MAIN}👉 https://t.me/LiteGammaTools{Style.RESET_ALL}\n")
-
     input(f"{CLR_INFO}Нажмите Enter для возврата в меню...{Style.RESET_ALL}")
 
-
 async def main_menu():
-    global CURRENT_VERSION
-    global auto_subscribe_enabled, auto_subscribe_on_mention, auto_subscribe_delay
+    global CURRENT_VERSION, auto_subscribe_enabled, auto_subscribe_on_mention, auto_subscribe_delay
     global auto_subscribe_max_flood_wait, auto_subscribe_retry_after_flood
     global auto_subscribe_check_interval, auto_subscribe_wait_for_mention
     global auto_subscribe_pause_between_channels, auto_subscribe_forced_channels, auto_subscribe_first_cycle_only
@@ -6218,10 +4678,8 @@ async def main_menu():
         await add_to_log_buffer(f"⚠️ Обновляю версию в памяти: {CURRENT_VERSION} -> {file_version}", "warning")
         CURRENT_VERSION = file_version
         save_config()
-    if AUTO_UPDATE:
-        asyncio.create_task(update_manager.check_for_updates())
-    if notification_enabled:
-        await init_notification_client()
+    if AUTO_UPDATE: asyncio.create_task(update_manager.check_for_updates())
+    if notification_enabled: await init_notification_client()
     if os.path.exists(invalid_session_log_file):
         try:
             os.remove(invalid_session_log_file)
@@ -6230,11 +4688,8 @@ async def main_menu():
         except Exception as e:
             print(f"{Fore.RED}✘ Не удалось очистить файл '{invalid_session_log_file}': {e}{Style.RESET_ALL}")
             await add_to_log_buffer(f"✘ Не удалось очистить файл '{invalid_session_log_file}': {e}", "error")
-
-    # Генерируем HTML файл и запускаем сервер
     log_manager.generate_html_file()
     log_manager.start_server()
-
     while True:
         os.system('cls' if os.name == 'nt' else 'clear')
         print(f"{CLR_ACCENT}╔════════════════════════════════════════════╗")
@@ -6251,29 +4706,22 @@ async def main_menu():
         print(f"{CLR_ERR}  [8] ➔  🚪  ВЫЙТИ")
         print(f"{CLR_ACCENT}  [9] ➔  🔍 ПАРСЕР ЧАТОВ (определение языка)")
         print(f"\n{CLR_ACCENT}────────────────────────────────────────────")
-        if fast_mode:
-            print(f"{Fore.YELLOW}⚡ ТЕКУЩИЙ РЕЖИМ: БЫСТРЫЙ (задержка {fast_delay}с){Style.RESET_ALL}")
-        if repeat_broadcast:
-            print(f"{Fore.CYAN}🔄 ПОВТОР ВКЛЮЧЕН (интервал {repeat_interval}с){Style.RESET_ALL}")
-        if use_forward and forward_link:
-            print(f"{Fore.CYAN}📨 РЕЖИМ: ПЕРЕСЫЛКА СООБЩЕНИЯ{Style.RESET_ALL}")
-        if notification_enabled:
-            print(f"{Fore.GREEN}🔔 УВЕДОМЛЕНИЯ ВКЛЮЧЕНЫ{Style.RESET_ALL}")
+        if fast_mode: print(f"{Fore.YELLOW}⚡ ТЕКУЩИЙ РЕЖИМ: БЫСТРЫЙ (задержка {fast_delay}с){Style.RESET_ALL}")
+        if repeat_broadcast: print(f"{Fore.CYAN}🔄 ПОВТОР ВКЛЮЧЕН (интервал {repeat_interval}с){Style.RESET_ALL}")
+        if use_forward and forward_link: print(f"{Fore.CYAN}📨 РЕЖИМ: ПЕРЕСЫЛКА СООБЩЕНИЯ{Style.RESET_ALL}")
+        if notification_enabled: print(f"{Fore.GREEN}🔔 УВЕДОМЛЕНИЯ ВКЛЮЧЕНЫ{Style.RESET_ALL}")
         if auto_subscribe_enabled:
             mode = "ТОЛЬКО 1-Й ЦИКЛ" if auto_subscribe_first_cycle_only else "КАЖДЫЙ ЦИКЛ"
             print(f"{Fore.MAGENTA}🤖 АВТОПОДПИСКА ВКЛЮЧЕНА ({mode}), циклов: {auto_subscribe_cycles}{Style.RESET_ALL}")
-        if use_proxy and proxy_manager.has_proxies():
-            print(f"{Fore.CYAN}🌐 ПРОКСИ ВКЛЮЧЕНЫ ({proxy_manager.get_proxy_count()} шт.){Style.RESET_ALL}")
-        if anti_ban_enabled:
-            print(f"{Fore.GREEN}🛡️ АНТИ-БАН ВКЛЮЧЕН{Style.RESET_ALL}")
+        if use_proxy and proxy_manager.has_proxies(): print(f"{Fore.CYAN}🌐 ПРОКСИ ВКЛЮЧЕНЫ ({proxy_manager.get_proxy_count()} шт.){Style.RESET_ALL}")
+        if anti_ban_enabled: print(f"{Fore.GREEN}🛡️ АНТИ-БАН ВКЛЮЧЕН{Style.RESET_ALL}")
         print(f"{Fore.CYAN}📦 Версия: {CURRENT_VERSION}{Style.RESET_ALL}")
         print(f"{Fore.CYAN}📊 Веб-интерфейс: http://localhost:{log_manager.port}{Style.RESET_ALL}")
         print(f"{Fore.CYAN}📢 Канал обновлений: @LiteGammaTools{Style.RESET_ALL}")
         choice = input(f"{CLR_MAIN}Введите номер команды ➔ {RESET}").strip()
         if choice == '1':
             if current_api_id == DEFAULT_API_ID or not current_api_hash or current_api_hash == "ЗАМЕНИТЕ НА ВАШ API HASH":
-                print(
-                    "\n" + Fore.YELLOW + "[!] ВНИМАНИЕ: Настройте API ID и API Hash в меню '3. Настройки'" + Style.RESET_ALL)
+                print("\n" + Fore.YELLOW + "[!] ВНИМАНИЕ: Настройте API ID и API Hash в меню '3. Настройки'" + Style.RESET_ALL)
                 input("Нажмите Enter...")
                 continue
             session_files = [f for f in os.listdir(session_folder) if f.endswith('.session')]
@@ -6284,147 +4732,108 @@ async def main_menu():
                 input("Нажмите Enter...")
                 continue
             print(f"\n{Fore.GREEN}✔ Найдено {len(session_files)} сессий:")
-            for i, f in enumerate(session_files):
-                print(f"{i + 1}. {f}")
+            for i, f in enumerate(session_files): print(f"{i+1}. {f}")
             print(f"\n{Fore.CYAN}● Режим работы:")
             print("1. 1️⃣ Одна сессия")
             print("2. 🔢 Несколько сессий")
             print("3. ♾️ Все сессии")
             print("4. 📂 Группы из файла (group.json) - поддержка ссылок на группы и папки")
-            print("5. 📋 РАСПРЕДЕЛЕННАЯ РАССЫЛКА (несколько текстов)")
+            print("5. 📋 РАСПРЕДЕЛЕННАЯ РАССЫЛКА (назначенные задачи)")
             print("0. Назад")
             sub_choice = input("Выберите: ").strip()
             selected_sessions = []
             target_groups_file_data = None
-            if sub_choice == '1':
-                selected_sessions = session_files[:1]
+            if sub_choice == '1': selected_sessions = session_files[:1]
             elif sub_choice == '2':
                 indices_str = input("Сессии через запятую (1,3,5): ").strip()
                 try:
-                    nums = [int(x.strip()) - 1 for x in indices_str.split(',') if x.strip()]
+                    nums = [int(x.strip())-1 for x in indices_str.split(',') if x.strip()]
                     selected_sessions = [session_files[i] for i in nums if 0 <= i < len(session_files)]
                     if not selected_sessions:
-                        print(
-                            f"{Fore.YELLOW}⚠️ Не выбрано ни одной сессии. Будет использована первая.{Style.RESET_ALL}")
+                        print(f"{Fore.YELLOW}⚠️ Не выбрано ни одной сессии. Будет использована первая.{Style.RESET_ALL}")
                         selected_sessions = session_files[:1]
                 except ValueError:
                     print(f"{Fore.RED}✘ Некорректный ввод. Будет использована первая сессия.{Style.RESET_ALL}")
                     selected_sessions = session_files[:1]
-            elif sub_choice == '3':
-                selected_sessions = session_files
+            elif sub_choice == '3': selected_sessions = session_files
             elif sub_choice == '4':
                 target_groups_file_data = load_target_groups()
                 if target_groups_file_data is None:
                     print(f"{Fore.RED}✘ Не удалось загрузить группы из файла. Возврат в меню.{Style.RESET_ALL}")
                     continue
                 folder_links = [t for t in target_groups_file_data if isinstance(t, str) and 'addlist' in t]
-                if folder_links:
-                    print(
-                        f"{Fore.CYAN}ℹ Обнаружены ссылки на папки с группами: {len(folder_links)} шт.{Style.RESET_ALL}")
+                if folder_links: print(f"{Fore.CYAN}ℹ Обнаружены ссылки на папки с группами: {len(folder_links)} шт.{Style.RESET_ALL}")
                 print("\nВыберите сессии, из которых будет производиться рассылка по указанным группам:")
-                print("1. 1️⃣ Одна сессия")
-                print("2. 🔢 Несколько сессий")
-                print("3. ♾️ Все сессии")
-                print("0. Назад")
+                print("1. 1️⃣ Одна сессия"); print("2. 🔢 Несколько сессий"); print("3. ♾️ Все сессии"); print("0. Назад")
                 session_choice_for_groups = input("Выберите: ").strip()
-                if session_choice_for_groups == '1':
-                    selected_sessions = session_files[:1]
+                if session_choice_for_groups == '1': selected_sessions = session_files[:1]
                 elif session_choice_for_groups == '2':
                     indices_str = input("Сессии через запятую (1,3,5): ").strip()
                     try:
-                        nums = [int(x.strip()) - 1 for x in indices_str.split(',') if x.strip()]
+                        nums = [int(x.strip())-1 for x in indices_str.split(',') if x.strip()]
                         selected_sessions = [session_files[i] for i in nums if 0 <= i < len(session_files)]
                         if not selected_sessions:
-                            print(
-                                f"{Fore.YELLOW}⚠️ Не выбрано ни одной сессии. Будет использована первая.{Style.RESET_ALL}")
+                            print(f"{Fore.YELLOW}⚠️ Не выбрано ни одной сессии. Будет использована первая.{Style.RESET_ALL}")
                             selected_sessions = session_files[:1]
                     except ValueError:
                         print(f"{Fore.RED}✘ Некорректный ввод. Будет использована первая сессия.{Style.RESET_ALL}")
                         selected_sessions = session_files[:1]
-                elif session_choice_for_groups == '3':
-                    selected_sessions = session_files
-                else:
-                    continue
+                elif session_choice_for_groups == '3': selected_sessions = session_files
+                else: continue
             elif sub_choice == '5':
-                # Распределенная рассылка
                 if not distribution_config.tasks:
-                    print(
-                        f"{Fore.YELLOW}⚠️ Нет настроенных задач! Сначала создайте задачи в меню настроек.{Style.RESET_ALL}")
-                    await asyncio.sleep(2)
-                    continue
+                    print(f"{Fore.YELLOW}⚠️ Нет настроенных задач! Сначала создайте задачи в меню настроек.{Style.RESET_ALL}")
+                    await asyncio.sleep(2); continue
                 print("\nВыберите сессии для распределенной рассылки:")
-                print("1. 1️⃣ Одна сессия")
-                print("2. 🔢 Несколько сессий")
-                print("3. ♾️ Все сессии")
-                print("0. Назад")
+                print("1. 1️⃣ Одна сессия"); print("2. 🔢 Несколько сессий"); print("3. ♾️ Все сессии"); print("0. Назад")
                 session_choice_dist = input("Выберите: ").strip()
-                if session_choice_dist == '1':
-                    selected_sessions = session_files[:1]
+                if session_choice_dist == '1': selected_sessions = session_files[:1]
                 elif session_choice_dist == '2':
                     indices_str = input("Сессии через запятую (1,3,5): ").strip()
                     try:
-                        nums = [int(x.strip()) - 1 for x in indices_str.split(',') if x.strip()]
+                        nums = [int(x.strip())-1 for x in indices_str.split(',') if x.strip()]
                         selected_sessions = [session_files[i] for i in nums if 0 <= i < len(session_files)]
                         if not selected_sessions:
-                            print(
-                                f"{Fore.YELLOW}⚠️ Не выбрано ни одной сессии. Будет использована первая.{Style.RESET_ALL}")
+                            print(f"{Fore.YELLOW}⚠️ Не выбрано ни одной сессии. Будет использована первая.{Style.RESET_ALL}")
                             selected_sessions = session_files[:1]
                     except ValueError:
                         print(f"{Fore.RED}✘ Некорректный ввод. Будет использована первая сессия.{Style.RESET_ALL}")
                         selected_sessions = session_files[:1]
-                elif session_choice_dist == '3':
-                    selected_sessions = session_files
-                else:
-                    continue
+                elif session_choice_dist == '3': selected_sessions = session_files
+                else: continue
                 if not selected_sessions:
                     print(f"{Fore.RED}✘ Ошибка выбора сессии. Возврат в меню.{Style.RESET_ALL}")
-                    await asyncio.sleep(2)
-                    continue
+                    await asyncio.sleep(2); continue
                 if input("\n🚀 Запустить распределенную рассылку? (y/n): ").lower() == 'y':
                     print("\n" + Fore.MAGENTA + "🚀 ЗАПУСК РАСПРЕДЕЛЕННОЙ РАССЫЛКИ..." + Style.RESET_ALL)
                     await run_distributed_broadcast(current_api_id, current_api_hash, selected_sessions)
                     input("Нажмите Enter для продолжения...")
                 continue
-            else:
-                continue
+            else: continue
             if not selected_sessions:
                 print(f"{Fore.RED}✘ Ошибка выбора сессии. Возврат в меню.{Style.RESET_ALL}")
-                await asyncio.sleep(2)
-                continue
+                await asyncio.sleep(2); continue
             recipient_names = {"all": "Все диалоги", "users": "Только личные чаты", "groups": "Только группы"}
             print(f"\n{Fore.CYAN}ℹ Параметры:")
             if target_groups_file_data is not None:
                 folder_count = sum(1 for t in target_groups_file_data if isinstance(t, str) and 'addlist' in t)
                 if folder_count > 0:
-                    print(
-                        f"{Fore.CYAN}● Цели: {len(target_groups_file_data)} элементов (включая {folder_count} папок с группами){Style.RESET_ALL}")
-                else:
-                    print(f"{Fore.CYAN}● Цели: {len(target_groups_file_data)} групп/ссылок из файла{Style.RESET_ALL}")
-            else:
-                print(f"{Fore.CYAN}● Цели: {recipient_names[recipient_type]}")
-            if use_forward and forward_link:
-                print(f"{Fore.CYAN}📨 Пересылка: {forward_link}{Style.RESET_ALL}")
-            elif use_media and media_path and os.path.exists(media_path):
-                print(f"{Fore.CYAN}🖼 Медиафайл: {os.path.basename(media_path)}")
+                    print(f"{Fore.CYAN}● Цели: {len(target_groups_file_data)} элементов (включая {folder_count} папок с группами){Style.RESET_ALL}")
+                else: print(f"{Fore.CYAN}● Цели: {len(target_groups_file_data)} групп/ссылок из файла{Style.RESET_ALL}")
+            else: print(f"{Fore.CYAN}● Цели: {recipient_names[recipient_type]}")
+            if use_forward and forward_link: print(f"{Fore.CYAN}📨 Пересылка: {forward_link}{Style.RESET_ALL}")
+            elif use_media and media_path and os.path.exists(media_path): print(f"{Fore.CYAN}🖼 Медиафайл: {os.path.basename(media_path)}")
             print(f"🔢 Макс./аккаунт: {max_messages_per_account}")
-            if fast_mode:
-                print(f"{Fore.YELLOW}⚡ Режим: БЫСТРЫЙ (задержка {fast_delay}с)")
-            else:
-                print(f"⏳ Между чатами: {delay_between_messages}с")
+            if fast_mode: print(f"{Fore.YELLOW}⚡ Режим: БЫСТРЫЙ (задержка {fast_delay}с)")
+            else: print(f"⏳ Между чатами: {delay_between_messages}с")
             print(f"⏳ Между аккаунтами: {delay_between_accounts}с")
             print(f"🔂 Повтор: {'ВКЛЮЧЕН' if repeat_broadcast else 'ВЫКЛЮЧЕН'}")
-            if repeat_broadcast:
-                print(f"⏱️ Интервал повтора: {repeat_interval}с")
+            if repeat_broadcast: print(f"⏱️ Интервал повтора: {repeat_interval}с")
             print(f"🗑 Удаление у себя: {'ВКЛЮЧЕНО' if delete_after_send else 'ВЫКЛЮЧЕНО'}")
-            if notification_enabled:
-                print(f"{Fore.GREEN}🔔 Уведомления: ВКЛЮЧЕНЫ{Style.RESET_ALL}")
-            if auto_subscribe_enabled:
-                print(
-                    f"{Fore.MAGENTA}🤖 Автоподписка: ВКЛЮЧЕНА (ожидание {auto_subscribe_wait_for_mention}с, {auto_subscribe_cycles} цикла){Style.RESET_ALL}")
-            if use_proxy and proxy_manager.has_proxies():
-                print(f"{Fore.CYAN}🌐 Прокси: ВКЛЮЧЕНЫ{Style.RESET_ALL}")
-            if anti_ban_enabled:
-                print(f"{Fore.GREEN}🛡️ Анти-бан защита: ВКЛЮЧЕНА{Style.RESET_ALL}")
+            if notification_enabled: print(f"{Fore.GREEN}🔔 Уведомления: ВКЛЮЧЕНЫ{Style.RESET_ALL}")
+            if auto_subscribe_enabled: print(f"{Fore.MAGENTA}🤖 Автоподписка: ВКЛЮЧЕНА (ожидание {auto_subscribe_wait_for_mention}с, {auto_subscribe_cycles} цикла){Style.RESET_ALL}")
+            if use_proxy and proxy_manager.has_proxies(): print(f"{Fore.CYAN}🌐 Прокси: ВКЛЮЧЕНЫ{Style.RESET_ALL}")
+            if anti_ban_enabled: print(f"{Fore.GREEN}🛡️ Анти-бан защита: ВКЛЮЧЕНА{Style.RESET_ALL}")
             if input("\n🚀 Запустить рассылку параллельно? (y/n): ").lower() == 'y':
                 print("\n" + Fore.MAGENTA + "🚀 Запуск рассылки..." + Style.RESET_ALL)
                 await run_broadcast(current_api_id, current_api_hash, selected_sessions, message_to_send,
@@ -6435,8 +4844,7 @@ async def main_menu():
                 input("Нажмите Enter для продолжения...")
         elif choice == '2':
             if current_api_id == DEFAULT_API_ID or not current_api_hash or current_api_hash == "ЗАМЕНИТЕ НА ВАШ API HASH":
-                print(
-                    "\n" + Fore.YELLOW + "[!] ВНИМАНИЕ: Настройте API ID и API Hash в меню '3. Настройки'" + Style.RESET_ALL)
+                print("\n" + Fore.YELLOW + "[!] ВНИМАНИЕ: Настройте API ID и API Hash в меню '3. Настройки'" + Style.RESET_ALL)
                 input("Нажмите Enter...")
                 continue
             session_files = [f for f in os.listdir(session_folder) if f.endswith('.session')]
@@ -6455,46 +4863,35 @@ async def main_menu():
                 input("Нажмите Enter для продолжения...")
                 continue
             print(f"\n{Fore.GREEN}✔ Найдено {len(session_files)} сессий:")
-            for i, f in enumerate(session_files):
-                print(f"{i + 1}. {f}")
+            for i, f in enumerate(session_files): print(f"{i+1}. {f}")
             print(f"\n{Fore.CYAN}● Выберите сессии для вступления в группы:")
-            print("1. 1️⃣ Одна сессия")
-            print("2. 🔢 Несколько сессий")
-            print("3. ♾️ Все сессии")
-            print("0. Назад")
+            print("1. 1️⃣ Одна сессия"); print("2. 🔢 Несколько сессий"); print("3. ♾️ Все сессии"); print("0. Назад")
             sub_choice = input("Выберите: ").strip()
             selected_sessions = []
-            if sub_choice == '1':
-                selected_sessions = session_files[:1]
+            if sub_choice == '1': selected_sessions = session_files[:1]
             elif sub_choice == '2':
                 indices_str = input("Сессии через запятую (1,3,5): ").strip()
                 try:
-                    nums = [int(x.strip()) - 1 for x in indices_str.split(',') if x.strip()]
+                    nums = [int(x.strip())-1 for x in indices_str.split(',') if x.strip()]
                     selected_sessions = [session_files[i] for i in nums if 0 <= i < len(session_files)]
                     if not selected_sessions:
-                        print(
-                            f"{Fore.YELLOW}⚠️ Не выбрано ни одной сессии. Будет использована первая.{Style.RESET_ALL}")
+                        print(f"{Fore.YELLOW}⚠️ Не выбрано ни одной сессии. Будет использована первая.{Style.RESET_ALL}")
                         selected_sessions = session_files[:1]
                 except ValueError:
                     print(f"{Fore.RED}✘ Некорректный ввод. Будет использована первая сессия.{Style.RESET_ALL}")
                     selected_sessions = session_files[:1]
-            elif sub_choice == '3':
-                selected_sessions = session_files
-            else:
-                continue
+            elif sub_choice == '3': selected_sessions = session_files
+            else: continue
             if not selected_sessions:
                 print(f"{Fore.RED}✘ Ошибка выбора сессии. Возврат в меню.{Style.RESET_ALL}")
-                await asyncio.sleep(2)
-                continue
+                await asyncio.sleep(2); continue
             print(f"\n{Fore.CYAN}ℹ Параметры вступления:")
             print(f"📋 Сессий: {len(selected_sessions)}")
             print(f"🔗 Ссылок для входа: {len(enter_links)}")
             print(f"⏳ Задержка между вступлениями: 5 сек")
             print(f"⏳ Задержка между аккаунтами: {delay_between_accounts}с")
-            if use_proxy and proxy_manager.has_proxies():
-                print(f"{Fore.CYAN}🌐 Прокси: ВКЛЮЧЕНЫ{Style.RESET_ALL}")
-            if anti_ban_enabled:
-                print(f"{Fore.GREEN}🛡️ Анти-бан защита: ВКЛЮЧЕНА{Style.RESET_ALL}")
+            if use_proxy and proxy_manager.has_proxies(): print(f"{Fore.CYAN}🌐 Прокси: ВКЛЮЧЕНЫ{Style.RESET_ALL}")
+            if anti_ban_enabled: print(f"{Fore.GREEN}🛡️ Анти-бан защита: ВКЛЮЧЕНА{Style.RESET_ALL}")
             if input("\n🚀 Запустить вступление в группы? (y/n): ").lower() == 'y':
                 print("\n" + Fore.MAGENTA + "🚀 Запуск вступления в группы..." + Style.RESET_ALL)
                 await run_join_broadcast(current_api_id, current_api_hash, selected_sessions, enter_links)
@@ -6504,14 +4901,12 @@ async def main_menu():
         elif choice == '4':
             session_files = [f for f in os.listdir(session_folder) if f.endswith('.session')]
             print(f"\n{Fore.BLUE}📁 Сессий в '{session_folder}': {len(session_files)}")
-            if not session_files:
-                print("   (Не найдено)")
+            if not session_files: print("   (Не найдено)")
             for i, f in enumerate(session_files):
                 try:
                     size = os.path.getsize(os.path.join(session_folder, f)) / 1024
-                    print(f"{i + 1}. {f:<25} ({size:5.1f} КБ)")
-                except OSError:
-                    print(f"{i + 1}. {f:<25} (ошибка чтения размера)")
+                    print(f"{i+1}. {f:<25} ({size:5.1f} КБ)")
+                except OSError: print(f"{i+1}. {f:<25} (ошибка чтения размера)")
             input("\nEnter...")
         elif choice == '5':
             await add_session_by_number()
@@ -6528,10 +4923,8 @@ async def main_menu():
             print(f"{Fore.CYAN}🚪 До свидания!{Style.RESET_ALL}")
             break
         elif choice == '9':
-            # Парсер чатов
             if current_api_id == DEFAULT_API_ID or not current_api_hash or current_api_hash == "ЗАМЕНИТЕ НА ВАШ API HASH":
-                print(
-                    "\n" + Fore.YELLOW + "[!] ВНИМАНИЕ: Настройте API ID и API Hash в меню '3. Настройки'" + Style.RESET_ALL)
+                print("\n" + Fore.YELLOW + "[!] ВНИМАНИЕ: Настройте API ID и API Hash в меню '3. Настройки'" + Style.RESET_ALL)
                 input("Нажмите Enter...")
                 continue
             session_files = [f for f in os.listdir(session_folder) if f.endswith('.session')]
@@ -6542,44 +4935,33 @@ async def main_menu():
                 input("Нажмите Enter...")
                 continue
             print(f"\n{Fore.GREEN}✔ Найдено сессий: {len(session_files)}")
-            for i, f in enumerate(session_files, 1):
-                print(f"{i}. {f}")
+            for i, f in enumerate(session_files, 1): print(f"{i}. {f}")
             print("\nВыберите сессию для парсинга:")
-            print("1. 1️⃣ Одна сессия")
-            print("2. 🔢 Несколько сессий")
-            print("3. ♾️ Все сессии")
-            print("0. Назад")
+            print("1. 1️⃣ Одна сессия"); print("2. 🔢 Несколько сессий"); print("3. ♾️ Все сессии"); print("0. Назад")
             parse_choice = input("Выберите: ").strip()
             selected_sessions = []
-            if parse_choice == '1':
-                selected_sessions = session_files[:1]
+            if parse_choice == '1': selected_sessions = session_files[:1]
             elif parse_choice == '2':
                 indices_str = input("Сессии через запятую (1,3,5): ").strip()
                 try:
-                    nums = [int(x.strip()) - 1 for x in indices_str.split(',') if x.strip()]
+                    nums = [int(x.strip())-1 for x in indices_str.split(',') if x.strip()]
                     selected_sessions = [session_files[i] for i in nums if 0 <= i < len(session_files)]
                     if not selected_sessions:
-                        print(
-                            f"{Fore.YELLOW}⚠️ Не выбрано ни одной сессии. Будет использована первая.{Style.RESET_ALL}")
+                        print(f"{Fore.YELLOW}⚠️ Не выбрано ни одной сессии. Будет использована первая.{Style.RESET_ALL}")
                         selected_sessions = session_files[:1]
                 except ValueError:
                     print(f"{Fore.RED}✘ Некорректный ввод. Будет использована первая сессия.{Style.RESET_ALL}")
                     selected_sessions = session_files[:1]
-            elif parse_choice == '3':
-                selected_sessions = session_files
-            else:
-                continue
+            elif parse_choice == '3': selected_sessions = session_files
+            else: continue
             if not selected_sessions:
                 print(f"{Fore.RED}✘ Ошибка выбора сессии. Возврат в меню.{Style.RESET_ALL}")
-                await asyncio.sleep(2)
-                continue
+                await asyncio.sleep(2); continue
             print(f"\n{Fore.CYAN}ℹ Будет обработано сессий: {len(selected_sessions)}{Style.RESET_ALL}")
-            print(
-                f"{Fore.YELLOW}⚠️ Парсинг может занять продолжительное время в зависимости от количества групп.{Style.RESET_ALL}")
+            print(f"{Fore.YELLOW}⚠️ Парсинг может занять продолжительное время в зависимости от количества групп.{Style.RESET_ALL}")
             if input("\n🚀 Запустить парсинг чатов? (y/n): ").lower() == 'y':
                 for session_file in selected_sessions:
-                    if stop_event.is_set():
-                        break
+                    if stop_event.is_set(): break
                     await parse_chats_by_language(session_file, current_api_id, current_api_hash)
                     if len(selected_sessions) > 1:
                         print(f"\n{Fore.CYAN}⏳ Пауза 5 секунд перед следующей сессией...{Style.RESET_ALL}")
@@ -6589,12 +4971,10 @@ async def main_menu():
             print(f"{Fore.RED}✘ Выберите 1-9{Style.RESET_ALL}")
             await asyncio.sleep(1)
 
-
 def signal_handler(sig, frame):
     print("\n" + Fore.YELLOW + "🛑 Остановлено..." + Style.RESET_ALL)
     stop_event.set()
     log_manager.stop_server()
-
 
 signal.signal(signal.SIGINT, signal_handler)
 
